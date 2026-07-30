@@ -538,7 +538,6 @@
         catch (e) { return fallback; }
     }
 
-    // Variabel Konfigurasi Supabase Dinamis dengan Kredensial Kosong
     let supabaseConfig = getDB('pondok_supabase_config', { 
         url: '', 
         key: '' 
@@ -555,7 +554,7 @@
     const menuMaster = [ { id: 'view-santri', nama: 'Database Santri', icon: 'fa-id-card' }, { id: 'view-rekap', nama: 'Laporan Rekap Absen & PDF', icon: 'fa-file-pdf' }, { id: 'view-kelas', nama: 'Plotting Kelas', icon: 'fa-calendar-alt' }, { id: 'view-absen', nama: 'Absensi Kamera Scanner', icon: 'fa-camera' }, { id: 'view-keuangan', nama: 'Laporan Denda Keuangan', icon: 'fa-wallet' }, { id: 'view-yayasan', nama: 'Identitas & Layout ID', icon: 'fa-mosque' }, { id: 'view-lokasi', nama: 'Area Geofencing', icon: 'fa-map-location-dot' }, { id: 'view-hak-akses', nama: 'Hak Akses Role', icon: 'fa-shield-halved' }, { id: 'view-pengguna', nama: 'Akun Pegawai', icon: 'fa-users-gear' }, { id: 'view-database', nama: 'Database & Reset', icon: 'fa-cloud-arrow-up' } ];
 
     /* =========================================================
-       2. MESIN PENCETAK (PRINT ENGINE)
+       2. MESIN PENCETAK AMAN & STABIL (SOLUSI TOTAL HP)
        ========================================================= */
     function cetakElemenHTML(htmlIsiKonten, orientasiHalaman = 'portrait') {
         const iframeLama = document.getElementById('iframe-pencetakan-aman');
@@ -613,7 +612,16 @@
             </html>
         `);
         doc.close();
-        setTimeout(() => { iframe.contentWindow.focus(); iframe.contentWindow.print(); }, 800);
+        
+        // Eksekusi print langsung dengan penanganan aman untuk browser mobile
+        setTimeout(() => { 
+            try {
+                iframe.contentWindow.focus(); 
+                iframe.contentWindow.print(); 
+            } catch(err) {
+                alert("Fitur Print langsung dipicu melalui dialog browser.");
+            }
+        }, 1000);
     }
 
     function cetakAreaKhusus(idElemen) {
@@ -812,7 +820,6 @@
         if(lastTab === 'view-database') { 
             document.getElementById('zona-berbahaya-reset').style.display = (currentUser && currentUser.role === 'superadmin') ? 'block' : 'none'; 
             
-            // Logika UI Konfigurasi Server
             const cardSupabase = document.getElementById('pengaturan-supabase-card');
             if(currentUser && currentUser.role === 'superadmin') {
                 cardSupabase.style.display = 'block';
@@ -949,26 +956,20 @@
     function factoryResetAbsenSaja() { if(confirm("TINDAKAN INI HANYA AKAN MENGHAPUS DATA ABSENSI & DENDA. Lanjutkan?")) { localStorage.setItem('pondok_absensi', JSON.stringify([])); localStorage.setItem('pondok_tagihan_denda', JSON.stringify([])); alert("Data Absensi dan Tagihan Denda berhasil di-RESET menjadi (Nol)."); location.reload(); } }
     function factoryResetSistem() { if(confirm("ZONA BERBAHAYA! Anda akan MENGHAPUS SEMUA data. Lanjutkan?")) { if(confirm("AKSI PERMANEN! YAKIN 100%?")) { localStorage.removeItem('pondok_santri'); localStorage.removeItem('pondok_kelas'); localStorage.removeItem('pondok_tagihan_denda'); localStorage.removeItem('pondok_absensi'); let semuaAkun = getDB('pondok_users', []); localStorage.setItem('pondok_users', JSON.stringify(semuaAkun.filter(akun => akun.role === 'superadmin'))); alert("PROSES FORMAT BERHASIL."); location.reload(); } } }
     
-    // Logika Penyimpanan API Supabase
     function simpanKonfigurasiSupabase() {
         const url = document.getElementById('setting-supabase-url').value.trim();
         const key = document.getElementById('setting-supabase-key').value.trim();
         
         if(!url || !key) return alert("URL dan Anon Key tidak boleh kosong!");
         
-        // Membersihkan "/" (slash) berlebih di akhir URL
         const cleanUrl = url.endsWith('/') ? url.slice(0, -1) : url;
-        
         const config = { url: cleanUrl, key: key };
         localStorage.setItem('pondok_supabase_config', JSON.stringify(config));
-        
-        // Update variabel runtime
         supabaseConfig = config; 
         
         alert("Konfigurasi Server Supabase Berhasil Disimpan!");
     }
 
-    // Pengecekan apakah kredensial sudah ada sebelum eksekusi Cloud
     function cekKesiapanSupabase() {
         if(!supabaseConfig.url || !supabaseConfig.key) {
             alert("Server Supabase belum dikonfigurasi!\nSilakan atur URL dan Key terlebih dahulu.");
@@ -977,7 +978,6 @@
         return true;
     }
     
-    // Scanner Cloud & Modul Tarik Data Cloud
     function bukaScannerLoginTarikData() { 
         if (typeof Html5Qrcode === 'undefined') return alert("Library Scanner belum termuat."); 
         document.getElementById('modal-scanner-login').classList.remove('hidden'); 
@@ -987,24 +987,18 @@
         
         scannerLoginData.start({ facingMode: "environment" }, { fps: 15, qrbox: { width: 250, height: 250 } }, (teksQRCode) => { 
             try {
-                // Coba bedah isi QR Code (URL & API Key)
                 let dataQR = JSON.parse(teksQRCode);
                 
                 if (dataQR.k === KODE_RAHASIA_SYNC && dataQR.u && dataQR.a) { 
                     tutupScannerLoginTarikData(); 
-                    
-                    // 1. Simpan URL dan Key dari QR Code ke memori HP Baru ini
                     const configBaru = { url: dataQR.u, key: dataQR.a };
                     localStorage.setItem('pondok_supabase_config', JSON.stringify(configBaru));
-                    supabaseConfig = configBaru; // Update variabel sistem
-                    
-                    // 2. Tarik datanya dari Supabase yang baru
+                    supabaseConfig = configBaru; 
                     eksekusiTarikDataKeHPBaru(); 
                 } else { 
                     alert("Barcode tidak valid untuk aplikasi ini!"); 
                 }
             } catch (e) {
-                // Fallback (jika yang di-scan ternyata QR versi lama yang tidak ada URL-nya)
                 if (teksQRCode === KODE_RAHASIA_SYNC) {
                     tutupScannerLoginTarikData();
                     eksekusiTarikDataKeHPBaru();
@@ -1025,7 +1019,6 @@
         const wadah = document.getElementById('wadah-qr-sync'); 
         wadah.innerHTML = ''; 
 
-        // BUNGKUS URL DAN KEY KE DALAM QR CODE
         const payloadQR = JSON.stringify({
             k: KODE_RAHASIA_SYNC,
             u: supabaseConfig.url,
@@ -1033,7 +1026,6 @@
         });
 
         if (typeof QRCode !== 'undefined') {
-            // Kita besarkan sedikit ukuran QR agar mudah di-scan karena datanya lebih panjang
             new QRCode(wadah, { text: payloadQR, width: 220, height: 220, colorDark: "#04432A", colorLight: "#ffffff" }); 
         } else {
             wadah.innerHTML = "QR Lib Belum Dimuat"; 
