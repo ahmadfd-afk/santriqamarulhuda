@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="id">
 <head>
@@ -172,9 +173,11 @@
         @media print {
             .app-container, #id-card-modal { display: none !important; }
             body { background: white; padding: 0; margin: 0; display: block; color: black; }
-            #area-cetak-kolektif { display: grid !important; grid-template-columns: repeat(2, 1fr); gap: 15px; width: 100%; background: white; }
-            #area-cetak-kolektif.grid-portrait { grid-template-columns: repeat(3, 1fr) !important; gap: 10px; }
-            #area-cetak-rekap { display: block !important; width: 100%; padding: 20px; font-family: Arial, sans-serif; }
+            /* Memisahkan area cetak kolektif dan area cetak rekap agar tidak bentrok */
+            body.printing-kolektif #area-cetak-kolektif { display: grid !important; grid-template-columns: repeat(2, 1fr); gap: 15px; width: 100%; background: white; }
+            body.printing-kolektif #area-cetak-kolektif.grid-portrait { grid-template-columns: repeat(3, 1fr) !important; gap: 10px; }
+            body.printing-rekap #area-cetak-rekap { display: block !important; width: 100%; padding: 20px; font-family: Arial, sans-serif; }
+            
             .id-card-wrapper { page-break-inside: avoid; border: 1px solid #ccc; box-shadow: none !important; margin-bottom: 0; }
             table { width: 100%; border-collapse: collapse; }
             th, td { border: 1px solid #000; padding: 8px; text-align: left; }
@@ -252,7 +255,15 @@
                     <input type="hidden" id="edit-id-santri" value="">
                     
                     <label>Foto Santri</label>
-                    <input type="file" id="input-foto-santri" accept="image/*">
+                    <!-- Perbaikan: Tambah capture="environment" agar bisa langsung buka kamera (tergantung dukungan browser/device) -->
+                    <div style="display: flex; gap: 10px;">
+                        <input type="file" id="input-foto-santri" accept="image/*" style="flex: 1;" title="Pilih dari Galeri atau Kamera">
+                        <!-- Tombol opsional untuk trigger kamera secara eksplisit di perangkat mobile -->
+                        <button class="btn-outline" onclick="document.getElementById('input-foto-kamera').click()" style="margin: 0; width: auto; font-size: 0.8rem; padding: 10px;" title="Ambil Foto Langsung">
+                            <i class="fa-solid fa-camera"></i> Kamera
+                        </button>
+                        <input type="file" id="input-foto-kamera" accept="image/*" capture="environment" style="display: none;" onchange="syncFileInput(this, 'input-foto-santri')">
+                    </div>
                     <div id="edit-foto-hint" style="font-size:0.7rem; color:var(--warning); display:none; margin-top:3px;">*Biarkan kosong jika tidak ingin mengganti foto.</div>
                     
                     <label>Nama Lengkap</label>
@@ -654,7 +665,8 @@
     const isIOS = /iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent) && 'ontouchend' in document;
     if(isIOS) { document.getElementById('btn-install-pwa').classList.remove('hidden'); }
     function installPWA() {
-        if(isIOS) { alert("APPLE/iOS USER:\nTekan ikon 'Share' di bawah browser Safari lalu pilih 'Add to Home Screen'."); return; }
+        if(isIOS) { alert("APPLE/iOS USER:
+Tekan ikon 'Share' di bawah browser Safari lalu pilih 'Add to Home Screen'."); return; }
         if (deferredPrompt) { deferredPrompt.prompt(); deferredPrompt.userChoice.then((cr) => { if (cr.outcome === 'accepted') document.getElementById('btn-install-pwa').classList.add('hidden'); deferredPrompt = null; }); }
     }
 
@@ -829,6 +841,22 @@
     // ==========================================
     // MODUL SANTRI
     // ==========================================
+    // Perbaikan: Fungsi tambahan untuk menyinkronkan file dari input kamera hidden ke input utama
+    function syncFileInput(kameraInput, targetInputId) {
+        if (kameraInput.files && kameraInput.files.length > 0) {
+            const file = kameraInput.files[0];
+            const dataTransfer = new DataTransfer();
+            dataTransfer.items.add(file);
+            document.getElementById(targetInputId).files = dataTransfer.files;
+            
+            // Opsional: Beri umpan balik visual bahwa foto dari kamera sudah diambil
+            const hint = document.getElementById('edit-foto-hint');
+            hint.style.display = 'block';
+            hint.style.color = 'var(--success)';
+            hint.innerText = "✓ Foto dari kamera berhasil diambil.";
+        }
+    }
+
     function simpanSantri() {
         const idEdit = document.getElementById('edit-id-santri').value;
         const namaLengkap = document.getElementById('input-nama-santri').value; 
@@ -853,7 +881,8 @@
                 const nisTerbentuk = new Date().getFullYear().toString().slice(-2) + String(Date.now()).slice(-4);
                 if(fotoBase64Hasil === '') fotoBase64Hasil = 'https://cdn-icons-png.flaticon.com/512/847/847969.png';
                 databaseSantri.push({ id: Date.now(), nis: nisTerbentuk, nama: namaLengkap, alamat: alamatAsal, asrama: pilihanAsrama, kamar: nomorKamar, foto: fotoBase64Hasil });
-                alert(`Registrasi Berhasil!\nNIS Terbentuk: ${nisTerbentuk}`); 
+                alert(`Registrasi Berhasil!
+NIS Terbentuk: ${nisTerbentuk}`); 
             }
             localStorage.setItem('pondok_santri', JSON.stringify(databaseSantri)); batalEditSantri(); renderTabelSantri();
         });
@@ -868,12 +897,20 @@
         document.getElementById('input-alamat-santri').value = santri.alamat; document.getElementById('input-asrama-santri').value = santri.asrama;
         
         document.getElementById('form-santri-title').innerText = "Edit Data Santri"; document.getElementById('btn-simpan-santri').innerText = "UPDATE DATA SANTRI";
-        document.getElementById('btn-batal-edit-santri').classList.remove('hidden'); document.getElementById('edit-foto-hint').style.display = 'block'; window.scrollTo(0,0);
+        document.getElementById('btn-batal-edit-santri').classList.remove('hidden'); 
+        
+        const hint = document.getElementById('edit-foto-hint');
+        hint.style.display = 'block';
+        hint.style.color = 'var(--warning)';
+        hint.innerText = '*Biarkan kosong jika tidak ingin mengganti foto.';
+        
+        window.scrollTo(0,0);
     }
 
     function batalEditSantri() {
         document.getElementById('edit-id-santri').value = ""; document.getElementById('input-nama-santri').value = ""; document.getElementById('input-kamar-santri').value = "";
         document.getElementById('input-alamat-santri').value = ""; document.getElementById('input-foto-santri').value = "";
+        document.getElementById('input-foto-kamera').value = ""; // Reset input kamera juga
         document.getElementById('form-santri-title').innerText = "Registrasi Santri Baru"; document.getElementById('btn-simpan-santri').innerText = "SIMPAN DATA & GENERATE NIS";
         document.getElementById('btn-batal-edit-santri').classList.add('hidden'); document.getElementById('edit-foto-hint').style.display = 'none';
     }
@@ -1135,7 +1172,8 @@
         historyAbsensi.push(rekamAbsenSesi);
         localStorage.setItem('pondok_absensi', JSON.stringify(historyAbsensi));
         localStorage.setItem('pondok_tagihan_denda', JSON.stringify(arrayTagihanDenda)); 
-        alert(`Rekap Absensi Selesai Disimpan!\nTercatat: ${hitungAlpa} santri Alpa.`);
+        alert(`Rekap Absensi Selesai Disimpan!
+Tercatat: ${hitungAlpa} santri Alpa.`);
         switchTab('view-dashboard');
     }
 
@@ -1200,6 +1238,10 @@
     }
 
     function cetakLaporanPDF() {
+        // Perbaikan: Hapus kelas 'printing-kolektif' dan tambahkan 'printing-rekap' pada body
+        document.body.classList.remove('printing-kolektif');
+        document.body.classList.add('printing-rekap');
+        
         const filterBulan = document.getElementById('filter-bulan-rekap').value; // Format: YYYY-MM
         const filterKelasId = document.getElementById('filter-kelas-rekap').value;
 
@@ -1209,7 +1251,10 @@
         const yayasanDB = JSON.parse(localStorage.getItem('pondok_yayasan')) || {};
         const settingUang = JSON.parse(localStorage.getItem('pondok_setting_keuangan')) || { limit_alpa: 3, sanksi_ekstra: "Panggilan Orang Tua" };
 
-        if(santriDB.length === 0) return alert("Belum ada santri terdaftar.");
+        if(santriDB.length === 0) {
+            document.body.classList.remove('printing-rekap');
+            return alert("Belum ada santri terdaftar.");
+        }
         
         let dataRekap = {};
         santriDB.forEach(s => { dataRekap[s.nis] = { nama: s.nama, kamar: s.kamar, hadir: 0, izin: 0, sakit: 0, alpa: 0, denda: 0 }; });
@@ -1277,7 +1322,11 @@
         }
 
         wadahPrint.innerHTML = htmlPrint; wadahPrint.classList.remove('hidden');
-        setTimeout(() => { window.print(); wadahPrint.classList.add('hidden'); }, 500);
+        setTimeout(() => { 
+            window.print(); 
+            wadahPrint.classList.add('hidden'); 
+            document.body.classList.remove('printing-rekap'); // Reset setelah print
+        }, 500);
     }
 
     // ==========================================
@@ -1408,7 +1457,10 @@
 
     // Fungsi Format / Hapus Khusus Absensi (Meringankan Beban Database Bulanan)
     function factoryResetAbsenSaja() {
-        if(confirm("TINDAKAN INI HANYA AKAN MENGHAPUS DATA ABSENSI & DENDA.\nDatabase Santri, Kelas, Akun Ustadz, dan Setting Yayasan akan TETAP AMAN.\n\nCocok untuk pergantian bulan/semester. Lanjutkan?")) {
+        if(confirm("TINDAKAN INI HANYA AKAN MENGHAPUS DATA ABSENSI & DENDA.
+Database Santri, Kelas, Akun Ustadz, dan Setting Yayasan akan TETAP AMAN.
+
+Cocok untuk pergantian bulan/semester. Lanjutkan?")) {
             localStorage.setItem('pondok_absensi', JSON.stringify([]));
             localStorage.setItem('pondok_tagihan_denda', JSON.stringify([]));
             alert("Data Absensi dan Tagihan Denda berhasil di-RESET menjadi (Nol)."); location.reload();
@@ -1416,13 +1468,16 @@
     }
 
     function factoryResetSistem() {
-        if(confirm("ZONA BERBAHAYA!\nAnda akan MENGHAPUS SEMUA data (Santri, Absen, Keuangan, Kelas, dll) dari HP ini. Lanjutkan?")) {
-            if(confirm("AKSI PERMANEN!\nYAKIN 100% ingin mem-format ulang sistem mesin ini?")) {
+        if(confirm("ZONA BERBAHAYA!
+Anda akan MENGHAPUS SEMUA data (Santri, Absen, Keuangan, Kelas, dll) dari HP ini. Lanjutkan?")) {
+            if(confirm("AKSI PERMANEN!
+YAKIN 100% ingin mem-format ulang sistem mesin ini?")) {
                 localStorage.removeItem('pondok_santri'); localStorage.removeItem('pondok_kelas');
                 localStorage.removeItem('pondok_tagihan_denda'); localStorage.removeItem('pondok_absensi');
                 let semuaAkun = JSON.parse(localStorage.getItem('pondok_users')) || [];
                 localStorage.setItem('pondok_users', JSON.stringify(semuaAkun.filter(akun => akun.role === 'superadmin')));
-                alert("PROSES FORMAT BERHASIL.\nSistem kembali bersih (Fresh State)."); location.reload();
+                alert("PROSES FORMAT BERHASIL.
+Sistem kembali bersih (Fresh State)."); location.reload();
             }
         }
     }
@@ -1512,8 +1567,16 @@
     function tutupModalCetak() { document.getElementById('id-card-modal').classList.add('hidden'); }
 
     function cetakKolektifF4(orientasi = 'landscape') {
+        // Perbaikan: Hapus kelas 'printing-rekap' dan tambahkan 'printing-kolektif' pada body
+        document.body.classList.remove('printing-rekap');
+        document.body.classList.add('printing-kolektif');
+        
         let databaseSantri = JSON.parse(localStorage.getItem('pondok_santri')) || [];
-        if (databaseSantri.length === 0) return alert("Belum ada memori data santri.");
+        if (databaseSantri.length === 0) {
+            document.body.classList.remove('printing-kolektif');
+            return alert("Belum ada memori data santri.");
+        }
+        
         const dataYayasan = JSON.parse(localStorage.getItem('pondok_yayasan')) || {};
         const wadahCetak = document.getElementById('area-cetak-kolektif');
         wadahCetak.innerHTML = ''; wadahCetak.classList.remove('hidden');
@@ -1542,7 +1605,12 @@
             if (typeof QRCode !== 'undefined' && posisiQR !== 'hidden') { new QRCode(document.getElementById(`qr-kolektif-${santri.nis}`), { text: santri.nis, width: 48, height: 48 }); } 
             else if (posisiQR !== 'hidden') { document.getElementById(`qr-kolektif-${santri.nis}`).innerHTML = "<div style='font-size:8px; border:1px solid #000; padding:2px;'>QR Offline</div>"; }
         });
-        setTimeout(() => { window.print(); wadahCetak.classList.add('hidden'); }, 800);
+        
+        setTimeout(() => { 
+            window.print(); 
+            wadahCetak.classList.add('hidden'); 
+            document.body.classList.remove('printing-kolektif'); // Reset setelah print
+        }, 800);
     }
 
     function renderFormGeofencing() { const k = JSON.parse(localStorage.getItem('pondok_gps')); if(k) { document.getElementById('input-lat').value = k.lat; document.getElementById('input-lng').value = k.lng; document.getElementById('input-radius').value = k.radius; } }
