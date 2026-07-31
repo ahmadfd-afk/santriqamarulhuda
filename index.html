@@ -782,6 +782,46 @@
        3. FUNGSI LOGIKA UTAMA APLIKASI
        ========================================================= */
 
+    // --- FUNGSI TEMA DINAMIS ---
+    function terapkanTemaBerdasarkanRole(role) {
+        const root = document.documentElement;
+        
+        if (role === 'admin') {
+            // Tema Pink (Admin Tata Usaha)
+            root.style.setProperty('--primary', '#C2185B');
+            root.style.setProperty('--primary-light', '#E91E63');
+            root.style.setProperty('--accent', '#F48FB1');
+            root.style.setProperty('--accent-light', '#FCE4EC');
+        } 
+        else if (role === 'accounting') {
+            // Tema Biru (Keuangan)
+            root.style.setProperty('--primary', '#0D47A1');
+            root.style.setProperty('--primary-light', '#1976D2');
+            root.style.setProperty('--accent', '#64B5F6');
+            root.style.setProperty('--accent-light', '#E3F2FD');
+        } 
+        else if (role === 'superadmin') {
+            // Tema Gelap / Elegan untuk Super Admin (Bisa disesuaikan)
+            root.style.setProperty('--primary', '#212121');
+            root.style.setProperty('--primary-light', '#424242');
+            root.style.setProperty('--accent', '#D4AF37');
+            root.style.setProperty('--accent-light', '#F4E29F');
+        } 
+        else {
+            // Tema Hijau (Ustadz / Default)
+            root.style.setProperty('--primary', '#04432A');
+            root.style.setProperty('--primary-light', '#0B6B46');
+            root.style.setProperty('--accent', '#D4AF37');
+            root.style.setProperty('--accent-light', '#F4E29F');
+        }
+
+        // Ubah juga warna status bar di HP menyesuaikan tema
+        const metaThemeColor = document.querySelector('meta[name="theme-color"]');
+        if (metaThemeColor) {
+            metaThemeColor.setAttribute("content", getComputedStyle(root).getPropertyValue('--primary').trim());
+        }
+    }
+
     function initApp() {
         muatScriptEksternal(); 
         if (!localStorage.getItem('pondok_users')) { localStorage.setItem('pondok_users', JSON.stringify([ { id: 1, nama: "Super Admin Mutlak", username: "admin", password: "admin123", role: "superadmin", foto: 'https://cdn-icons-png.flaticon.com/512/149/149071.png' }, { id: 2, nama: "Admin Tata Usaha", username: "tu", password: "tu123", role: "admin", foto: 'https://cdn-icons-png.flaticon.com/512/149/149071.png' }, { id: 3, nama: "Ustadz Pengajar", username: "ustadz", password: "ustadz123", role: "ustadz", foto: 'https://cdn-icons-png.flaticon.com/512/149/149071.png' }, { id: 4, nama: "Kasir Keuangan", username: "keuangan", password: "keuangan123", role: "accounting", foto: 'https://cdn-icons-png.flaticon.com/512/149/149071.png' } ])); }
@@ -796,6 +836,10 @@
             currentUser = getDB('pondok_active_user', null);
             if(currentUser && currentUser.role) {
                 document.getElementById('user-role-badge').innerText = currentUser.role.toUpperCase();
+                
+                // --- PANGGIL TEMA DI SINI SAAT RELOAD APLIKASI ---
+                terapkanTemaBerdasarkanRole(currentUser.role);
+                
                 document.getElementById('view-login').classList.add('hidden'); document.getElementById('app-header').classList.remove('hidden'); document.getElementById('dashboard-wrapper').classList.remove('hidden'); document.getElementById('app-nav').classList.remove('hidden');
                 renderMenuBerdasarkanAkses();
                 const lastTab = localStorage.getItem('pondok_active_tab') || 'view-dashboard';
@@ -901,7 +945,32 @@
         }
     }
 
-    function prosesLogin() { const usernameInput = document.getElementById('login-username').value; const passwordInput = document.getElementById('login-password').value; let users = getDB('pondok_users', []); currentUser = users.find(user => user.username === usernameInput && user.password === passwordInput); if (currentUser) { localStorage.setItem('pondok_active_user', JSON.stringify(currentUser)); localStorage.setItem('pondok_active_tab', 'view-dashboard'); document.getElementById('login-error').classList.add('hidden'); document.getElementById('user-role-badge').innerText = currentUser.role.toUpperCase(); document.getElementById('view-login').classList.add('hidden'); document.getElementById('app-header').classList.remove('hidden'); document.getElementById('dashboard-wrapper').classList.remove('hidden'); document.getElementById('app-nav').classList.remove('hidden'); renderMenuBerdasarkanAkses(); switchTab('view-dashboard'); } else { document.getElementById('login-error').classList.remove('hidden'); } }
+    function prosesLogin() { 
+        const usernameInput = document.getElementById('login-username').value; 
+        const passwordInput = document.getElementById('login-password').value; 
+        let users = getDB('pondok_users', []); 
+        currentUser = users.find(user => user.username === usernameInput && user.password === passwordInput); 
+        
+        if (currentUser) { 
+            localStorage.setItem('pondok_active_user', JSON.stringify(currentUser)); 
+            localStorage.setItem('pondok_active_tab', 'view-dashboard'); 
+            document.getElementById('login-error').classList.add('hidden'); 
+            document.getElementById('user-role-badge').innerText = currentUser.role.toUpperCase(); 
+            
+            // --- PANGGIL TEMA DI SINI SAAT LOGIN BARU ---
+            terapkanTemaBerdasarkanRole(currentUser.role);
+            
+            document.getElementById('view-login').classList.add('hidden'); 
+            document.getElementById('app-header').classList.remove('hidden'); 
+            document.getElementById('dashboard-wrapper').classList.remove('hidden'); 
+            document.getElementById('app-nav').classList.remove('hidden'); 
+            renderMenuBerdasarkanAkses(); 
+            switchTab('view-dashboard'); 
+        } else { 
+            document.getElementById('login-error').classList.remove('hidden'); 
+        } 
+    }
+    
     function prosesLogout() { localStorage.removeItem('pondok_active_user'); localStorage.removeItem('pondok_active_tab'); location.reload(); }
     function switchTab(viewId) { document.querySelectorAll('.page-view').forEach(el => el.classList.add('hidden')); document.getElementById(viewId).classList.remove('hidden'); localStorage.setItem('pondok_active_tab', viewId); bukaFungsiTabSesuaiTujuan(viewId); }
     function openSubMenu(id) { switchTab(id); } function closeSubMenu() { if(html5QrcodeScanner) html5QrcodeScanner.stop(); switchTab('view-dashboard'); }
