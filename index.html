@@ -1174,16 +1174,18 @@
         }
     }
 
+    // FUNGSI INI YANG DIUBAH AGAR PWA VALID
     function registerServiceWorker() {
         if ('serviceWorker' in navigator) {
-            const swCode = `
-                self.addEventListener('install', (e) => { self.skipWaiting(); });
-                self.addEventListener('activate', (e) => { e.waitUntil(clients.claim()); });
-                self.addEventListener('fetch', (e) => { e.respondWith(fetch(e.request).catch(() => caches.match(e.request))); });
-            `;
-            const blob = new Blob([swCode], { type: 'text/javascript' });
-            const swUrl = URL.createObjectURL(blob);
-            navigator.serviceWorker.register(swUrl).catch(() => {});
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('./sw.js')
+                    .then(registration => {
+                        console.log('Service Worker berhasil didaftarkan:', registration.scope);
+                    })
+                    .catch(error => {
+                        console.error('Service Worker gagal didaftarkan:', error);
+                    });
+            });
         }
     }
 
