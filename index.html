@@ -1172,7 +1172,7 @@
         document.getElementById('card-yayasan').innerText = yayasan.yayasan || "Instansi"; 
 
         document.getElementById('back-instansi-name').innerText = yayasan.pondok || "INSTANSI PENDIDIKAN";
-        document.getElementById('back-tata-tertib-text').innerText = yayasan.tata_tertib || "1. Wajib menjaga nama baik instansi.\n2. Kartu wajib dibawa setiap saat.";
+        document.getElementById('back-tata-tertib-text').innerText = yayasan.tata_tertib || "1. Wajib menjaga tata tertib... \n2. Kartu wajib dibawa setiap saat.";
         document.getElementById('back-mudir-nama').innerText = yayasan.mudir || "Pimpinan";
         if (yayasan.ttd_mudir) {
             document.getElementById('back-ttd-img').src = yayasan.ttd_mudir;
@@ -1750,7 +1750,12 @@
         scannerLoginData.start({ facingMode: "environment" }, { fps: 15, qrbox: { width: 250, height: 250 } }, (txt) => {
             try {
                 let d = JSON.parse(txt);
-                if(d.u && d.k) { supabaseConfig = { url: d.u, key: d.k }; localStorage.setItem('pondok_supabase_config', JSON.stringify(supabaseConfig)); tutupScannerLoginTarikData(); eksekusiTarikDataKeHPBaru(); }
+                if(d.u && d.k) { 
+                    supabaseConfig = { url: d.u, key: d.k }; 
+                    localStorage.setItem('pondok_supabase_config', JSON.stringify(supabaseConfig)); 
+                    tutupScannerLoginTarikData(); 
+                    tarikDataDariSupabase(); // Perbaikan di baris ini
+                }
             } catch(e) { alert("QR tidak valid"); }
         }, ()=>{});
     }
