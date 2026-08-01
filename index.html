@@ -13,7 +13,8 @@
     <meta name="apple-mobile-web-app-title" content="LMS Apps">
     <link id="apple-touch-icon" rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/3592/3592078.png">
     
-    <link rel="manifest" href="manifest.json">
+    <!-- PWA Manifest Langsung di dalam HTML -->
+    <link rel="manifest" href='data:application/manifest+json,{"name":"LMS - Liquid Glass Pro","short_name":"LMS Apps","start_url":".","display":"standalone","background_color":"#F5F5F7","theme_color":"#04432A","icons":[{"src":"https://cdn-icons-png.flaticon.com/512/3592/3592078.png","sizes":"192x192","type":"image/png"},{"src":"https://cdn-icons-png.flaticon.com/512/3592/3592078.png","sizes":"512x512","type":"image/png"}]}'>
 
     <style>
         :root {
@@ -340,7 +341,8 @@
             <div class="login-overlay"></div>
             <div class="card glass-card-login">
                 <div style="text-align: center; margin-bottom: 14px;">
-                    <img src="https://cdn-icons-png.flaticon.com/512/3592/3592078.png" id="login-logo" style="width: 65px; height: 65px; border-radius: 50%; border: 2.5px solid var(--accent); padding: 3px; background: rgba(255,255,255,0.85); backdrop-filter: blur(10px); box-shadow: 0 4px 15px rgba(0,0,0,0.25);" alt="Logo">
+                    <!-- UKURAN LOGO LOGIN DIPERBESAR (110px) -->
+                    <img src="https://cdn-icons-png.flaticon.com/512/3592/3592078.png" id="login-logo" style="width: 110px; height: 110px; border-radius: 50%; border: 3px solid var(--accent); padding: 5px; background: rgba(255,255,255,0.85); backdrop-filter: blur(10px); box-shadow: 0 4px 15px rgba(0,0,0,0.3);" alt="Logo">
                     <h2 style="font-weight: 800; margin-top:8px;" id="login-pondok-name">Sistem Monitoring</h2>
                     <p style="color: rgba(255,255,255,0.8); font-size: 0.72rem; margin-top: 2px;">Silakan masuk untuk melanjutkan</p>
                 </div>
@@ -1174,18 +1176,20 @@
         }
     }
 
-    // FUNGSI INI YANG DIUBAH AGAR PWA VALID
+    // PWA Service Worker Inject 1 File
     function registerServiceWorker() {
         if ('serviceWorker' in navigator) {
-            window.addEventListener('load', () => {
-                navigator.serviceWorker.register('./sw.js')
-                    .then(registration => {
-                        console.log('Service Worker berhasil didaftarkan:', registration.scope);
-                    })
-                    .catch(error => {
-                        console.error('Service Worker gagal didaftarkan:', error);
-                    });
-            });
+            const swCode = `
+                const CACHE_NAME = 'lms-app-v3';
+                self.addEventListener('install', (e) => { self.skipWaiting(); });
+                self.addEventListener('activate', (e) => { e.waitUntil(clients.claim()); });
+                self.addEventListener('fetch', (e) => { 
+                    e.respondWith(fetch(e.request).catch(() => caches.match(e.request))); 
+                });
+            `;
+            const blob = new Blob([swCode], { type: 'text/javascript' });
+            const swUrl = URL.createObjectURL(blob);
+            navigator.serviceWorker.register(swUrl).catch(() => {});
         }
     }
 
@@ -1771,12 +1775,24 @@
         getDB('pondok_kelas', []).forEach(k => { dropdown.innerHTML += `<option value="${k.id}">[${k.waktu_mulai}-${k.waktu_selesai}] ${k.mapel} - ${k.nama}</option>`; });
     }
 
+    // UPDATE: Penambahan status "Belum" pada radio absen santri
     function renderAbsenSantriByKelas() {
         const idKelasTerpilih = document.getElementById('pilih-kelas-absen').value; const wadahListSantri = document.getElementById('student-list'); wadahListSantri.innerHTML = '';
         if(!idKelasTerpilih) return;
         const objKelas = getDB('pondok_kelas', []).find(x => x.id == idKelasTerpilih); if(!objKelas) return;
         getDB('pondok_santri', []).filter(s => objKelas.santri_ids.includes(s.id)).forEach(dataS => {
-            wadahListSantri.innerHTML += `<div class="student-item" id="baris_santri_${dataS.nis}" style="display:flex; flex-direction:column; padding:12px 0; border-bottom:1px solid rgba(0,0,0,0.06); gap:10px;"><div style="display:flex; justify-content:space-between; align-items:center;"><h4 style="color:var(--primary); margin:0;">${dataS.nama}</h4><p style="font-weight:600; font-size:0.75rem; color:var(--text-muted); margin:0;">NIS: ${dataS.nis}</p></div><div style="display:flex; gap:6px;"><input type="radio" name="status_absen_${dataS.id}" value="Hadir" id="hadir_${dataS.id}" style="display:none;" checked><label for="hadir_${dataS.id}" style="flex:1; text-align:center; padding:8px; border-radius:10px; background:var(--success); color:white; font-size:0.75rem; cursor:pointer; margin:0;">Hadir</label><input type="radio" name="status_absen_${dataS.id}" value="Izin" id="izin_${dataS.id}" style="display:none;"><label for="izin_${dataS.id}" style="flex:1; text-align:center; padding:8px; border-radius:10px; background:#ddd; color:#333; font-size:0.75rem; cursor:pointer; margin:0;">Izin</label><input type="radio" name="status_absen_${dataS.id}" value="Sakit" id="sakit_${dataS.id}" style="display:none;"><label for="sakit_${dataS.id}" style="flex:1; text-align:center; padding:8px; border-radius:10px; background:#ddd; color:#333; font-size:0.75rem; cursor:pointer; margin:0;">Sakit</label><input type="radio" name="status_absen_${dataS.id}" value="Alpa" id="alpa_${dataS.id}" style="display:none;"><label for="alpa_${dataS.id}" style="flex:1; text-align:center; padding:8px; border-radius:10px; background:#ddd; color:#333; font-size:0.75rem; cursor:pointer; margin:0;">Alpa</label></div></div>`;
+            wadahListSantri.innerHTML += `<div class="student-item" id="baris_santri_${dataS.nis}" style="display:flex; flex-direction:column; padding:12px 0; border-bottom:1px solid rgba(0,0,0,0.06); gap:10px;"><div style="display:flex; justify-content:space-between; align-items:center;"><h4 style="color:var(--primary); margin:0;">${dataS.nama}</h4><p style="font-weight:600; font-size:0.75rem; color:var(--text-muted); margin:0;">NIS: ${dataS.nis}</p></div><div style="display:flex; gap:6px;">
+                <input type="radio" name="status_absen_${dataS.id}" value="Belum" id="belum_${dataS.id}" style="display:none;" checked>
+                <label for="belum_${dataS.id}" style="flex:1; text-align:center; padding:8px; border-radius:10px; background:#95a5a6; color:white; font-size:0.7rem; cursor:pointer; margin:0;">Belum</label>
+                <input type="radio" name="status_absen_${dataS.id}" value="Hadir" id="hadir_${dataS.id}" style="display:none;">
+                <label for="hadir_${dataS.id}" style="flex:1; text-align:center; padding:8px; border-radius:10px; background:#ddd; color:#333; font-size:0.7rem; cursor:pointer; margin:0;">Hadir</label>
+                <input type="radio" name="status_absen_${dataS.id}" value="Izin" id="izin_${dataS.id}" style="display:none;">
+                <label for="izin_${dataS.id}" style="flex:1; text-align:center; padding:8px; border-radius:10px; background:#ddd; color:#333; font-size:0.7rem; cursor:pointer; margin:0;">Izin</label>
+                <input type="radio" name="status_absen_${dataS.id}" value="Sakit" id="sakit_${dataS.id}" style="display:none;">
+                <label for="sakit_${dataS.id}" style="flex:1; text-align:center; padding:8px; border-radius:10px; background:#ddd; color:#333; font-size:0.7rem; cursor:pointer; margin:0;">Sakit</label>
+                <input type="radio" name="status_absen_${dataS.id}" value="Alpa" id="alpa_${dataS.id}" style="display:none;">
+                <label for="alpa_${dataS.id}" style="flex:1; text-align:center; padding:8px; border-radius:10px; background:#ddd; color:#333; font-size:0.7rem; cursor:pointer; margin:0;">Alpa</label>
+            </div></div>`;
         });
         document.querySelectorAll('input[type="radio"]').forEach(radio => {
             radio.addEventListener('change', (e) => {
@@ -1784,6 +1800,7 @@
                 parent.querySelectorAll('label').forEach(lbl => { lbl.style.background = '#ddd'; lbl.style.color = '#333'; });
                 const lbl = parent.querySelector(`label[for="${e.target.id}"]`);
                 lbl.style.color = 'white';
+                if(e.target.value === 'Belum') lbl.style.background = '#95a5a6';
                 if(e.target.value === 'Hadir') lbl.style.background = 'var(--success)';
                 if(e.target.value === 'Izin') lbl.style.background = 'var(--info)';
                 if(e.target.value === 'Sakit') lbl.style.background = 'var(--warning)';
@@ -1814,6 +1831,8 @@
         } else { kotakHasil.innerHTML = `<span style="color:var(--danger);">NIS [${nis}] tidak di kelas ini!</span>`; }
         stopScanner(); setTimeout(startScanner, 1200);
     }
+    
+    // UPDATE: Santri yg statusnya masih "Belum" saat dikirim otomatis masuk sbg Alpa
     function kirimDataAbsen() {
         let tagihan = getDB('pondok_tagihan_denda', []); let absen = getDB('pondok_absensi', []); let santriDB = getDB('pondok_santri', []);
         const kls = getDB('pondok_kelas', []).find(x => x.id == document.getElementById('pilih-kelas-absen').value);
@@ -1822,8 +1841,13 @@
         document.querySelectorAll('.student-item').forEach(blok => {
             const rad = blok.querySelector('input[type="radio"]:checked'); if(!rad) return;
             const sId = rad.name.split('_')[2]; const sObj = santriDB.find(p => p.id == sId);
-            rekam.detail.push({ id_santri: sObj.id, nis: sObj.nis, status: rad.value });
-            if(rad.value === 'Alpa') {
+            
+            let statusAkhir = rad.value;
+            // Jika Ustadz tidak menscan/memilih manual dan status masih 'Belum', otomatis dianggap 'Alpa'
+            if(statusAkhir === 'Belum') statusAkhir = 'Alpa';
+            
+            rekam.detail.push({ id_santri: sObj.id, nis: sObj.nis, status: statusAkhir });
+            if(statusAkhir === 'Alpa') {
                 tagihan.push({ id_tagihan: Date.now() + countAlpa, nis: sObj.nis, nama: sObj.nama, keterangan: `Alpa: ${kls.mapel}`, nominal: 10000 });
                 countAlpa++;
             }
