@@ -3,17 +3,31 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Sistem Manajemen (LMS) - Liquid Glass Pro</title>
+    <title>SMS - Sistem Manajemen Santri</title>
     
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" media="print" onload="this.media='all'">
     
+    <!-- PWA Meta Tags -->
     <meta name="theme-color" content="#04432A">
     <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="apple-mobile-web-app-title" content="LMS Apps">
-    <link id="apple-touch-icon" rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/3592/3592078.png">
+    <meta name="apple-mobile-web-app-title" content="SMS">
+    <meta name="application-name" content="SMS">
+    <meta name="description" content="SMS - Sistem Manajemen Santri">
     
-    <link rel="manifest" href='data:application/manifest+json,{"name":"LMS - Liquid Glass Pro","short_name":"LMS Apps","start_url":".","display":"standalone","background_color":"#F5F5F7","theme_color":"#04432A","icons":[{"src":"https://cdn-icons-png.flaticon.com/512/3592/3592078.png","sizes":"192x192","type":"image/png"}]}'>
+    <!-- Icons -->
+    <link id="apple-touch-icon" rel="apple-touch-icon" href="icon-180.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="favicon-16.png">
+    <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
+    <link rel="icon" type="image/png" sizes="512x512" href="icon-512.png">
+    <link rel="apple-touch-icon" sizes="152x152" href="icon-152.png">
+    <link rel="apple-touch-icon" sizes="167x167" href="icon-167.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="icon-180.png">
+    
+    <!-- PWA Manifest -->
+    <link rel="manifest" href="manifest.json">
 
     <style>
         :root {
@@ -47,12 +61,28 @@
         .glass-card-login h2 { color: #ffffff !important; text-shadow: 0 2px 8px rgba(0,0,0,0.3); font-size: 1.1rem; }
         .glass-card-login input, .glass-card-login select { background: rgba(255, 255, 255, 0.9) !important; border: 1px solid rgba(255,255,255,0.6); position: relative; z-index: 50; border-radius: 12px; padding: 12px 14px; margin-bottom: 8px; font-size: 0.95rem; }
         header { background: linear-gradient(135deg, var(--primary), var(--primary-light)); color: white; padding: calc(14px + env(safe-area-inset-top, 0px)) 18px 16px 18px; border-bottom-left-radius: var(--radius-lg); border-bottom-right-radius: var(--radius-lg); position: sticky; top: 0; z-index: 1000; box-shadow: 0 10px 30px rgba(0,0,0,0.18); border-bottom: 3px solid var(--accent); width: 100%; transition: 0.35s all ease; }
-        .header-top { display: flex; justify-content: space-between; align-items: center; width: 100%; }
+        .header-top { display: flex; justify-content: space-between; align-items: center; width: 100%; position: relative; }
         .header-identity { display: flex; align-items: center; gap: 12px; }
         .header-logo { width: 44px; height: 44px; background: white; border-radius: 50%; padding: 2px; border: 2px solid var(--accent); object-fit: cover; }
         .header-title h1 { font-size: 1rem; font-weight: 700; color: var(--accent); }
         .header-title p { font-size: 0.75rem; color: #E8F8F5; margin-bottom: 1px; }
         .header-title .yayasan-text { font-size: 0.68rem; color: var(--accent-light); }
+        
+        /* USER PROFILE DROPDOWN STYLING */
+        .user-profile-btn { display: flex; align-items: center; gap: 8px; background: rgba(255, 255, 255, 0.18); padding: 5px 12px 5px 6px; border-radius: 24px; cursor: pointer; border: 1px solid rgba(255, 255, 255, 0.35); transition: 0.25s all ease; backdrop-filter: blur(10px); }
+        .user-profile-btn:active { transform: scale(0.95); background: rgba(255, 255, 255, 0.3); }
+        .user-profile-btn img { width: 30px; height: 30px; border-radius: 50%; object-fit: cover; border: 1.5px solid var(--accent); background: #fff; }
+        .user-profile-btn span { font-size: 0.78rem; font-weight: 700; color: #ffffff; max-width: 90px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .user-profile-btn i { font-size: 0.65rem; color: var(--accent-light); }
+
+        .profile-dropdown-menu { position: absolute; right: 0; top: 52px; background: rgba(255, 255, 255, 0.96); backdrop-filter: blur(25px) saturate(200%); -webkit-backdrop-filter: blur(25px) saturate(200%); border-radius: 18px; box-shadow: 0 15px 35px rgba(0,0,0,0.3); width: 210px; color: var(--text-main); overflow: hidden; border: 1px solid rgba(255, 255, 255, 0.8); z-index: 1005; transition: 0.2s all ease; transform-origin: top right; }
+        .dropdown-header-info { padding: 12px 14px; background: rgba(4, 67, 42, 0.06); border-bottom: 1px solid rgba(0,0,0,0.06); font-size: 0.72rem; }
+        .dropdown-header-info strong { display: block; color: var(--primary); font-size: 0.82rem; margin-bottom: 2px; }
+        .dropdown-item { padding: 12px 14px; font-size: 0.8rem; font-weight: 600; display: flex; align-items: center; gap: 10px; cursor: pointer; border-bottom: 1px solid rgba(0,0,0,0.04); transition: 0.2s; color: #2C3E50; }
+        .dropdown-item:last-child { border-bottom: none; }
+        .dropdown-item:active { background: rgba(4, 67, 42, 0.1); }
+        .dropdown-item i { font-size: 0.95rem; width: 18px; text-align: center; }
+
         main { flex: 1; position: relative; z-index: 20; width: 100%; }
         #dashboard-wrapper { padding: 16px 15px 105px 15px; width: 100%; }
         .card { background: rgba(255, 255, 255, 0.82); backdrop-filter: blur(25px) saturate(180%); -webkit-backdrop-filter: blur(25px) saturate(180%); border: 1px solid rgba(255, 255, 255, 0.85); border-radius: var(--radius-md); padding: 20px 16px; box-shadow: var(--glass-shadow); margin-bottom: 18px; width: 100%; overflow: hidden; transition: 0.3s all ease; }
@@ -80,7 +110,7 @@
         .nav-item.active { color: var(--primary); font-weight: 700; transform: translateY(-2px); }
         .hidden { display: none !important; }
         .badge { padding: 5px 12px; border-radius: 20px; font-size: 0.7rem; color: white; font-weight: 600; }
-        #id-card-modal, #modal-scanner-login, #modal-show-qr, #modal-input-izin, #modal-sertifikat, #modal-plotting-kelas, #modal-reset-opsi { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px); z-index: 9999; display: flex; align-items: center; justify-content: center; flex-direction: column; padding: 15px; }
+        #id-card-modal, #modal-scanner-login, #modal-show-qr, #modal-input-izin, #modal-sertifikat, #modal-plotting-kelas, #modal-reset-opsi, #modal-edit-profil-self { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px); z-index: 9999; display: flex; align-items: center; justify-content: center; flex-direction: column; padding: 15px; }
         
         /* ID CARD STYLING */
         .id-card-wrapper { width: 324px; min-height: 204px; background-color: white; background-size: cover; background-position: center; border-radius: 14px; overflow: hidden; position: relative; box-shadow: 0 15px 35px rgba(0,0,0,0.35); display: flex; flex-direction: column; margin: 0 auto; }
@@ -145,8 +175,37 @@
                     <div id="yayasan-name-legal" class="yayasan-text">Sistem Manajemen Instansi</div>
                 </div>
             </div>
-            <div>
-                <span id="user-role-badge" class="badge" style="background:var(--accent);">Role</span>
+            
+            <!-- HEADER POJOK KANAN ATAS MODEREN WITH DROPDOWN -->
+            <div style="position: relative;">
+                <div class="user-profile-btn" onclick="toggleProfileDropdown(event)">
+                    <img src="https://cdn-icons-png.flaticon.com/512/149/149071.png" id="header-user-photo" alt="Foto Profile">
+                    <span id="header-user-name">Pengguna</span>
+                    <i class="fa-solid fa-caret-down"></i>
+                </div>
+
+                <!-- DROPDOWN MENU -->
+                <div id="profile-dropdown-menu" class="profile-dropdown-menu hidden">
+                    <div class="dropdown-header-info">
+                        Role Akses: <strong id="dropdown-user-role">SUPERADMIN</strong>
+                    </div>
+                    <div class="dropdown-item" onclick="bukaModalEditSelfProfile()">
+                        <i class="fa-solid fa-user-gear" style="color:var(--primary);"></i>
+                        <span>Edit Profil & Sandi</span>
+                    </div>
+                    <div class="dropdown-item" onclick="triggerSyncCloudQuick()">
+                        <i class="fa-solid fa-cloud-arrow-up" style="color:var(--info);"></i>
+                        <span>Kirim Data Cloud</span>
+                    </div>
+                    <div class="dropdown-item" onclick="triggerPullCloudQuick()">
+                        <i class="fa-solid fa-cloud-arrow-down" style="color:var(--warning);"></i>
+                        <span>Tarik Data Cloud</span>
+                    </div>
+                    <div class="dropdown-item" onclick="prosesLogout()" style="color:var(--danger);">
+                        <i class="fa-solid fa-right-from-bracket"></i>
+                        <span>Keluar Akun</span>
+                    </div>
+                </div>
             </div>
         </div>
     </header>
@@ -156,7 +215,7 @@
             <div class="login-overlay"></div>
             <div class="card glass-card-login">
                 <div style="text-align: center; margin-bottom: 14px;">
-                    <img src="https://cdn-icons-png.flaticon.com/512/3592/3592078.png" id="login-logo" style="width: 110px; height: 110px; border-radius: 50%; border: 3px solid var(--accent); padding: 5px; background: rgba(255,255,255,0.85); backdrop-filter: blur(10px); box-shadow: 0 4px 15px rgba(0,0,0,0.3);" alt="Logo">
+                    <img src="icon-512.png" id="login-logo" style="width: 110px; height: 110px; border-radius: 50%; border: 3px solid var(--accent); padding: 5px; background: rgba(255,255,255,0.85); backdrop-filter: blur(10px); box-shadow: 0 4px 15px rgba(0,0,0,0.3);" alt="Logo">
                     <h2 style="font-weight: 800; margin-top:8px;" id="login-pondok-name">Sistem Monitoring</h2>
                     <p style="color: rgba(255,255,255,0.8); font-size: 0.72rem; margin-top: 2px;">Silakan masuk untuk melanjutkan</p>
                 </div>
@@ -333,19 +392,23 @@
                 </div>
             </div>
 
-            <!-- VIEW PLOTTING KELAS & MAPEL (SUBJECT-CENTRIC PLOTTING) -->
+            <!-- VIEW PLOTTING KELAS & MAPEL (PERBAIKAN KELAS & USTADZ LEBIH BESAR) -->
             <div id="view-kelas" class="hidden page-view">
                 <div class="back-nav" onclick="closeSubMenu()"><i class="fa-solid fa-arrow-left"></i> Kembali ke Dashboard</div>
                 
                 <!-- CARD 1: BUAT MASTER MATA PELAJARAN & PILIH LINTAS KELAS -->
                 <div class="card card-premium" style="border-left-color: var(--info);">
                     <h3 style="margin-bottom: 14px; color: var(--info);"><i class="fa-solid fa-book"></i> Buat Master Mata Pelajaran</h3>
-                    <p style="font-size:0.75rem; color:var(--text-muted); margin-bottom:10px;">Buat mata pelajaran dan tentukan ustadz/guru penanggung jawabnya, lalu centang kelas mana saja yang mempelajarinya.</p>
-                    <label>Nama Mata Pelajaran</label><input type="text" id="input-nama-mapel" placeholder="Cth: Fiqih / Al-Qur'an / Nahwu">
-                    <label>Ustadz / Guru (PJ)</label><select id="input-ustadz-mapel"></select>
+                    <p style="font-size:0.75rem; color:var(--text-muted); margin-bottom:10px;">Buat mata pelajaran dan tentukan ustadz/guru penanggung jawabnya (bisa lebih dari satu), lalu centang kelas mana saja yang mempelajarinya.</p>
                     
+                    <label>Nama Mata Pelajaran</label>
+                    <input type="text" id="input-nama-mapel" placeholder="Cth: Fiqih / Al-Qur'an / Nahwu">
+                    
+                    <label style="color:var(--primary); margin-top:14px;"><i class="fa-solid fa-users"></i> Pilih Ustadz / Guru Pengajar (Bisa Lebih dari 1):</label>
+                    <div id="input-ustadz-mapel-container" style="max-height: 320px; overflow-y: auto; border: 1px solid #ddd; padding: 10px; border-radius: 12px; background: #fff; margin-bottom: 14px;"></div>
+
                     <label style="color:var(--primary); margin-top:14px;"><i class="fa-solid fa-layer-group"></i> Pilih Kelas Yang Mempelajari Mapel Ini:</label>
-                    <div id="input-kelas-mapel-container" style="max-height: 150px; overflow-y: auto; border: 1px solid #ddd; padding: 10px; border-radius: 12px; background: #fff; margin-bottom: 14px;"></div>
+                    <div id="input-kelas-mapel-container" style="max-height: 320px; overflow-y: auto; border: 1px solid #ddd; padding: 10px; border-radius: 12px; background: #fff; margin-bottom: 14px;"></div>
 
                     <button class="btn-primary" style="background: var(--info); border: none; box-shadow: none;" onclick="simpanMapel()">SIMPAN MATA PELAJARAN</button>
                     
@@ -370,7 +433,7 @@
                 </div>
             </div>
 
-            <!-- VIEW ABSENSI BERBASIS MATA PELAJARAN (LINTAS KELAS & 100% MANUAL + SCAN SANTRI DI LUAR JADWAL) -->
+            <!-- VIEW ABSENSI BERBASIS MATA PELAJARAN -->
             <div id="view-absen" class="hidden page-view">
                 <div class="back-nav" onclick="closeSubMenu()"><i class="fa-solid fa-arrow-left"></i> Kembali</div>
                 <div class="card card-premium">
@@ -519,18 +582,21 @@
             <div id="view-pengguna" class="hidden page-view">
                 <div class="back-nav" onclick="closeSubMenu()"><i class="fa-solid fa-arrow-left"></i> Kembali</div>
                 <div class="card card-premium">
-                    <h3 style="margin-bottom: 14px; color: var(--primary);">Buat Akun Pegawai</h3>
+                    <h3 id="form-pengguna-title" style="margin-bottom: 14px; color: var(--primary);">Buat Akun Pegawai</h3>
+                    <input type="hidden" id="edit-id-pengguna" value="">
                     <label>Foto</label><input type="file" id="reg-foto" accept="image/*">
-                    <label>Nama</label><input type="text" id="reg-nama">
-                    <label>Username</label><input type="text" id="reg-username">
-                    <label>Password</label><input type="password" id="reg-password">
+                    <label>Nama</label><input type="text" id="reg-nama" placeholder="Nama lengkap pegawai...">
+                    <label>Username</label><input type="text" id="reg-username" placeholder="Username untuk login...">
+                    <label>Password</label><input type="password" id="reg-password" placeholder="Password akun...">
                     <label>Role</label>
                     <select id="reg-role">
                         <option value="admin">Admin Tata Usaha</option>
                         <option value="ustadz">Ustadz / Pengajar</option>
                         <option value="accounting">Bagian Keuangan</option>
+                        <option value="superadmin">Super Admin</option>
                     </select>
-                    <button class="btn-primary" onclick="tambahPengguna()">SIMPAN AKUN</button>
+                    <button class="btn-primary" id="btn-simpan-pengguna" onclick="simpanPengguna()">SIMPAN AKUN</button>
+                    <button class="btn-outline hidden" id="btn-batal-edit-pengguna" onclick="batalEditPengguna()" style="border-color: var(--danger); color: var(--danger);">BATAL EDIT</button>
                 </div>
                 <div class="card">
                     <h3 style="margin-bottom: 14px; color: var(--primary);">Daftar Akun Pegawai</h3>
@@ -576,6 +642,35 @@
     </main>
     
     <nav class="bottom-nav hidden" id="app-nav"></nav>
+</div>
+
+<!-- MODAL EDIT PROFIL SAYA (SELF EDIT) -->
+<div id="modal-edit-profil-self" class="hidden">
+    <div class="glass-panel" style="padding: 24px; border-radius: var(--radius-md); text-align:left; width: 92%; max-width: 420px;">
+        <h3 style="color:var(--primary); margin-bottom:8px; border-bottom:2px solid var(--accent); padding-bottom:8px; font-size: 1rem;">
+            <i class="fa-solid fa-user-gear"></i> Edit Profil Saya
+        </h3>
+        
+        <label>Foto Profil</label>
+        <div style="display: flex; gap: 10px; align-items: center; margin-bottom: 10px;">
+            <img id="self-preview-foto" src="" style="width: 50px; height: 50px; border-radius: 50%; object-fit: cover; border: 2px solid var(--accent);">
+            <input type="file" id="self-input-foto" accept="image/*" style="margin: 0;" onchange="previewSelfFoto(event)">
+        </div>
+
+        <label>Nama Lengkap</label>
+        <input type="text" id="self-nama" placeholder="Nama Anda...">
+
+        <label>Username Login</label>
+        <input type="text" id="self-username" placeholder="Username...">
+
+        <label>Password Baru</label>
+        <input type="password" id="self-password" placeholder="Kosongkan jika tidak diubah...">
+
+        <div style="display:flex; gap:10px; margin-top:16px;">
+            <button type="button" class="btn-outline" style="flex:1; justify-content:center; margin:0;" onclick="tutupModalEditSelfProfile()">Batal</button>
+            <button type="button" class="btn-primary" style="flex:1; margin:0;" onclick="simpanSelfProfile()"><i class="fa-solid fa-check"></i> Simpan Profil</button>
+        </div>
+    </div>
 </div>
 
 <!-- MODAL OPSI RESET MODULAR -->
@@ -786,9 +881,30 @@
     let currentUser = null, html5QrcodeScanner = null, scannerLoginData = null, scannerIzin = null;
     let modeScannerIzinAktif = 'keluar';
     let base64TempImages = { logo: '', bg_login: '', bg_idcard: '', ttd_mudir: '' }, tempFotoSantriBase64 = ''; 
+    let tempFotoPegawaiBase64 = '', tempSelfFotoBase64 = '';
     
     const defaultAkses = { superadmin: ['view-santri', 'view-evaluasi', 'view-izin', 'view-rekap', 'view-kelas', 'view-absen', 'view-keuangan', 'view-yayasan', 'view-lokasi', 'view-hak-akses', 'view-pengguna', 'view-database'], admin: ['view-santri', 'view-evaluasi', 'view-izin', 'view-rekap', 'view-kelas', 'view-database'], ustadz: ['view-absen', 'view-evaluasi', 'view-database'], accounting: ['view-keuangan', 'view-database'] };
     const menuMaster = [ { id: 'view-santri', icon: 'fa-id-card' }, { id: 'view-evaluasi', nama: 'Evaluasi & Kelulusan', icon: 'fa-star' }, { id: 'view-izin', nama: 'Surat Izin Santri & Validasi Balik', icon: 'fa-file-signature' }, { id: 'view-rekap', nama: 'Laporan Rekap Absen', icon: 'fa-file-pdf' }, { id: 'view-kelas', nama: 'Plotting Kelas & Mapel', icon: 'fa-calendar-alt' }, { id: 'view-absen', nama: 'Absensi Kamera Scanner', icon: 'fa-camera' }, { id: 'view-keuangan', nama: 'Laporan Denda Keuangan', icon: 'fa-wallet' }, { id: 'view-yayasan', nama: 'Identitas, Suara & Tata Tertib', icon: 'fa-building' }, { id: 'view-lokasi', nama: 'Area Geofencing', icon: 'fa-map-location-dot' }, { id: 'view-hak-akses', nama: 'Hak Akses Role', icon: 'fa-shield-halved' }, { id: 'view-pengguna', nama: 'Akun Pegawai', icon: 'fa-users-gear' }, { id: 'view-database', nama: 'Database & Sync', icon: 'fa-cloud-arrow-up' } ];
+
+    // FUNGSI STANDAR KOP SURAT BERSIH & RAPI
+    function generateStandardKopSuratHTML() {
+        const yayasanDB = getDB('pondok_yayasan', {});
+        const logoUrl = (yayasanDB.logo && yayasanDB.logo.trim() !== '') ? yayasanDB.logo : 'https://cdn-icons-png.flaticon.com/512/3592/3592078.png';
+        
+        return `
+            <div style="display: flex; align-items: center; justify-content: center; margin-bottom: 12px; padding-bottom: 10px; border-bottom: 4px double #000; position: relative; width: 100%;">
+                <img src="${logoUrl}" style="width: 75px; height: 75px; object-fit: contain; position: absolute; left: 0; top: 50%; transform: translateY(-50%);">
+                <div style="text-align: center; width: 100%; padding-left: 85px; padding-right: 15px;">
+                    <p style="margin: 0; font-size: 13px; font-weight: bold; letter-spacing: 1px; text-transform: uppercase;">${yayasanDB.yayasan || 'YAYASAN PENDIDIKAN'}</p>
+                    <h2 style="margin: 2px 0; font-size: 22px; font-weight: 900; color: #04432A; text-transform: uppercase;">${yayasanDB.pondok || 'INSTANSI PENDIDIKAN'}</h2>
+                    <p style="margin: 0; font-size: 10px; color: #333; line-height: 1.3;">${yayasanDB.alamat || 'Alamat Instansi Pendidikan'}</p>
+                </div>
+            </div>
+            <div style="text-align: right; margin-bottom: 15px;">
+                <p style="margin: 0; font-size: 9.5px; font-style: italic; color: #555;">Dicetak pada: ${new Date().toLocaleString('id-ID')}</p>
+            </div>
+        `;
+    }
 
     function cetakElemenHTML(htmlIsiKonten, orientasiHalaman = 'portrait') {
         const iframeLama = document.getElementById('iframe-pencetakan-aman');
@@ -950,15 +1066,19 @@
         }, 600);
     }
 
+    // UPDATE DENGAN KOP SURAT
     function cetakRekapSantriPDF() {
         let databaseSantri = getDB('pondok_santri', []); if (databaseSantri.length === 0) return alert("Belum ada data untuk direkap.");
-        const dataYayasan = getDB('pondok_yayasan', {}); let rekapData = {};
+        let rekapData = {};
         databaseSantri.forEach(s => { if (!rekapData[s.asrama]) rekapData[s.asrama] = {}; if (!rekapData[s.asrama][s.kamar]) rekapData[s.asrama][s.kamar] = []; rekapData[s.asrama][s.kamar].push(s); });
-        let htmlPrint = `<div style="text-align:center; margin-bottom: 20px; border-bottom: 3px solid #000; padding-bottom:10px;"><h2 style="margin:0;">REKAPITULASI JUMLAH ${getTerm('santri').toUpperCase()}</h2><h3 style="margin:5px 0;">${dataYayasan.pondok || 'Sistem Manajemen'}</h3><p style="margin:0; font-size:12px;">Berdasarkan Distribusi ${getTerm('asrama')} dan ${getTerm('kamar')}</p><p style="margin:0; font-size:10px;">Dicetak pada: ${new Date().toLocaleString('id-ID')}</p></div>`;
+        
+        let htmlPrint = generateStandardKopSuratHTML();
+        htmlPrint += `<div style="text-align:center; margin-bottom: 20px;"><h3 style="margin:0; text-transform:uppercase;">REKAPITULASI JUMLAH ${getTerm('santri').toUpperCase()}</h3><p style="margin:2px 0; font-size:11px;">Berdasarkan Distribusi ${getTerm('asrama')} dan ${getTerm('kamar')}</p></div>`;
+        
         for (const [asrama, kamarObj] of Object.entries(rekapData)) {
-            htmlPrint += `<h3 style="margin-top: 25px; background: #ddd; padding: 8px; border: 1px solid #000; font-size: 14px;">${getTerm('asrama').toUpperCase()}: ${asrama.toUpperCase()}</h3>`;
+            htmlPrint += `<h3 style="margin-top: 20px; background: #eee; padding: 6px 10px; border: 1px solid #000; font-size: 13px;">${getTerm('asrama').toUpperCase()}: ${asrama.toUpperCase()}</h3>`;
             for (const [kamar, listSantri] of Object.entries(kamarObj)) {
-                htmlPrint += `<h4 style="margin: 15px 0 5px 0; font-size: 12px;">${getTerm('kamar')}: ${kamar} (Total: ${listSantri.length} Orang)</h4><table><thead><tr><th style="width: 5%; text-align: center;">No</th><th style="width: 15%; text-align: center;">NIS</th><th style="width: 15%; text-align: center;">NIK</th><th style="width: 35%;">Nama Lengkap</th><th style="width: 30%;">Alamat Asal</th></tr></thead><tbody>`;
+                htmlPrint += `<h4 style="margin: 12px 0 5px 0; font-size: 11.5px;">${getTerm('kamar')}: ${kamar} (Total: ${listSantri.length} Orang)</h4><table><thead><tr><th style="width: 5%; text-align: center;">No</th><th style="width: 15%; text-align: center;">NIS</th><th style="width: 15%; text-align: center;">NIK</th><th style="width: 35%;">Nama Lengkap</th><th style="width: 30%;">Alamat Asal</th></tr></thead><tbody>`;
                 listSantri.forEach((santri, index) => { htmlPrint += `<tr><td style="text-align: center;">${index + 1}</td><td style="text-align: center; font-weight: bold;">${santri.nis}</td><td style="text-align: center;">${santri.nik || '-'}</td><td>${santri.nama}</td><td>${santri.alamat || '-'}</td></tr>`; });
                 htmlPrint += `</tbody></table>`;
             }
@@ -966,32 +1086,265 @@
         cetakElemenHTML(htmlPrint, 'portrait');
     }
 
+    // UPDATE DENGAN KOP SURAT
     function cetakLaporanPDF() {
-        const filterBulan = document.getElementById('filter-bulan-rekap').value; const filterKelasId = document.getElementById('filter-kelas-rekap').value;
-        const santriDB = getDB('pondok_santri', []); const absensiDB = getDB('pondok_absensi', []); const dendaDB = getDB('pondok_tagihan_denda', []); const yayasanDB = getDB('pondok_yayasan', {}); const settingUang = getDB('pondok_setting_keuangan', { limit_alpa: 3, sanksi_ekstra: "Panggilan Orang Tua" });
+        const filterBulan = document.getElementById('filter-bulan-rekap').value; 
+        const filterKelasId = document.getElementById('filter-kelas-rekap').value;
+        const santriDB = getDB('pondok_santri', []); 
+        const absensiDB = getDB('pondok_absensi', []); 
+        const dendaDB = getDB('pondok_tagihan_denda', []); 
+        const settingUang = getDB('pondok_setting_keuangan', { limit_alpa: 3, sanksi_ekstra: "Panggilan Orang Tua" });
+        
         if(santriDB.length === 0) return alert("Belum ada data terdaftar.");
         
-        let dataRekap = {}; santriDB.forEach(s => { dataRekap[s.nis] = { nama: s.nama, kamar: s.kamar, hadir: 0, izin: 0, sakit: 0, alpa: 0, denda: 0 }; });
-        let absensiTerfilter = absensiDB.filter(sesi => { let stringBulan = sesi.tanggal_iso ? sesi.tanggal_iso.substring(0,7) : ''; return (filterBulan ? stringBulan === filterBulan : true) && (filterKelasId === 'all' ? true : sesi.id_kelas == filterKelasId); });
-        absensiTerfilter.forEach(sesi => { sesi.detail.forEach(absenSiswa => { if(dataRekap[absenSiswa.nis]) { if(absenSiswa.status === 'Hadir') dataRekap[absenSiswa.nis].hadir++; else if(absenSiswa.status === 'Izin') dataRekap[absenSiswa.nis].izin++; else if(absenSiswa.status === 'Sakit') dataRekap[absenSiswa.nis].sakit++; else if(absenSiswa.status === 'Alpa') dataRekap[absenSiswa.nis].alpa++; } }); });
-        dendaDB.forEach(denda => { if(dataRekap[denda.nis]) dataRekap[denda.nis].denda += parseInt(denda.nominal); });
+        let dataRekap = {}; 
+        santriDB.forEach(s => { 
+            dataRekap[s.nis] = { 
+                nama: s.nama, 
+                kamar: s.kamar, 
+                hadir: 0, izin: 0, sakit: 0, alpa: 0, denda: 0,
+                perMapel: {}
+            }; 
+        });
+
+        let absensiTerfilter = absensiDB.filter(sesi => { 
+            let stringBulan = sesi.tanggal_iso ? sesi.tanggal_iso.substring(0,7) : ''; 
+            return (filterBulan ? stringBulan === filterBulan : true) && 
+                   (filterKelasId === 'all' ? true : sesi.id_kelas == filterKelasId); 
+        });
+
+        absensiTerfilter.forEach(sesi => { 
+            const namaMapel = sesi.mapel || "Kegiatan Umum";
+            sesi.detail.forEach(absenSiswa => { 
+                let rec = dataRekap[absenSiswa.nis];
+                if(rec) { 
+                    if(!rec.perMapel[namaMapel]) {
+                        rec.perMapel[namaMapel] = { hadir: 0, izin: 0, sakit: 0, alpa: 0 };
+                    }
+                    if(absenSiswa.status === 'Hadir') { rec.hadir++; rec.perMapel[namaMapel].hadir++; }
+                    else if(absenSiswa.status === 'Izin') { rec.izin++; rec.perMapel[namaMapel].izin++; }
+                    else if(absenSiswa.status === 'Sakit') { rec.sakit++; rec.perMapel[namaMapel].sakit++; }
+                    else if(absenSiswa.status === 'Alpa') { rec.alpa++; rec.perMapel[namaMapel].alpa++; }
+                } 
+            }); 
+        });
+
+        dendaDB.forEach(denda => { 
+            if(dataRekap[denda.nis]) dataRekap[denda.nis].denda += parseInt(denda.nominal); 
+        });
 
         let labelFilterText = `Periode: ${filterBulan ? filterBulan : 'Semua Waktu'} | Kelas: ${filterKelasId === 'all' ? 'Semua Kelas' : document.getElementById('filter-kelas-rekap').options[document.getElementById('filter-kelas-rekap').selectedIndex].text}`;
-        let htmlPrint = `<div style="text-align:center; margin-bottom: 20px; border-bottom: 3px solid #000; padding-bottom:10px;"><h2 style="margin:0;">LAPORAN REKAPITULASI ABSENSI & KEUANGAN</h2><h3 style="margin:5px 0;">${yayasanDB.pondok || 'Sistem Manajemen'}</h3><p style="margin:0; font-size:12px;">${labelFilterText}</p><p style="margin:0; font-size:10px;">Dicetak pada: ${new Date().toLocaleString('id-ID')}</p></div><h4 style="margin-bottom:10px;">A. MATRIKS KEHADIRAN & SANKSI</h4><table style="margin-bottom: 25px;"><thead><tr><th>NIS</th><th>Nama ${getTerm('santri')}</th><th>${getTerm('kamar')}</th><th style="text-align:center;">Hadir</th><th style="text-align:center;">Izin</th><th style="text-align:center;">Sakit</th><th style="text-align:center;">Alpa</th><th style="text-align:right;">Total Denda (Rp)</th><th>Status Sanksi</th></tr></thead><tbody>`;
+        
+        let htmlPrint = generateStandardKopSuratHTML();
+        htmlPrint += `
+            <div style="text-align:center; margin-bottom: 20px;">
+                <h3 style="margin:0; text-transform:uppercase;">LAPORAN REKAPITULASI ABSENSI & KEUANGAN</h3>
+                <p style="margin:2px 0; font-size:11px;">${labelFilterText}</p>
+            </div>
+            <h4 style="margin-bottom:8px;">A. MATRIKS KEHADIRAN & RINCIAN MATA PELAJARAN</h4>
+            <table style="margin-bottom: 25px;">
+                <thead>
+                    <tr>
+                        <th>NIS</th>
+                        <th>Nama ${getTerm('santri')} & Mapel / Kegiatan</th>
+                        <th>${getTerm('kamar')}</th>
+                        <th style="text-align:center;">Hadir</th>
+                        <th style="text-align:center;">Izin</th>
+                        <th style="text-align:center;">Sakit</th>
+                        <th style="text-align:center;">Alpa</th>
+                        <th style="text-align:right;">Total Denda (Rp)</th>
+                        <th>Keterangan / Status Sanksi</th>
+                    </tr>
+                </thead>
+                <tbody>`;
 
         let totalSeluruhDenda = 0;
+        
         for (const [nis, data] of Object.entries(dataRekap)) {
-            totalSeluruhDenda += data.denda; let statusSanksi = (data.alpa >= parseInt(settingUang.limit_alpa)) ? `<span style="color:red; font-weight:bold;">${settingUang.sanksi_ekstra}</span>` : 'Aman';
-            htmlPrint += `<tr><td>${nis}</td><td>${data.nama}</td><td>${data.kamar}</td><td style="text-align:center;">${data.hadir}</td><td style="text-align:center;">${data.izin}</td><td style="text-align:center;">${data.sakit}</td><td style="text-align:center; color:red; font-weight:bold;">${data.alpa}</td><td style="text-align:right;">${data.denda.toLocaleString('id-ID')}</td><td>${statusSanksi}</td></tr>`;
+            totalSeluruhDenda += data.denda; 
+            let listMapelAlpa = [];
+            for (const [mp, stat] of Object.entries(data.perMapel)) {
+                if (stat.alpa > 0) listMapelAlpa.push(`${mp} (${stat.alpa}x)`);
+            }
+            
+            let infoAlpaText = listMapelAlpa.length > 0 ? `<br><small style="color:#d35400;">• Alpa di: ${listMapelAlpa.join(', ')}</small>` : '';
+            let statusSanksi = (data.alpa >= parseInt(settingUang.limit_alpa)) 
+                ? `<span style="color:red; font-weight:bold;">${settingUang.sanksi_ekstra}</span>` 
+                : '<span style="color:#27ae60; font-weight:bold;">Aman</span>';
+
+            htmlPrint += `
+                <tr style="background-color: #f2f2f2; font-weight: bold;">
+                    <td style="border-top: 2px solid #555;">${nis}</td>
+                    <td style="border-top: 2px solid #555;">${data.nama.toUpperCase()} (TOTAL)</td>
+                    <td style="border-top: 2px solid #555;">${data.kamar}</td>
+                    <td style="text-align:center; border-top: 2px solid #555;">${data.hadir}</td>
+                    <td style="text-align:center; border-top: 2px solid #555;">${data.izin}</td>
+                    <td style="text-align:center; border-top: 2px solid #555;">${data.sakit}</td>
+                    <td style="text-align:center; color:red; border-top: 2px solid #555;">${data.alpa}</td>
+                    <td style="text-align:right; border-top: 2px solid #555;">${data.denda.toLocaleString('id-ID')}</td>
+                    <td style="border-top: 2px solid #555;">${statusSanksi} ${infoAlpaText}</td>
+                </tr>`;
+
+            const mapelKeys = Object.keys(data.perMapel);
+            if (mapelKeys.length === 0) {
+                htmlPrint += `<tr><td></td><td colspan="8" style="font-size:10px; font-style:italic; color:#777;">&nbsp;&nbsp;&nbsp;&nbsp;↳ Belum ada rekam kegiatan pada periode ini</td></tr>`;
+            } else {
+                for (const [mp, stat] of Object.entries(data.perMapel)) {
+                    let ketMapel = stat.alpa > 0 ? `<span style="color:red; font-style:italic;">Alpa ${stat.alpa} kali</span>` : 'Hadir Penuh / Aman';
+                    htmlPrint += `
+                        <tr style="font-size: 11px; color: #333;">
+                            <td></td>
+                            <td style="padding-left: 20px;">↳ <i>${mp}</i></td>
+                            <td style="text-align:center; color:#888;">-</td>
+                            <td style="text-align:center;">${stat.hadir}</td>
+                            <td style="text-align:center;">${stat.izin}</td>
+                            <td style="text-align:center;">${stat.sakit}</td>
+                            <td style="text-align:center; font-weight:bold; color:${stat.alpa > 0 ? 'red' : '#333'};">${stat.alpa}</td>
+                            <td style="text-align:right; color:#888;">-</td>
+                            <td>${ketMapel}</td>
+                        </tr>`;
+                }
+            }
         }
         
-        htmlPrint += `</tbody><tfoot><tr><th colspan="7" style="text-align:right;">TOTAL PIUTANG DENDA:</th><th style="text-align:right; color:red; font-size:14px;">Rp ${totalSeluruhDenda.toLocaleString('id-ID')}</th><th></th></tr></tfoot></table><h4 style="margin-bottom:10px;">B. LOG SESI KELAS & GURU MENGAJAR</h4>`;
-        if(absensiTerfilter.length === 0) { htmlPrint += `<p style="font-size:12px; font-style:italic;">Tidak ada log pertemuan pada rentang filter ini.</p>`; } 
-        else {
-            htmlPrint += `<table><thead><tr><th>Tgl Pelaksanaan</th><th>Jam / Waktu</th><th>Kelas / Mapel</th><th>${getTerm('ustadz')} PJ</th><th>${getTerm('ustadz')} Aktual</th><th>Ket</th></tr></thead><tbody>`;
-            absensiTerfilter.forEach(log => { htmlPrint += `<tr><td>${log.tanggal}</td><td>${log.waktu || '-'}</td><td>${log.nama_kelas} - ${log.mapel}</td><td>${log.ustadz_pj}</td><td><strong>${log.ustadz_aktual}</strong></td><td>${log.is_pengganti ? 'Digantikan' : 'Hadir Penuh'}</td></tr>`; });
+        htmlPrint += `
+                </tbody>
+                <tfoot>
+                    <tr style="background:#e0e0e0;">
+                        <th colspan="7" style="text-align:right;">TOTAL PIUTANG DENDA:</th>
+                        <th style="text-align:right; color:red; font-size:13px;">Rp ${totalSeluruhDenda.toLocaleString('id-ID')}</th>
+                        <th></th>
+                    </tr>
+                </tfoot>
+            </table>
+            <h4 style="margin-bottom:8px;">B. LOG SESI KELAS & GURU MENGAJAR</h4>`;
+            
+        if(absensiTerfilter.length === 0) { 
+            htmlPrint += `<p style="font-size:12px; font-style:italic;">Tidak ada log pertemuan pada rentang filter ini.</p>`; 
+        } else {
+            htmlPrint += `
+            <table>
+                <thead>
+                    <tr>
+                        <th>Tgl Pelaksanaan</th>
+                        <th>Jam / Waktu</th>
+                        <th>Kelas / Mapel</th>
+                        <th>${getTerm('ustadz')} PJ</th>
+                        <th>${getTerm('ustadz')} Aktual</th>
+                        <th>Ket</th>
+                    </tr>
+                </thead>
+                <tbody>`;
+            absensiTerfilter.forEach(log => { 
+                htmlPrint += `
+                    <tr>
+                        <td>${log.tanggal}</td>
+                        <td>${log.waktu || '-'}</td>
+                        <td>${log.nama_kelas} - ${log.mapel}</td>
+                        <td>${log.ustadz_pj}</td>
+                        <td><strong>${log.ustadz_aktual}</strong></td>
+                        <td>${log.is_pengganti ? 'Digantikan' : 'Hadir Penuh'}</td>
+                    </tr>`; 
+            });
             htmlPrint += `</tbody></table>`;
         }
+        
+        cetakElemenHTML(htmlPrint, 'portrait');
+    }
+
+    // UPDATE DENGAN KOP SURAT
+    function cetakJadwalPerKelas(idKelas) {
+        const dbKelas = getDB('pondok_kelas', []);
+        const dbMapel = getDB('pondok_master_mapel', []);
+        const dbSantri = getDB('pondok_santri', []);
+        const yayasanDB = getDB('pondok_yayasan', {});
+
+        const kls = dbKelas.find(k => k.id == idKelas);
+        if (!kls) return alert("Kelas tidak ditemukan!");
+
+        const mapelKelasIni = dbMapel.filter(m => 
+            (kls.mapel_ids || []).includes(m.id) || (m.kelas_ids || []).includes(kls.id)
+        );
+
+        const santriKelasIni = dbSantri.filter(s => 
+            (kls.santri_ids || []).includes(s.id)
+        );
+
+        let htmlPrint = generateStandardKopSuratHTML();
+        htmlPrint += `
+            <div style="text-align:center; margin-bottom: 20px;">
+                <h3 style="margin:0; text-transform:uppercase;">JADWAL & REKAPITULASI KELAS</h3>
+                <p style="margin:2px 0; font-size:13px;">Kelas / Forum: <strong style="text-transform:uppercase;">${kls.nama}</strong></p>
+            </div>
+
+            <h4 style="margin-bottom:8px; font-size:12px;">A. DAFTAR MATA PELAJARAN & PENGAJAR</h4>
+            <table style="margin-bottom: 25px;">
+                <thead>
+                    <tr>
+                        <th style="width: 5%; text-align:center;">No</th>
+                        <th style="width: 40%;">Mata Pelajaran</th>
+                        <th style="width: 35%;">Ustadz / Guru Pengajar</th>
+                        <th style="width: 20%; text-align:center;">Keterangan</th>
+                    </tr>
+                </thead>
+                <tbody>`;
+
+        if (mapelKelasIni.length === 0) {
+            htmlPrint += `<tr><td colspan="4" align="center" style="font-style:italic; color:#777;">Belum ada mata pelajaran yang diplotting ke kelas ini.</td></tr>`;
+        } else {
+            mapelKelasIni.forEach((m, i) => {
+                htmlPrint += `
+                    <tr>
+                        <td style="text-align:center;">${i + 1}</td>
+                        <td><strong>${m.nama_mapel}</strong></td>
+                        <td>${m.ustadz_nama}</td>
+                        <td style="text-align:center; color:#777;">-</td>
+                    </tr>`;
+            });
+        }
+
+        htmlPrint += `
+                </tbody>
+            </table>
+
+            <h4 style="margin-bottom:8px; font-size:12px;">B. DAFTAR SANTRI PESERTA (${santriKelasIni.length} Orang)</h4>
+            <table>
+                <thead>
+                    <tr>
+                        <th style="width: 5%; text-align:center;">No</th>
+                        <th style="width: 20%; text-align:center;">NIS</th>
+                        <th style="width: 45%;">Nama Lengkap</th>
+                        <th style="width: 30%;">${getTerm('kamar')} / Asrama</th>
+                    </tr>
+                </thead>
+                <tbody>`;
+
+        if (santriKelasIni.length === 0) {
+            htmlPrint += `<tr><td colspan="4" align="center" style="font-style:italic; color:#777;">Belum ada santri yang terdaftar di kelas ini.</td></tr>`;
+        } else {
+            santriKelasIni.forEach((s, i) => {
+                htmlPrint += `
+                    <tr>
+                        <td style="text-align:center;">${i + 1}</td>
+                        <td style="text-align:center; font-weight:bold;">${s.nis}</td>
+                        <td>${s.nama}</td>
+                        <td>${s.asrama} (${s.kamar})</td>
+                    </tr>`;
+            });
+        }
+
+        htmlPrint += `
+                </tbody>
+            </table>
+
+            <div style="margin-top: 40px; display:flex; justify-content:flex-end; text-align:center; font-size:12px;">
+                <div>
+                    <p style="margin-bottom:45px;">Mengetahui Pimpinan,<br><strong>${yayasanDB.pondok || 'Instansi'}</strong></p>
+                    ${yayasanDB.ttd_mudir ? `<img src="${yayasanDB.ttd_mudir}" style="max-height:40px; display:block; margin:-35px auto 5px auto;">` : ''}
+                    <p style="font-weight:bold; text-decoration:underline;">${yayasanDB.mudir || 'Pimpinan / Mudir'}</p>
+                </div>
+            </div>`;
+
         cetakElemenHTML(htmlPrint, 'portrait');
     }
 
@@ -1019,6 +1372,81 @@
         if(document.getElementById('label-asrama')) document.getElementById('label-asrama').innerText = t.asrama + ":";
         if(document.getElementById('label-kamar')) document.getElementById('label-kamar').innerText = t.kamar + ":";
         if (currentUser) renderMenuBerdasarkanAkses();
+    }
+
+    // LOGIKA DROPDOWN USER PROFILE LOGIC
+    function toggleProfileDropdown(e) {
+        e.stopPropagation();
+        const menu = document.getElementById('profile-dropdown-menu');
+        menu.classList.toggle('hidden');
+    }
+
+    document.addEventListener('click', function(e) {
+        const menu = document.getElementById('profile-dropdown-menu');
+        if (menu && !menu.classList.contains('hidden')) {
+            menu.classList.add('hidden');
+        }
+    });
+
+    function bukaModalEditSelfProfile() {
+        if(!currentUser) return;
+        document.getElementById('self-nama').value = currentUser.nama || "";
+        document.getElementById('self-username').value = currentUser.username || "";
+        document.getElementById('self-password').value = "";
+        document.getElementById('self-preview-foto').src = currentUser.foto || "https://cdn-icons-png.flaticon.com/512/149/149071.png";
+        tempSelfFotoBase64 = "";
+        document.getElementById('modal-edit-profil-self').classList.remove('hidden');
+    }
+
+    function tutupModalEditSelfProfile() {
+        document.getElementById('modal-edit-profil-self').classList.add('hidden');
+    }
+
+    function previewSelfFoto(e) {
+        const file = e.target.files[0];
+        if(!file) return;
+        kompresiGambar(file, 150, (res) => {
+            tempSelfFotoBase64 = res;
+            document.getElementById('self-preview-foto').src = res;
+        });
+    }
+
+    function simpanSelfProfile() {
+        const nama = document.getElementById('self-nama').value.trim();
+        const username = document.getElementById('self-username').value.trim().toLowerCase();
+        const password = document.getElementById('self-password').value;
+
+        if(!nama || !username) return alert("Nama dan Username tidak boleh kosong!");
+
+        let users = getDB('pondok_users', []);
+        let idx = users.findIndex(u => u.id === currentUser.id);
+
+        if(idx > -1) {
+            users[idx].nama = nama;
+            users[idx].username = username;
+            if(password && password.trim() !== "") users[idx].password = password;
+            if(tempSelfFotoBase64 !== "") users[idx].foto = tempSelfFotoBase64;
+
+            currentUser = users[idx];
+            localStorage.setItem('pondok_users', JSON.stringify(users));
+            localStorage.setItem('pondok_active_user', JSON.stringify(currentUser));
+
+            // Update UI Header
+            document.getElementById('header-user-name').innerText = currentUser.nama;
+            document.getElementById('header-user-photo').src = currentUser.foto || "https://cdn-icons-png.flaticon.com/512/149/149071.png";
+
+            alert("Profil Anda berhasil diperbarui!");
+            tutupModalEditSelfProfile();
+            renderTabelPegawai();
+        }
+    }
+
+    function triggerSyncCloudQuick() {
+        sinkronisasiKeCloud();
+    }
+
+    function triggerPullCloudQuick() {
+        tarikDataDariSupabase();
     }
 
     function switchModeLogin(mode) {
@@ -1085,22 +1513,22 @@
         if (!localStorage.getItem('pondok_absensi')) localStorage.setItem('pondok_absensi', JSON.stringify([]));
         if (!localStorage.getItem('pondok_evaluasi')) localStorage.setItem('pondok_evaluasi', JSON.stringify([]));
         
-        // TABLE MASTER MAPEL (DENGAN KELAS_IDS UNTUK REVERSE PLOTTING)
         if (!localStorage.getItem('pondok_master_mapel')) {
             localStorage.setItem('pondok_master_mapel', JSON.stringify([
-                { id: 101, nama_mapel: "Fiqih Shalat & Thaharah", ustadz_id: "ustadz", ustadz_nama: "Guru / Ustadz", kelas_ids: [201] },
-                { id: 102, nama_mapel: "Tahfidz & Tahsin Al-Qur'an", ustadz_id: "ustadz", ustadz_nama: "Guru / Ustadz", kelas_ids: [201] }
+                { id: 101, nama_mapel: "Fiqih Shalat & Thaharah", ustadz_ids: ["ustadz"], ustadz_nama: "Guru / Ustadz", kelas_ids: [201] },
+                { id: 102, nama_mapel: "Tahfidz & Tahsin Al-Qur'an", ustadz_ids: ["ustadz"], ustadz_nama: "Guru / Ustadz", kelas_ids: [201] }
             ]));
         } else {
             let listM = getDB('pondok_master_mapel', []);
             let modified = false;
             listM.forEach(m => {
                 if (!m.kelas_ids) { m.kelas_ids = []; modified = true; }
+                if (!m.ustadz_ids && m.ustadz_id) { m.ustadz_ids = [m.ustadz_id]; modified = true; }
+                if (!m.ustadz_ids) { m.ustadz_ids = []; modified = true; }
             });
             if (modified) localStorage.setItem('pondok_master_mapel', JSON.stringify(listM));
         }
 
-        // TABLE KELAS
         if (!localStorage.getItem('pondok_kelas')) {
             localStorage.setItem('pondok_kelas', JSON.stringify([
                 { id: 201, nama: "Kelas 1-A / Reguler", mapel_ids: [101, 102], santri_ids: [] }
@@ -1137,14 +1565,20 @@
 
     function registerServiceWorker() {
         if ('serviceWorker' in navigator) {
-            const swCode = `const CACHE_NAME = 'lms-app-v8'; self.addEventListener('install', (e) => { self.skipWaiting(); }); self.addEventListener('activate', (e) => { e.waitUntil(clients.claim()); }); self.addEventListener('fetch', (e) => { e.respondWith(fetch(e.request).catch(() => caches.match(e.request))); });`;
-            const blob = new Blob([swCode], { type: 'text/javascript' });
-            navigator.serviceWorker.register(URL.createObjectURL(blob)).catch(() => {});
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('./sw.js')
+                    .then((reg) => console.log('PWA Service Worker berhasil terdaftar:', reg.scope))
+                    .catch((err) => console.error('Pendaftaran Service Worker gagal:', err));
+            });
         }
     }
 
     function masukKeSistemSetelahLogin(playSuara = true) {
-        document.getElementById('user-role-badge').innerText = currentUser.role.toUpperCase();
+        // SET FOTO & NAMA USER PADA HEADER DENGAN DROPDOWN
+        document.getElementById('header-user-name').innerText = currentUser.nama || "User";
+        document.getElementById('header-user-photo').src = currentUser.foto || "https://cdn-icons-png.flaticon.com/512/149/149071.png";
+        document.getElementById('dropdown-user-role').innerText = currentUser.role.toUpperCase();
+
         terapkanTemaBerdasarkanRole(currentUser.role);
         document.getElementById('view-login').classList.add('hidden'); document.getElementById('app-header').classList.remove('hidden'); document.getElementById('dashboard-wrapper').classList.remove('hidden'); document.getElementById('app-nav').classList.remove('hidden');
         renderMenuBerdasarkanAkses();
@@ -1234,9 +1668,7 @@
 
     function previewFotoSantri(event) { const file = event.target.files[0]; if (!file) return; kompresiGambar(file, 150, (base64Hasil) => { tempFotoSantriBase64 = base64Hasil; const imgPreview = document.getElementById('preview-foto-santri-ui'); imgPreview.src = base64Hasil; imgPreview.style.display = 'block'; }); }
     
-    async function autoSyncCloudBackground() {
-        return; 
-    }
+    async function autoSyncCloudBackground() { return; }
 
     function renderDropdownKelasSantri() {
         const dropdown = document.getElementById('input-kelas-santri');
@@ -1512,12 +1944,19 @@
     function renderTabelIzinAktif() { const tbody = document.getElementById('tabel-izin-aktif-body'); if (!tbody) return; tbody.innerHTML = ''; const izinAktifDB = getDB('pondok_izin_aktif', []); if (izinAktifDB.length === 0) return tbody.innerHTML = '<tr><td colspan="3" align="center">Tidak ada santri yang sedang izin di luar.</td></tr>'; izinAktifDB.forEach(iz => { const isLate = new Date().toISOString().split('T')[0] > iz.tgl_balik; tbody.innerHTML += `<tr><td><strong>${iz.nama}</strong> <small>[${iz.nis}]</small><br><span style="font-size:0.75rem; color:var(--primary);">${iz.keperluan}</span></td><td><strong style="color:${isLate ? 'red' : 'var(--primary)'};">${iz.tgl_balik}</strong></td><td><button class="btn-success" style="margin:0; padding:6px 10px; font-size:0.7rem;" onclick="validasiSantriBalikIzin('${iz.nis}')"><i class="fa-solid fa-check"></i> Balik</button></td></tr>`; }); }
 
     function renderMasterMapel() {
-        const pilihanUstadz = document.getElementById('input-ustadz-mapel');
-        if (pilihanUstadz) {
-            pilihanUstadz.innerHTML = '';
-            getDB('pondok_users', []).filter(user => user.role === 'ustadz').forEach(ust => {
-                pilihanUstadz.innerHTML += `<option value="${ust.username}">${ust.nama}</option>`;
-            });
+        const wadahUstadz = document.getElementById('input-ustadz-mapel-container');
+        if (wadahUstadz) {
+            wadahUstadz.innerHTML = '';
+            const listUst = getDB('pondok_users', []).filter(user => user.role === 'ustadz' || user.role === 'admin' || user.role === 'superadmin');
+            if (listUst.length === 0) {
+                wadahUstadz.innerHTML = '<div style="color:red; font-size:0.8rem;">Belum ada akun ustadz/guru.</div>';
+            } else {
+                listUst.forEach(ust => {
+                    wadahUstadz.innerHTML += `<label style="display:block; padding:8px; border-bottom:1px solid rgba(0,0,0,0.05); font-size:0.82rem;">
+                        <input type="checkbox" value="${ust.username}" data-nama="${ust.nama}" class="cb-ustadz-mapel"> <strong>${ust.nama}</strong> <span style="color:var(--text-muted);">(@${ust.username})</span>
+                    </label>`;
+                });
+            }
         }
 
         const wadahKelas = document.getElementById('input-kelas-mapel-container');
@@ -1567,21 +2006,27 @@
 
     function simpanMapel() {
         const namaMapel = document.getElementById('input-nama-mapel').value.trim();
-        const usernameUst = document.getElementById('input-ustadz-mapel').value;
-        if (!namaMapel || !usernameUst) return alert("Isi nama mata pelajaran dan pilih ustadz!");
+        if (!namaMapel) return alert("Isi nama mata pelajaran!");
+
+        let selectedUstadzIds = [];
+        let selectedUstadzNama = [];
+        document.querySelectorAll('.cb-ustadz-mapel:checked').forEach(cb => {
+            selectedUstadzIds.push(cb.value);
+            selectedUstadzNama.push(cb.getAttribute('data-nama'));
+        });
+        if (selectedUstadzIds.length === 0) return alert("Pilih minimal satu ustadz/guru pengajar!");
 
         let selectedKelasIds = [];
         document.querySelectorAll('.cb-kelas-mapel:checked').forEach(cb => selectedKelasIds.push(parseInt(cb.value)));
 
-        const ustadzObj = getDB('pondok_users', []).find(u => u.username === usernameUst);
         const newMapelId = Date.now();
 
         let listMapel = getDB('pondok_master_mapel', []);
         listMapel.push({
             id: newMapelId,
             nama_mapel: namaMapel,
-            ustadz_id: usernameUst,
-            ustadz_nama: ustadzObj ? ustadzObj.nama : usernameUst,
+            ustadz_ids: selectedUstadzIds,
+            ustadz_nama: selectedUstadzNama.join(", "),
             kelas_ids: selectedKelasIds
         });
         localStorage.setItem('pondok_master_mapel', JSON.stringify(listMapel));
@@ -1596,7 +2041,7 @@
         localStorage.setItem('pondok_kelas', JSON.stringify(listKelas));
 
         document.getElementById('input-nama-mapel').value = '';
-        alert(`Mata pelajaran "${namaMapel}" berhasil disimpan untuk ${selectedKelasIds.length} Kelas!`);
+        alert(`Mata pelajaran "${namaMapel}" berhasil disimpan untuk ${selectedKelasIds.length} Kelas dengan ${selectedUstadzIds.length} Pengajar!`);
         renderMasterMapel();
         renderTabelDaftarKelas();
     }
@@ -1647,7 +2092,8 @@
                 <td>${(kls.mapel_ids || []).length} Mapel</td>
                 <td>${(kls.santri_ids || []).length} Santri</td>
                 <td>
-                    <div style="display:flex; gap:6px;">
+                    <div style="display:flex; gap:6px; flex-wrap:wrap;">
+                        <button class="btn-print" style="margin:0; padding:6px 10px; font-size:0.75rem;" onclick="cetakJadwalPerKelas(${kls.id})"><i class="fa-solid fa-file-pdf"></i> Jadwal</button>
                         <button class="btn-warning" style="margin:0; padding:6px 10px; font-size:0.75rem;" onclick="bukaModalPlottingKelas(${kls.id})"><i class="fa-solid fa-sliders"></i> Edit</button>
                         <button class="btn-danger" style="margin:0; padding:6px 10px; font-size:0.75rem;" onclick="hapusKelasPermanen(${kls.id})"><i class="fa-solid fa-trash"></i></button>
                     </div>
@@ -2099,16 +2545,137 @@
 
     function renderCheckboxHakAkses() { const val = document.getElementById('select-role-akses').value; const wadah = document.getElementById('container-checkbox-akses'); wadah.innerHTML = ''; if(val === 'superadmin') return wadah.innerHTML = 'Super Admin memiliki akses mutlak.'; const aksesDB = getDB('pondok_akses', {}); const aksesRoleIni = aksesDB[val] || []; menuMaster.forEach(item => { if(item.id !== 'view-pengguna') wadah.innerHTML += `<label style="display:flex; gap:10px;"><input type="checkbox" class="checkbox-perizinan-menu" value="${item.id}" ${aksesRoleIni.includes(item.id)?'checked':''}> ${item.nama || item.id}</label>`; }); }
     function simpanHakAkses() { const role = document.getElementById('select-role-akses').value; let arr = []; document.querySelectorAll('.checkbox-perizinan-menu:checked').forEach(c => arr.push(c.value)); let db = getDB('pondok_akses', {}); db[role] = arr; localStorage.setItem('pondok_akses', JSON.stringify(db)); alert("Hak akses disimpan."); }
-    function renderTabelPegawai() { const t = document.getElementById('tabel-pengguna-body'); t.innerHTML = ''; getDB('pondok_users', []).forEach(u => { t.innerHTML += `<tr><td><strong>${u.nama}</strong><br><small>@${u.username} | ${u.role}</small></td><td><button class="btn-print" onclick="prosesCetakIDCard('${u.username}', 'pegawai')">Cetak</button></td></tr>`; }); }
-    function tambahPengguna() { let users = getDB('pondok_users', []); kompresiGambar(document.getElementById('reg-foto').files[0], 150, (foto) => { users.push({ id: Date.now(), nama: document.getElementById('reg-nama').value, username: document.getElementById('reg-username').value.toLowerCase(), password: document.getElementById('reg-password').value, pin_login: "123456", role: document.getElementById('reg-role').value, foto: foto || 'https://cdn-icons-png.flaticon.com/512/149/149071.png' }); localStorage.setItem('pondok_users', JSON.stringify(users)); renderTabelPegawai(); alert("Akun dibuat!"); }); }
+    
+    function renderTabelPegawai() { 
+        const t = document.getElementById('tabel-pengguna-body'); 
+        t.innerHTML = ''; 
+        getDB('pondok_users', []).forEach(u => { 
+            t.innerHTML += `<tr>
+                <td><strong>${u.nama}</strong><br><small>@${u.username} | <b>${u.role.toUpperCase()}</b></small></td>
+                <td>
+                    <div style="display:flex; gap:4px; flex-wrap:wrap;">
+                        <button class="btn-print" style="margin:0; padding:6px; font-size:0.7rem;" onclick="prosesCetakIDCard('${u.username}', 'pegawai')"><i class="fa-solid fa-print"></i> Cetak</button>
+                        <button class="btn-warning" style="margin:0; padding:6px; font-size:0.7rem;" onclick="editPenggunaMode(${u.id})"><i class="fa-solid fa-pen"></i> Edit</button>
+                        <button class="btn-danger" style="margin:0; padding:6px; font-size:0.7rem;" onclick="hapusPengguna(${u.id})"><i class="fa-solid fa-trash"></i> Hapus</button>
+                    </div>
+                </td>
+            </tr>`; 
+        }); 
+    }
+
+    function simpanPengguna() { 
+        const idEdit = document.getElementById('edit-id-pengguna').value;
+        const nama = document.getElementById('reg-nama').value.trim();
+        const username = document.getElementById('reg-username').value.trim().toLowerCase();
+        const password = document.getElementById('reg-password').value;
+        const role = document.getElementById('reg-role').value;
+        const fileFoto = document.getElementById('reg-foto').files[0];
+
+        if (!nama || !username) return alert("Nama dan Username harus diisi!");
+        
+        let users = getDB('pondok_users', []);
+
+        if (idEdit) {
+            let userIndex = users.findIndex(u => u.id == idEdit);
+            if (userIndex > -1) {
+                users[userIndex].nama = nama;
+                users[userIndex].username = username;
+                users[userIndex].role = role;
+                if (password && password.trim() !== "") {
+                    users[userIndex].password = password;
+                }
+                if (fileFoto) {
+                    kompresiGambar(fileFoto, 150, (resFoto) => {
+                        users[userIndex].foto = resFoto || users[userIndex].foto;
+                        localStorage.setItem('pondok_users', JSON.stringify(users));
+                        alert("Data akun berhasil diperbarui!");
+                        batalEditPengguna();
+                        renderTabelPegawai();
+                    });
+                    return;
+                }
+                localStorage.setItem('pondok_users', JSON.stringify(users));
+                alert("Data akun berhasil diperbarui!");
+            }
+        } else {
+            if (!password) return alert("Password harus diisi untuk akun baru!");
+            if (users.some(u => u.username === username)) return alert("Username tersebut sudah digunakan!");
+
+            kompresiGambar(fileFoto, 150, (foto) => { 
+                users.push({ 
+                    id: Date.now(), 
+                    nama: nama, 
+                    username: username, 
+                    password: password, 
+                    pin_login: "123456", 
+                    role: role, 
+                    foto: foto || 'https://cdn-icons-png.flaticon.com/512/149/149071.png' 
+                }); 
+                localStorage.setItem('pondok_users', JSON.stringify(users)); 
+                alert("Akun pegawai berhasil dibuat!");
+                batalEditPengguna();
+                renderTabelPegawai(); 
+            });
+            return;
+        }
+
+        batalEditPengguna();
+        renderTabelPegawai();
+    }
+
+    function editPenggunaMode(idUser) {
+        let users = getDB('pondok_users', []);
+        let user = users.find(u => u.id == idUser);
+        if (!user) return;
+
+        document.getElementById('edit-id-pengguna').value = user.id;
+        document.getElementById('reg-nama').value = user.nama;
+        document.getElementById('reg-username').value = user.username;
+        document.getElementById('reg-password').value = "";
+        document.getElementById('reg-password').placeholder = "(Kosongkan jika password tidak diubah)";
+        document.getElementById('reg-role').value = user.role;
+
+        document.getElementById('form-pengguna-title').innerText = "Edit Data Akun Pegawai";
+        document.getElementById('btn-simpan-pengguna').innerText = "UPDATE AKUN";
+        document.getElementById('btn-batal-edit-pengguna').classList.remove('hidden');
+        window.scrollTo(0, 0);
+    }
+
+    function batalEditPengguna() {
+        document.getElementById('edit-id-pengguna').value = "";
+        document.getElementById('reg-nama').value = "";
+        document.getElementById('reg-username').value = "";
+        document.getElementById('reg-password').value = "";
+        document.getElementById('reg-password').placeholder = "Password akun...";
+        document.getElementById('reg-foto').value = "";
+        document.getElementById('reg-role').value = "admin";
+
+        document.getElementById('form-pengguna-title').innerText = "Buat Akun Pegawai";
+        document.getElementById('btn-simpan-pengguna').innerText = "SIMPAN AKUN";
+        document.getElementById('btn-batal-edit-pengguna').classList.add('hidden');
+    }
+
+    function hapusPengguna(idUser) {
+        let users = getDB('pondok_users', []);
+        let target = users.find(u => u.id == idUser);
+        if (!target) return;
+
+        if (currentUser && currentUser.username === target.username) {
+            return alert("Anda tidak dapat menghapus akun yang sedang aktif digunakan saat ini!");
+        }
+
+        if (!confirm(`Yakin ingin menghapus akun "${target.nama}" (@${target.username})?`)) return;
+
+        let sisaUsers = users.filter(u => u.id != idUser);
+        localStorage.setItem('pondok_users', JSON.stringify(sisaUsers));
+        alert(`Akun "${target.nama}" berhasil dihapus.`);
+        renderTabelPegawai();
+    }
+
     function exportDataLokal() { const data = { pondok_users: getDB('pondok_users'), pondok_santri: getDB('pondok_santri'), pondok_kelas: getDB('pondok_kelas'), pondok_master_mapel: getDB('pondok_master_mapel'), pondok_absensi: getDB('pondok_absensi'), pondok_yayasan: getDB('pondok_yayasan'), pondok_tagihan_denda: getDB('pondok_tagihan_denda'), pondok_history_izin: getDB('pondok_history_izin'), pondok_evaluasi: getDB('pondok_evaluasi'), pondok_gps: getDB('pondok_gps') }; const a = document.createElement('a'); a.href = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(data)); a.download = "Backup_LMS.json"; a.click(); a.remove(); }
     function importDataLokal(e) { const r = new FileReader(); r.onload = function(evt) { const imp = JSON.parse(evt.target.result); if(imp.pondok_santri) localStorage.setItem('pondok_santri', JSON.stringify(imp.pondok_santri)); if(imp.pondok_kelas) localStorage.setItem('pondok_kelas', JSON.stringify(imp.pondok_kelas)); if(imp.pondok_master_mapel) localStorage.setItem('pondok_master_mapel', JSON.stringify(imp.pondok_master_mapel)); if(imp.pondok_yayasan) localStorage.setItem('pondok_yayasan', JSON.stringify(imp.pondok_yayasan)); if(imp.pondok_evaluasi) localStorage.setItem('pondok_evaluasi', JSON.stringify(imp.pondok_evaluasi)); if(imp.pondok_gps) localStorage.setItem('pondok_gps', JSON.stringify(imp.pondok_gps)); alert("Restore Berhasil!"); location.reload(); }; r.readAsText(e.target.files[0]); }
 
-    // --- FITUR RESET MODULAR (PILIHAN) ---
-    function bukaModalResetOpsi() {
-        document.getElementById('modal-reset-opsi').classList.remove('hidden');
-    }
-
+    function bukaModalResetOpsi() { document.getElementById('modal-reset-opsi').classList.remove('hidden'); }
     function eksekusiResetOpsi(tipe) {
         if (tipe === 1) {
             if (!confirm("Yakin ingin menghapus seluruh data Santri, Kelas, & Plotting? Konfigurasi dan data lainnya tetap aman.")) return;
@@ -2196,6 +2763,19 @@
     }
 
     document.addEventListener('DOMContentLoaded', initApp);
+
+    // ─── PWA Service Worker Registration ───
+    if ('serviceWorker' in navigator) {
+        window.addEventListener('load', function() {
+            navigator.serviceWorker.register('sw.js')
+                .then(function(registration) {
+                    console.log('[SMS PWA] Service Worker registered with scope:', registration.scope);
+                })
+                .catch(function(error) {
+                    console.warn('[SMS PWA] Service Worker registration failed:', error);
+                });
+        });
+    }
 </script>
 </body>
 </html>
