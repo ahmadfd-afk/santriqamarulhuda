@@ -3250,7 +3250,7 @@
         }
     }
 
-    async function sinkronisasiKeCloud() {
+        async function sinkronisasiKeCloud() {
         if (!supabaseConfig.url || !supabaseConfig.key) {
             return alert("Konfigurasi URL & Key Supabase belum diisi di menu Database!");
         }
@@ -3258,6 +3258,7 @@
         if (btn) btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> MENGIRIM KE CLOUD...';
 
         try {
+            // PAYLOAD FULL BACKUP
             const payload = {
                 santri: getDB('pondok_santri', []),
                 absensi: getDB('pondok_absensi', []),
@@ -3266,7 +3267,12 @@
                 evaluasi: getDB('pondok_evaluasi', []),
                 tagihan: getDB('pondok_tagihan_denda', []),
                 izin_aktif: getDB('pondok_izin_aktif', []),
-                history_izin: getDB('pondok_history_izin', [])
+                history_izin: getDB('pondok_history_izin', []),
+                yayasan: getDB('pondok_yayasan', {}),
+                users: getDB('pondok_users', []),
+                akses: getDB('pondok_akses', {}),
+                gps: getDB('pondok_gps', {}),
+                setting_keuangan: getDB('pondok_setting_keuangan', {})
             };
 
             const response = await fetch(`${supabaseConfig.url}/rest/v1/backup_lms?id=eq.1`, {
@@ -3281,7 +3287,7 @@
             });
 
             if (response.ok) {
-                alert("Berhasil mengunggah dan menyinkronkan seluruh data ke Cloud!");
+                alert("Berhasil mengunggah dan menyinkronkan SELURUH DATA & PENGATURAN ke Cloud!");
             } else {
                 await fetch(`${supabaseConfig.url}/rest/v1/backup_lms`, {
                     method: 'POST',
@@ -3301,7 +3307,8 @@
         }
     }
 
-    async function tarikDataDariSupabase() {
+
+        async function tarikDataDariSupabase() {
         if (!supabaseConfig.url || !supabaseConfig.key) {
             return alert("URL & Key Supabase belum tersedia!");
         }
@@ -3321,6 +3328,8 @@
             const rows = await response.json();
             if (rows && rows.length > 0 && rows[0].data_json) {
                 const data = rows[0].data_json;
+                
+                // RESTORE DATA UTAMA
                 if (data.santri) localStorage.setItem('pondok_santri', JSON.stringify(data.santri));
                 if (data.absensi) localStorage.setItem('pondok_absensi', JSON.stringify(data.absensi));
                 if (data.kelas) localStorage.setItem('pondok_kelas', JSON.stringify(data.kelas));
@@ -3329,8 +3338,15 @@
                 if (data.tagihan) localStorage.setItem('pondok_tagihan_denda', JSON.stringify(data.tagihan));
                 if (data.izin_aktif) localStorage.setItem('pondok_izin_aktif', JSON.stringify(data.izin_aktif));
                 if (data.history_izin) localStorage.setItem('pondok_history_izin', JSON.stringify(data.history_izin));
+                
+                // RESTORE DATA PENGATURAN & AKUN (FULL BACKUP)
+                if (data.yayasan) localStorage.setItem('pondok_yayasan', JSON.stringify(data.yayasan));
+                if (data.users) localStorage.setItem('pondok_users', JSON.stringify(data.users));
+                if (data.akses) localStorage.setItem('pondok_akses', JSON.stringify(data.akses));
+                if (data.gps) localStorage.setItem('pondok_gps', JSON.stringify(data.gps));
+                if (data.setting_keuangan) localStorage.setItem('pondok_setting_keuangan', JSON.stringify(data.setting_keuangan));
 
-                alert("Berhasil menarik data terbaru dari Cloud! Sistem akan dimuat ulang.");
+                alert("Berhasil menarik SELURUH data terbaru dari Cloud! Sistem akan dimuat ulang.");
                 location.reload();
             } else {
                 alert("Belum ada data cadangan tersimpan di server Supabase kamu.");
@@ -3341,6 +3357,7 @@
             if (btn) btn.innerHTML = '<i class="fa-solid fa-triangle-exclamation"></i> TARIK DATA DARI CLOUD (TIMPA DATA LOKAL)';
         }
     }
+
 
     function bukaModalResetOpsi() {
         document.getElementById('modal-reset-opsi').classList.remove('hidden');
