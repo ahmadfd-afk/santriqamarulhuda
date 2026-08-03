@@ -1,7 +1,7 @@
 {
   "name": "SMS - Sistem Manajemen Santri",
   "short_name": "SMS",
-  "description": "Sistem Manajemen Santri - Aplikasi manajemen pondok pesantren / instansi pendidikan",
+  "description": "Sistem Manajemen Santri – Aplikasi manajemen pondok pesantren & instansi pendidikan",
   "start_url": "./index.html",
   "scope": "./",
   "display": "standalone",
@@ -12,22 +12,9 @@
   "dir": "ltr",
   "categories": [
     "education",
-    "productivity",
-    "business"
+    "productivity"
   ],
   "icons": [
-    {
-      "src": "icon-16.png",
-      "sizes": "16x16",
-      "type": "image/png",
-      "purpose": "any"
-    },
-    {
-      "src": "icon-32.png",
-      "sizes": "32x32",
-      "type": "image/png",
-      "purpose": "any"
-    },
     {
       "src": "icon-48.png",
       "sizes": "48x48",
@@ -77,29 +64,35 @@
       "purpose": "any"
     },
     {
+      "src": "icon-384.png",
+      "sizes": "384x384",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
       "src": "icon-512.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "icon-maskable-512.png",
-      "sizes": "512x512",
+      "src": "icon-maskable-192.png",
+      "sizes": "192x192",
       "type": "image/png",
       "purpose": "maskable"
     },
     {
-      "src": "icon-192.png",
-      "sizes": "192x192",
+      "src": "icon-maskable-512.png",
+      "sizes": "512x512",
       "type": "image/png",
       "purpose": "maskable"
     }
   ],
   "shortcuts": [
     {
-      "name": "Login",
-      "short_name": "Login",
-      "description": "Masuk ke aplikasi SMS",
+      "name": "Buka SMS",
+      "short_name": "SMS",
+      "description": "Buka Sistem Manajemen Santri",
       "url": "./index.html",
       "icons": [
         {

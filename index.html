@@ -3,16 +3,31 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Sistem Manajemen (LMS) - Liquid Glass Pro</title>
-    
+    <title>SMS - Sistem Manajemen Santri</title>
+
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" media="print" onload="this.media='all'">
-    
+
+    <!-- ═══ PWA Meta Tags ═══ -->
     <meta name="theme-color" content="#04432A">
     <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="apple-mobile-web-app-title" content="LMS Apps">
-    <link id="apple-touch-icon" rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/3592/3592078.png">
-    
+    <meta name="apple-mobile-web-app-title" content="SMS">
+    <meta name="application-name" content="SMS">
+    <meta name="description" content="SMS - Sistem Manajemen Santri">
+
+    <!-- ═══ Icons ═══ -->
+    <link rel="icon" type="image/png" sizes="16x16" href="favicon-16.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png">
+    <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
+    <link rel="icon" type="image/png" sizes="512x512" href="icon-512.png">
+    <link id="apple-touch-icon" rel="apple-touch-icon" href="icon-180.png">
+    <link rel="apple-touch-icon" sizes="120x120" href="icon-120.png">
+    <link rel="apple-touch-icon" sizes="152x152" href="icon-152.png">
+    <link rel="apple-touch-icon" sizes="167x167" href="icon-167.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="icon-180.png">
+
+    <!-- ═══ PWA Manifest ═══ -->
     <link rel="manifest" href="manifest.json">
 
     <style>
@@ -201,7 +216,7 @@
             <div class="login-overlay"></div>
             <div class="card glass-card-login">
                 <div style="text-align: center; margin-bottom: 14px;">
-                    <img src="https://cdn-icons-png.flaticon.com/512/3592/3592078.png" id="login-logo" style="width: 110px; height: 110px; border-radius: 50%; border: 3px solid var(--accent); padding: 5px; background: rgba(255,255,255,0.85); backdrop-filter: blur(10px); box-shadow: 0 4px 15px rgba(0,0,0,0.3);" alt="Logo">
+                    <img src="icon-512.png" id="login-logo" style="width: 110px; height: 110px; border-radius: 50%; border: 3px solid var(--accent); padding: 5px; background: rgba(255,255,255,0.85); backdrop-filter: blur(10px); box-shadow: 0 4px 15px rgba(0,0,0,0.3);" alt="Logo">
                     <h2 style="font-weight: 800; margin-top:8px;" id="login-pondok-name">Sistem Monitoring</h2>
                     <p style="color: rgba(255,255,255,0.8); font-size: 0.72rem; margin-top: 2px;">Silakan masuk untuk melanjutkan</p>
                 </div>
@@ -3045,6 +3060,16 @@
     }
 
     document.addEventListener('DOMContentLoaded', initApp);
+
+    // ═══ PWA Service Worker ═══
+    if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+            navigator.serviceWorker.register('./sw.js')
+                .then(r => console.log('[SMS] SW registered:', r.scope))
+                .catch(e => console.warn('[SMS] SW failed:', e));
+        });
+    }
+
 </script>
 </body>
 </html>
