@@ -1488,7 +1488,7 @@
     function initApp() {
         muatScriptEksternal(); registerServiceWorker();
         if (!localStorage.getItem('pondok_users')) { localStorage.setItem('pondok_users', JSON.stringify([ { id: 1, nama: "Super Admin Mutlak", username: "admin", password: "admin123", pin_login: "123456", role: "superadmin", foto: 'https://cdn-icons-png.flaticon.com/512/149/149071.png' }, { id: 2, nama: "Admin Tata Usaha", username: "tu", password: "tu123", pin_login: "112233", role: "admin", foto: 'https://cdn-icons-png.flaticon.com/512/149/149071.png' }, { id: 3, nama: "Guru / Ustadz", username: "ustadz", password: "ustadz123", pin_login: "1234", role: "ustadz", foto: 'https://cdn-icons-png.flaticon.com/512/149/149071.png' }, { id: 4, nama: "Kasir Keuangan", username: "keuangan", password: "keuangan123", pin_login: "998877", role: "accounting", foto: 'https://cdn-icons-png.flaticon.com/512/149/149071.png' } ])); }
-        let cekAkses = getDB('pondok_akses', defaultAkses); ['superadmin', 'admin', 'ustadz', 'accounting'].forEach(r => { if(cekAkses[r] && !cekAkses[r].includes('view-database')) cekAkses[r].push('view-database'); if(cekAkses[r] && !cekAkses[r].includes('view-izin') && r !== 'accounting') cekAkses[r].push('view-izin'); if(cekAkses[r] && !cekAkses[r].includes('view-evaluasi') && (r === 'superadmin' || r === 'ustadz' || r === 'admin')) cekAkses[r].push('view-evaluasi'); }); localStorage.setItem('pondok_akses', JSON.stringify(cekAkses));
+        let cekAkses = getDB('pondok_akses', defaultAkses); localStorage.setItem('pondok_akses', JSON.stringify(cekAkses));
         if (!localStorage.getItem('pondok_absensi')) localStorage.setItem('pondok_absensi', JSON.stringify([]));
         if (!localStorage.getItem('pondok_evaluasi')) localStorage.setItem('pondok_evaluasi', JSON.stringify([]));
         
@@ -2386,6 +2386,7 @@
         let tagihan = getDB('pondok_tagihan_denda', []); 
         let absen = getDB('pondok_absensi', []); 
         let santriDB = getDB('pondok_santri', []); 
+        const configUang = getDB('pondok_setting_keuangan', { nominal_alpa: 10000 });
 
         const namaMapelAktual = mObj.nama_mapel;
         const namaUstPj = mObj.ustadz_nama;
@@ -2416,7 +2417,7 @@
             rekam.detail.push({ id_santri: sObj.id, nis: sObj.nis, status: statusAkhir }); 
             
             if(statusAkhir === 'Alpa') { 
-                tagihan.push({ id_tagihan: Date.now() + countAlpa, nis: sObj.nis, nama: sObj.nama, keterangan: `Alpa: ${namaMapelAktual}`, nominal: 10000 }); 
+                tagihan.push({ id_tagihan: Date.now() + countAlpa, nis: sObj.nis, nama: sObj.nama, keterangan: `Alpa: ${namaMapelAktual}`, nominal: parseInt(configUang.nominal_alpa) || 10000 }); 
                 countAlpa++; 
             } 
         }); 
