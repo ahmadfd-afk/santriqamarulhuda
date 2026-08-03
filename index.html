@@ -101,7 +101,7 @@
         .back-nav { display: flex; align-items: center; gap: 10px; color: var(--primary); font-weight: 700; margin-bottom: 20px; cursor: pointer; padding: 10px 0; font-size: 0.95rem; }
         table { width: 100%; border-collapse: separate; border-spacing: 0; margin-bottom: 15px; font-size: 0.8rem; }
         th, td { padding: 10px 8px; text-align: left; border-bottom: 1px solid rgba(0,0,0,0.06); }
-        th { background-color: var(--primary); color: white; font-weight: 600; }
+        th { background-color: var(--primary); color: white; font-weight: 600; position: sticky; top: 0; z-index: 5; }
         th:first-child { border-top-left-radius: 10px; }
         th:last-child { border-top-right-radius: 10px; }
         .bottom-nav { position: fixed; bottom: 12px; left: 50%; transform: translateX(-50%); width: calc(100% - 28px); max-width: 470px; background: rgba(255, 255, 255, 0.86); backdrop-filter: blur(28px) saturate(180%); -webkit-backdrop-filter: blur(28px) saturate(180%); display: flex; justify-content: space-around; padding: 10px 10px calc(10px + env(safe-area-inset-bottom, 0px)) 10px; box-shadow: 0 16px 36px rgba(0,0,0,0.18); border-radius: 34px; border: 1px solid rgba(255, 255, 255, 0.8); z-index: 1000; }
@@ -163,6 +163,9 @@
         .sertifikat-predikat { font-size: 1.3rem; font-weight: bold; color: var(--danger); margin: 10px 0; }
         .sertifikat-footer { margin-top: 40px; display: flex; justify-content: flex-end; padding-right: 40px; text-align: center; }
         .sertifikat-ttd img { max-height: 50px; margin: 5px auto; display: block;}
+
+        /* CSS TAMBAHAN SCROLL DATA SANTRI & TOGGLE TABLE */
+        .wadah-scroll-santri { max-height: 420px; overflow-y: auto; overflow-x: auto; border: 1px solid rgba(0,0,0,0.08); border-radius: 12px; background: #ffffff; margin-bottom: 10px; }
     </style>
 </head>
 <body>
@@ -280,7 +283,7 @@
                 </div>
             </div>
 
-            <!-- VIEW SANTRI (DILENGKAPI TAB SANTRI AKTIF vs RUANG ALUMNI) -->
+            <!-- VIEW SANTRI (DILENGKAPI TAB SANTRI AKTIF vs RUANG ALUMNI & SCROLL / TOGGLE) -->
             <div id="view-santri" class="hidden page-view">
                 <div class="back-nav" onclick="closeSubMenu()"><i class="fa-solid fa-arrow-left"></i> Kembali ke Dashboard</div>
                 
@@ -337,7 +340,12 @@
                 
                 <div class="card">
                     <div style="display: flex; flex-direction: column; margin-bottom: 14px; gap:10px;">
-                        <h3 id="title-db-santri" style="color: var(--primary); margin: 0;">Database Santri Aktif</h3>
+                        <div style="display:flex; justify-content:space-between; align-items:center;">
+                            <h3 id="title-db-santri" style="color: var(--primary); margin: 0;">Database Santri Aktif</h3>
+                            <button type="button" id="btn-toggle-tabel-santri" class="btn-outline" onclick="toggleTampilanTabelSantri()" style="width:auto; padding:6px 12px; margin:0; font-size:0.75rem; border-color:var(--primary);">
+                                <i class="fa-solid fa-eye-slash" id="icon-toggle-tabel"></i> Sembunyikan
+                            </button>
+                        </div>
                         <div style="display:flex; gap:8px;">
                             <button class="btn-primary" onclick="cetakKolektifF4Gabung()" style="margin: 0; padding: 12px; font-size: 0.78rem; background: var(--info); flex: 1;">
                                 <i class="fa-solid fa-print"></i> Cetak F4 (Kolektif)
@@ -347,7 +355,9 @@
                             </button>
                         </div>
                     </div>
-                    <div style="overflow-x:auto;">
+                    
+                    <!-- WADAH SCROLL TERBATAS (TAMPIL 10-15 BARIS) -->
+                    <div id="wadah-scroll-santri" class="wadah-scroll-santri">
                         <table>
                             <thead><tr><th id="th-kamar-nis">NIS / Kamar</th><th>Nama Lengkap</th><th>Aksi</th></tr></thead>
                             <tbody id="tabel-santri-body"></tbody>
@@ -404,7 +414,7 @@
                 </div>
             </div>
 
-            <!-- VIEW PLOTTING KELAS & MAPEL (DILENGKAPI JADWAL HARI & JAM DAN G-CAL) -->
+            <!-- VIEW PLOTTING KELAS & MAPEL -->
             <div id="view-kelas" class="hidden page-view">
                 <div class="back-nav" onclick="closeSubMenu()"><i class="fa-solid fa-arrow-left"></i> Kembali ke Dashboard</div>
                 
@@ -412,7 +422,7 @@
                     <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; flex-wrap:wrap; gap:8px;">
                         <h3 style="color: var(--info); margin:0;"><i class="fa-solid fa-book"></i> Buat Master Mata Pelajaran</h3>
                         <button type="button" class="btn-outline" style="width:auto; padding:6px 12px; margin:0; font-size:0.72rem; border-color:var(--info); color:var(--info);" onclick="aktifkanNotifikasiJadwal()">
-                            <i class="fa-solid fa-bell"></i> Aktifkan Notifikasi Jadwal
+                            <i class="fa-solid fa-bell"></i> Izin Layar PWA Notif
                         </button>
                     </div>
                     <p style="font-size:0.75rem; color:var(--text-muted); margin-bottom:10px;">Buat mata pelajaran dan tentukan ustadz/guru penanggung jawabnya (bisa lebih dari satu), lalu centang kelas mana saja yang mempelajarinya.</p>
@@ -420,7 +430,6 @@
                     <label>Nama Mata Pelajaran</label>
                     <input type="text" id="input-nama-mapel" placeholder="Cth: Fiqih / Al-Qur'an / Nahwu">
                     
-                    <!-- FITUR JADWAL OPSIONAL BERDASARKAN HARI & JAM -->
                     <label style="cursor:pointer; display:flex; align-items:center; gap:8px; color:var(--primary); margin-top:14px;">
                         <input type="checkbox" id="input-opsi-jadwal" onchange="toggleFormJadwalMapel()" style="width:18px; height:18px; margin:0;">
                         <span>Atur Jadwal Hari & Jam (Opsional)</span>
@@ -510,6 +519,20 @@
 
             <div id="view-yayasan" class="hidden page-view">
                 <div class="back-nav" onclick="closeSubMenu()"><i class="fa-solid fa-arrow-left"></i> Kembali ke Dashboard</div>
+                
+                <!-- PENGATURAN PWA NOTIFIKASI MUTLAK SUPER ADMIN -->
+                <div class="card card-premium" style="border-left-color: var(--danger);">
+                    <h3 style="margin-bottom: 10px; color: var(--danger);"><i class="fa-solid fa-bell"></i> Status PWA Notif & Suara Pengingat (Super Admin)</h3>
+                    <p style="font-size:0.75rem; color:var(--text-muted); margin-bottom:12px;">Aktifkan saklar mutlak agar pengingat jadwal berbunyi otomatis di akun semua Ustadz/Guru sesuai hari & jam mengajar tanpa bisa dimatikan oleh guru.</p>
+                    <label>Status PWA Notification (Mutlak)</label>
+                    <select id="setting-pwa-notif-aktif">
+                        <option value="1">Aktif Mutlak (Semua Guru & Ustadz)</option>
+                        <option value="0">Matikan Notifikasi PWA</option>
+                    </select>
+                    <label>Kalimat Suara Pengingat Jadwal (Gunakan variabel {mapel} dan {kelas})</label>
+                    <input type="text" id="setting-pwa-notif-teks" placeholder="Waktunya mengajar mata pelajaran {mapel} di kelas {kelas}.">
+                </div>
+
                 <div class="card card-premium" style="border-left-color: var(--success);">
                     <h3 style="margin-bottom: 14px; color: var(--success);">Konfigurasi Mode Aplikasi</h3>
                     <label>Jenis Instansi</label>
@@ -896,7 +919,8 @@
 <script>
     const KODE_RAHASIA_SYNC = "SYNC_PONDOK_SUPABASE_ENTERPRISE_V1";
     let appMode = 'pondok';
-    let modeTampilanSantri = 'aktif'; // 'aktif' atau 'alumni'
+    let modeTampilanSantri = 'aktif'; 
+    let pwaWatchdogInterval = null;
 
     const termDict = {
         pondok: { santri: "Santri", ustadz: "Ustadz", asrama: "Asrama", kamar: "Kamar", mudir: "Pimpinan (Mudir)", instansi: "Pondok", labelAsramaOpsi: ["Asrama Putra", "Asrama Putri"] },
@@ -1589,7 +1613,30 @@
             }));
         }
 
-        if (!localStorage.getItem('pondok_yayasan')) { localStorage.setItem('pondok_yayasan', JSON.stringify({ mode: 'pondok', pondok: "Amtsilatul Huda", yayasan: "Yayasan Amtsilatul Huda Mesaleng", blur_login: "4", logo: "https://cdn-icons-png.flaticon.com/512/3592/3592078.png", bg_login: "https://images.unsplash.com/photo-1519817650390-28a59b20892c?q=80&w=1000&auto=format&fit=crop", bg_idcard: "", mudir: "DR. TGH. Zarkasi Efendi, M. Pd. I", ttd_mudir: "", alamat: "Dusun Mesaleng Desa Bagu Kec pringgarata kabupaten Lombok Tengah NTB 83562", teks_footer: "", teks_lulus: "Telah mengikuti seluruh program pembelajaran dengan baik dan dinyatakan:", voice_aktif: "1", voice_teks: "Assalamualaikum, selamat datang di sistem monitoring santri", tata_tertib: "1. Wajib menjaga nama baik instansi.\n2. Kartu wajib dibawa setiap saat.", izin_judul: "SURAT IZIN KELUAR / PULANG SANTRI", izin_catatan: "Surat wajib divalidasi dan dicap di sekretariat pondok." })); }
+        if (!localStorage.getItem('pondok_yayasan')) { 
+            localStorage.setItem('pondok_yayasan', JSON.stringify({ 
+                mode: 'pondok', 
+                pondok: "Amtsilatul Huda", 
+                yayasan: "Yayasan Amtsilatul Huda Mesaleng", 
+                blur_login: "4", 
+                logo: "https://cdn-icons-png.flaticon.com/512/3592/3592078.png", 
+                bg_login: "https://images.unsplash.com/photo-1519817650390-28a59b20892c?q=80&w=1000&auto=format&fit=crop", 
+                bg_idcard: "", 
+                mudir: "DR. TGH. Zarkasi Efendi, M. Pd. I", 
+                ttd_mudir: "", 
+                alamat: "Dusun Mesaleng Desa Bagu Kec pringgarata kabupaten Lombok Tengah NTB 83562", 
+                teks_footer: "", 
+                teks_lulus: "Telah mengikuti seluruh program pembelajaran dengan baik dan dinyatakan:", 
+                voice_aktif: "1", 
+                voice_teks: "Assalamualaikum, selamat datang di sistem monitoring santri", 
+                tata_tertib: "1. Wajib menjaga nama baik instansi.\n2. Kartu wajib dibawa setiap saat.", 
+                izin_judul: "SURAT IZIN KELUAR / PULANG SANTRI", 
+                izin_catatan: "Surat wajib divalidasi dan dicap di sekretariat pondok.",
+                pwa_notif_aktif: "1",
+                pwa_notif_teks: "Waktunya mengajar mata pelajaran {mapel} di kelas {kelas}."
+            })); 
+        }
+        
         if (!localStorage.getItem('pondok_setting_keuangan')) { localStorage.setItem('pondok_setting_keuangan', JSON.stringify({ nominal_alpa: 10000, limit_alpa: 3, sanksi_ekstra: "Pemanggilan Orang Tua / SP1", denda_terlambat_izin: 20000 })); }
         if (!localStorage.getItem('pondok_izin_aktif')) localStorage.setItem('pondok_izin_aktif', JSON.stringify([]));
         if (!localStorage.getItem('pondok_history_izin')) localStorage.setItem('pondok_history_izin', JSON.stringify([]));
@@ -1598,7 +1645,73 @@
 
         const savedSession = localStorage.getItem('pondok_active_user');
         if (savedSession) { currentUser = getDB('pondok_active_user', null); if(currentUser && currentUser.role) { masukKeSistemSetelahLogin(false); } }
+        
+        // Mulai PWA Watchdog untuk mendeteksi jadwal & pengingat secara permanen
+        mulaiWatchdogJadwal();
     }
+
+    // ═══ PWA WATCHDOG ENGINE (PERMANEN MUTLAK) ═══
+    function mulaiWatchdogJadwal() {
+        if (pwaWatchdogInterval) clearInterval(pwaWatchdogInterval);
+        pwaWatchdogInterval = setInterval(() => {
+            periksaJadwalDanBunyikan();
+        }, 30000); // Periksa setiap 30 detik agar akurat
+    }
+
+    function periksaJadwalDanBunyikan() {
+        const yayasan = getDB('pondok_yayasan', {});
+        if (yayasan.pwa_notif_aktif !== "1") return; // Jika Super Admin mematikan, hentikan proses
+        if (!currentUser) return; // Harus ada user aktif
+
+        const namaHariIni = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'][new Date().getDay()];
+        const sekarang = new Date();
+        const jamSekarangID = String(sekarang.getHours()).padStart(2, '0') + ':' + String(sekarang.getMinutes()).padStart(2, '0');
+        const tanggalISO = sekarang.toISOString().split('T')[0];
+
+        const listMapel = getDB('pondok_master_mapel', []);
+        const dbKelas = getDB('pondok_kelas', []);
+
+        listMapel.forEach(m => {
+            if (m.jadwal_aktif && m.hari === namaHariIni && m.jam_mulai === jamSekarangID) {
+                // Periksa apakah user adalah Ustadz pengampu ATAU Super Admin (untuk keperluan testing)
+                const isPengampu = (m.ustadz_ids || []).includes(currentUser.username) || (m.ustadz_id === currentUser.username);
+                if (isPengampu || currentUser.role === 'superadmin') {
+                    const kunciLog = `pwa_notif_sent_${tanggalISO}_${m.id}_${jamSekarangID}`;
+                    if (!localStorage.getItem(kunciLog)) {
+                        localStorage.setItem(kunciLog, '1'); // Tandai agar tidak berbunyi berulang dalam jam yang sama
+
+                        let kelasNama = "Kelas";
+                        if (m.kelas_ids && m.kelas_ids.length > 0) {
+                            let klsObj = dbKelas.find(k => k.id == m.kelas_ids[0]);
+                            if (klsObj) kelasNama = klsObj.nama;
+                        }
+
+                        // Susun kalimat suara dari format Super Admin
+                        let formatTeks = yayasan.pwa_notif_teks || "Waktunya mengajar mata pelajaran {mapel} di kelas {kelas}.";
+                        let teksSuara = formatTeks.replace(/{mapel}/g, m.nama_mapel).replace(/{kelas}/g, kelasNama);
+
+                        // Kirim visual notifikasi & bunyikan suara
+                        kirimNotifikasiLokal("Jadwal Mengajar Tiba!", teksSuara);
+                        if ('speechSynthesis' in window) {
+                            window.speechSynthesis.cancel();
+                            const u = new SpeechSynthesisUtterance(teksSuara);
+                            u.lang = 'id-ID';
+                            u.rate = 0.9;
+                            window.speechSynthesis.speak(u);
+                        }
+                    }
+                }
+            }
+        });
+    }
+
+    // Pantang Mati: Hidupkan ulang Watchdog jika browser di-foreground/aktif kembali
+    document.addEventListener("visibilitychange", () => {
+        if (!document.hidden) {
+            periksaJadwalDanBunyikan();
+            mulaiWatchdogJadwal();
+        }
+    });
 
     function registerServiceWorker() {
         if ('serviceWorker' in navigator) {
@@ -1660,7 +1773,22 @@
             const overlay = document.querySelector('.login-overlay'); if(overlay) { overlay.style.backdropFilter = `blur(${tingkatBlur}px)`; overlay.style.webkitBackdropFilter = `blur(${tingkatBlur}px)`; }
 
             if(document.getElementById('input-nama-pondok-edit')) {
-                document.getElementById('setting-app-mode').value = data.mode || 'pondok'; document.getElementById('input-nama-pondok-edit').value = data.pondok || ""; document.getElementById('input-yayasan-edit').value = data.yayasan || ""; document.getElementById('input-mudir-edit').value = data.mudir || ''; document.getElementById('input-alamat-edit').value = data.alamat || ''; document.getElementById('setting-footer-text').value = data.teks_footer || ""; document.getElementById('setting-teks-lulus').value = data.teks_lulus || ""; document.getElementById('setting-voice-aktif').value = data.voice_aktif || "1"; document.getElementById('setting-voice-teks').value = data.voice_teks || ""; document.getElementById('setting-tata-tertib').value = data.tata_tertib || ""; document.getElementById('setting-izin-judul').value = data.izin_judul || ""; document.getElementById('setting-izin-catatan').value = data.izin_catatan || ""; document.getElementById('setting-blur-login').value = tingkatBlur;
+                document.getElementById('setting-app-mode').value = data.mode || 'pondok'; 
+                document.getElementById('input-nama-pondok-edit').value = data.pondok || ""; 
+                document.getElementById('input-yayasan-edit').value = data.yayasan || ""; 
+                document.getElementById('input-mudir-edit').value = data.mudir || ''; 
+                document.getElementById('input-alamat-edit').value = data.alamat || ''; 
+                document.getElementById('setting-footer-text').value = data.teks_footer || ""; 
+                document.getElementById('setting-teks-lulus').value = data.teks_lulus || ""; 
+                document.getElementById('setting-voice-aktif').value = data.voice_aktif || "1"; 
+                document.getElementById('setting-voice-teks').value = data.voice_teks || ""; 
+                document.getElementById('setting-tata-tertib').value = data.tata_tertib || ""; 
+                document.getElementById('setting-izin-judul').value = data.izin_judul || ""; 
+                document.getElementById('setting-izin-catatan').value = data.izin_catatan || ""; 
+                document.getElementById('setting-blur-login').value = tingkatBlur;
+                document.getElementById('setting-pwa-notif-aktif').value = data.pwa_notif_aktif || "1";
+                document.getElementById('setting-pwa-notif-teks').value = data.pwa_notif_teks || "Waktunya mengajar mata pelajaran {mapel} di kelas {kelas}.";
+
                 if(data.ttd_mudir) { base64TempImages.ttd_mudir = data.ttd_mudir; document.getElementById('ttd-preview-yayasan').src = data.ttd_mudir; document.getElementById('ttd-preview-yayasan').style.display = 'block'; }
             }
         }
@@ -1731,11 +1859,29 @@
         } else {
             btnAktif.className = 'btn-outline';
             btnAlumni.className = 'btn-primary';
-            if (cardReg) cardReg.style.display = 'none'; // Sembunyikan form reg agar bersih di ruang alumni
+            if (cardReg) cardReg.style.display = 'none';
             if (thKamarNis) thKamarNis.innerText = 'NIS / Tahun Lulus';
             if (titleDB) titleDB.innerText = 'Ruang Alumni (Daftar Kelulusan)';
         }
         renderTabelSantri();
+    }
+
+    // FITUR TOGGLE TAMPILKAN / SEMBUNYIKAN TABEL SANTRI
+    function toggleTampilanTabelSantri() {
+        const wadah = document.getElementById('wadah-scroll-santri');
+        const btnIcon = document.getElementById('icon-toggle-tabel');
+        const btnEl = document.getElementById('btn-toggle-tabel-santri');
+        if (!wadah || !btnEl) return;
+
+        if (wadah.classList.contains('hidden')) {
+            wadah.classList.remove('hidden');
+            btnIcon.className = "fa-solid fa-eye-slash";
+            btnEl.innerHTML = '<i class="fa-solid fa-eye-slash" id="icon-toggle-tabel"></i> Sembunyikan';
+        } else {
+            wadah.classList.add('hidden');
+            btnIcon.className = "fa-solid fa-eye";
+            btnEl.innerHTML = '<i class="fa-solid fa-eye" id="icon-toggle-tabel"></i> Tampilkan Daftar';
+        }
     }
 
     function simpanSantri() { 
@@ -1803,7 +1949,6 @@
     function batalEditSantri() { document.getElementById('edit-id-santri').value = ""; document.getElementById('input-nama-santri').value = ""; document.getElementById('input-nik-santri').value = ""; document.getElementById('input-kamar-santri').value = ""; document.getElementById('input-alamat-santri').value = ""; document.getElementById('input-foto-kamera').value = ""; document.getElementById('input-foto-galeri').value = ""; document.getElementById('input-kelas-santri').value = ""; document.getElementById('preview-foto-santri-ui').style.display = "none"; document.getElementById('preview-foto-santri-ui').src = ""; tempFotoSantriBase64 = ''; document.getElementById('form-santri-title').innerText = `Registrasi ${getTerm('santri')} Baru`; document.getElementById('btn-simpan-santri').innerText = "SIMPAN DATA & GENERATE NIS"; document.getElementById('btn-batal-edit-santri').classList.add('hidden'); }
     function editSantriMode(idString) { let db = getDB('pondok_santri', []); let santri = db.find(s => s.id == idString); if(!santri) return; document.getElementById('edit-id-santri').value = santri.id; document.getElementById('input-nama-santri').value = santri.nama; document.getElementById('input-nik-santri').value = santri.nik || ''; document.getElementById('input-kamar-santri').value = santri.kamar; document.getElementById('input-alamat-santri').value = santri.alamat; document.getElementById('input-asrama-santri').value = santri.asrama; document.getElementById('form-santri-title').innerText = `Edit Data ${getTerm('santri')}`; document.getElementById('btn-simpan-santri').innerText = "UPDATE DATA"; document.getElementById('btn-batal-edit-santri').classList.remove('hidden'); window.scrollTo(0,0); }
     
-    // FITUR BATAL LULUS (MENGEMBALIKAN ALUMNI MENJADI SANTRI AKTIF)
     function batalLulusSantri(idSantri) {
         let dbSantri = getDB('pondok_santri', []);
         let target = dbSantri.find(s => s.id == idSantri);
@@ -1817,7 +1962,6 @@
         renderTabelSantri();
     }
 
-    // FITUR LANJUT JENJANG (DUPLIKASI DATA ALUMNI MENJADI SANTRI AKTIF BARU DENGAN NIS BARU)
     function lanjutJenjangSantri(idSantri) {
         let dbSantri = getDB('pondok_santri', []);
         let target = dbSantri.find(s => s.id == idSantri);
@@ -1858,13 +2002,11 @@
         alert(`Data "${target.nama}" berhasil dihapus.`);
     }
 
-    // RENDER TABEL SANTRI AKTIF VS RUANG ALUMNI
     function renderTabelSantri() { 
         let databaseSantri = getDB('pondok_santri', []);
         const aktifList = databaseSantri.filter(s => !s.is_alumni);
         const alumniList = databaseSantri.filter(s => s.is_alumni === true);
 
-        // Update jumlah badge tombol
         const countAktifEl = document.getElementById('count-santri-aktif');
         const countAlumniEl = document.getElementById('count-santri-alumni');
         if (countAktifEl) countAktifEl.innerText = aktifList.length;
@@ -1978,7 +2120,6 @@
         document.getElementById('modal-sertifikat').classList.remove('hidden');
     }
 
-    // TERBITKAN SERTIFIKAT & TANDAI SEBAGAI ALUMNI TANPA MERUSAK HISTORI KAMAR
     function prosesCetakSertifikatFinal() {
         const nis = document.getElementById('cert-nis').value;
         const orientasi = document.getElementById('cert-orientasi').value;
@@ -1991,7 +2132,6 @@
         const yayasan = getDB('pondok_yayasan', {});
         const evaluasi = getDB('pondok_evaluasi', []).find(e => e.nis === nis) || { rata: 0, predikat: "Belum Dievaluasi" };
         
-        // Tandai sebagai alumni dan catat tahun kelulusan TANPA MERUSAK histori kamar/asrama!
         santriDB[idx].is_alumni = true;
         santriDB[idx].tahun_lulus = new Date(tgl).getFullYear();
         localStorage.setItem('pondok_santri', JSON.stringify(santriDB));
@@ -2035,7 +2175,6 @@
     function setOrientasiKartu(tipe) { const card = document.getElementById('area-cetak-kartu'); if (tipe === 'portrait') card.classList.add('portrait'); else card.classList.remove('portrait'); }
     function gantiSisiKartu(sisi) { if (sisi === 'depan') { document.getElementById('sisi-depan-kartu').classList.remove('hidden'); document.getElementById('sisi-belakang-kartu').classList.add('hidden'); document.getElementById('btn-kartu-depan').className = 'btn-primary'; document.getElementById('btn-kartu-belakang').className = 'btn-outline'; } else { document.getElementById('sisi-depan-kartu').classList.add('hidden'); document.getElementById('sisi-belakang-kartu').classList.remove('hidden'); document.getElementById('btn-kartu-depan').className = 'btn-outline'; document.getElementById('btn-kartu-belakang').className = 'btn-primary'; } }
 
-    // GENERATE KARTU IDENTITAS UNTUK SANTRI, ALUMNI (PENANDA KHUSUS), DAN PEGAWAI
     function prosesCetakIDCard(identifier, tipePengguna = 'santri') { 
         const yayasan = getDB('pondok_yayasan', {}); const card = document.getElementById('area-cetak-kartu'); card.classList.remove('portrait'); gantiSisiKartu('depan'); 
         card.style.backgroundImage = yayasan.bg_idcard ? `url('${yayasan.bg_idcard}')` : `url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" opacity="0.05"><circle cx="50" cy="50" r="40" stroke="%2304432A" stroke-width="2" fill="none"/></svg>')`; 
@@ -2107,7 +2246,6 @@
 
     function renderTabelIzinAktif() { const tbody = document.getElementById('tabel-izin-aktif-body'); if (!tbody) return; tbody.innerHTML = ''; const izinAktifDB = getDB('pondok_izin_aktif', []); if (izinAktifDB.length === 0) return tbody.innerHTML = '<tr><td colspan="3" align="center">Tidak ada santri yang sedang izin di luar.</td></tr>'; izinAktifDB.forEach(iz => { const isLate = new Date().toISOString().split('T')[0] > iz.tgl_balik; tbody.innerHTML += `<tr><td><strong>${iz.nama}</strong> <small>[${iz.nis}]</small><br><span style="font-size:0.75rem; color:var(--primary);">${iz.keperluan}</span></td><td><strong style="color:${isLate ? 'red' : 'var(--primary)'};">${iz.tgl_balik}</strong></td><td><button class="btn-success" style="margin:0; padding:6px 10px; font-size:0.7rem;" onclick="validasiSantriBalikIzin('${iz.nis}')"><i class="fa-solid fa-check"></i> Balik</button></td></tr>`; }); }
 
-    // INTEGRASI NOTIFIKASI WEB/PWA AGAR SISTEM MENGIRIM PENGINGAT KE LAYAR HP
     function aktifkanNotifikasiJadwal() {
         if (!("Notification" in window)) {
             alert("Browser/HP ini tidak mendukung Web Notification.");
@@ -2147,7 +2285,6 @@
         }
     }
 
-    // TOGGLE FORM INPUT JADWAL HARI & JAM
     function toggleFormJadwalMapel() {
         const cb = document.getElementById('input-opsi-jadwal');
         const wadah = document.getElementById('wadah-input-jadwal');
@@ -2207,12 +2344,10 @@
             });
             let txtKelas = namaKelasTerpilih.length > 0 ? namaKelasTerpilih.join(", ") : "<em>Belum ada kelas</em>";
 
-            // Tampilkan keterangan hari & jam
             let txtJadwal = (m.jadwal_aktif && m.hari)
                 ? `<span style="color:#D35400; font-weight:700;"><i class="fa-solid fa-clock"></i> ${m.hari}, ${m.jam_mulai || ''} - ${m.jam_selesai || ''} WITA</span>`
                 : `<span style="color:#7f8c8d; font-style:italic;">Fleksibel / Belum Diatur</span>`;
 
-            // Buat Link Pintasan Google Calendar
             const detailText = `Pengajar: ${m.ustadz_nama}\nJadwal: ${(m.hari || 'Fleksibel')} ${m.jam_mulai || ''}-${m.jam_selesai || ''}\nKelas: ${namaKelasTerpilih.join(", ")}`;
             const gcalUrl = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(m.nama_mapel)}&details=${encodeURIComponent(detailText)}&location=${encodeURIComponent("Ruang Kelas Pondok / Sekolah")}`;
 
@@ -2248,7 +2383,6 @@
         let selectedKelasIds = [];
         document.querySelectorAll('.cb-kelas-mapel:checked').forEach(cb => selectedKelasIds.push(parseInt(cb.value)));
 
-        // Tangkap opsi Jadwal Hari & Jam
         const jadwalAktif = document.getElementById('input-opsi-jadwal').checked;
         const hariMapel = jadwalAktif ? document.getElementById('input-hari-mapel').value : null;
         const jamMulai = jadwalAktif ? document.getElementById('input-jam-mulai').value : '';
@@ -2546,7 +2680,7 @@
         if(!mObj) return; 
         
         const dbKelas = getDB('pondok_kelas', []);
-        const dbSantri = getDB('pondok_santri', []).filter(s => !s.is_alumni); // Alumni otomatis disaring keluar
+        const dbSantri = getDB('pondok_santri', []).filter(s => !s.is_alumni);
 
         let kelasTerlibat = dbKelas.filter(k => (mObj.kelas_ids || []).includes(k.id) || (k.mapel_ids || []).includes(parseInt(idMapel)));
 
@@ -2554,8 +2688,6 @@
             wadahListSantri.innerHTML = '<div style="text-align:center; padding:15px; color:var(--danger); font-weight:bold;">Mata pelajaran ini belum ditugaskan di kelas manapun.</div>';
             return;
         }
-
-        let totalSantriDitampilkan = 0;
 
         kelasTerlibat.forEach(kls => {
             const santriDiKelas = dbSantri.filter(s => (kls.santri_ids || []).includes(s.id));
@@ -2568,356 +2700,346 @@
                 `;
 
                 santriDiKelas.forEach(dataS => { 
-                    totalSantriDitampilkan++;
-                    wadahListSantri.innerHTML += `<div class="student-item" id="baris_santri_${dataS.nis}" data-kelas-id="${kls.id}" data-kelas-nama="${kls.nama}" style="display:flex; flex-direction:column; padding:12px 0; border-bottom:1px solid rgba(0,0,0,0.06); gap:10px;"><div style="display:flex; justify-content:space-between; align-items:center;"><h4 style="color:var(--primary); margin:0;">${dataS.nama}</h4><p style="font-weight:600; font-size:0.75rem; color:var(--text-muted); margin:0;">NIS: ${dataS.nis}</p></div><div style="display:flex; gap:6px;"><input type="radio" name="status_absen_${dataS.id}" value="Belum" id="belum_${dataS.id}" style="display:none;" checked><label for="belum_${dataS.id}" style="flex:1; text-align:center; padding:8px; border-radius:10px; background:#95a5a6; color:white; font-size:0.7rem; cursor:pointer; margin:0;">Belum</label><input type="radio" name="status_absen_${dataS.id}" value="Hadir" id="hadir_${dataS.id}" style="display:none;"><label for="hadir_${dataS.id}" style="flex:1; text-align:center; padding:8px; border-radius:10px; background:#ddd; color:#333; font-size:0.7rem; cursor:pointer; margin:0;">Hadir</label><input type="radio" name="status_absen_${dataS.id}" value="Izin" id="izin_${dataS.id}" style="display:none;"><label for="izin_${dataS.id}" style="flex:1; text-align:center; padding:8px; border-radius:10px; background:#ddd; color:#333; font-size:0.7rem; cursor:pointer; margin:0;">Izin</label><input type="radio" name="status_absen_${dataS.id}" value="Sakit" id="sakit_${dataS.id}" style="display:none;"><label for="sakit_${dataS.id}" style="flex:1; text-align:center; padding:8px; border-radius:10px; background:#ddd; color:#333; font-size:0.7rem; cursor:pointer; margin:0;">Sakit</label><input type="radio" name="status_absen_${dataS.id}" value="Alpa" id="alpa_${dataS.id}" style="display:none;"><label for="alpa_${dataS.id}" style="flex:1; text-align:center; padding:8px; border-radius:10px; background:#ddd; color:#333; font-size:0.7rem; cursor:pointer; margin:0;">Alpa</label></div></div>`; 
+                    wadahListSantri.innerHTML += `
+                    <div class="student-item" id="baris_santri_${dataS.nis}" data-kelas-id="${kls.id}" data-kelas-nama="${kls.nama}" style="display:flex; flex-direction:column; padding:12px 0; border-bottom:1px solid rgba(0,0,0,0.06); gap:10px;">
+                        <div style="display:flex; justify-content:space-between; align-items:center;">
+                            <h4 style="color:var(--primary); margin:0;">${dataS.nama}</h4>
+                            <p style="font-weight:600; font-size:0.75rem; color:var(--text-muted); margin:0;">NIS: ${dataS.nis}</p>
+                        </div>
+                        <div style="display:flex; gap:6px;">
+                            <input type="radio" name="status_absen_${dataS.id}" value="Belum" id="belum_${dataS.id}" style="display:none;" checked>
+                            <label for="belum_${dataS.id}" style="flex:1; text-align:center; padding:8px; border-radius:10px; background:#95a5a6; color:white; font-size:0.7rem; cursor:pointer; margin:0;">Belum</label>
+                            
+                            <input type="radio" name="status_absen_${dataS.id}" value="Hadir" id="hadir_${dataS.id}" style="display:none;">
+                            <label for="hadir_${dataS.id}" style="flex:1; text-align:center; padding:8px; border-radius:10px; background:#ddd; color:#333; font-size:0.7rem; cursor:pointer; margin:0;">Hadir</label>
+                            
+                            <input type="radio" name="status_absen_${dataS.id}" value="Izin" id="izin_${dataS.id}" style="display:none;">
+                            <label for="izin_${dataS.id}" style="flex:1; text-align:center; padding:8px; border-radius:10px; background:#ddd; color:#333; font-size:0.7rem; cursor:pointer; margin:0;">Izin</label>
+                            
+                            <input type="radio" name="status_absen_${dataS.id}" value="Sakit" id="sakit_${dataS.id}" style="display:none;">
+                            <label for="sakit_${dataS.id}" style="flex:1; text-align:center; padding:8px; border-radius:10px; background:#ddd; color:#333; font-size:0.7rem; cursor:pointer; margin:0;">Sakit</label>
+                            
+                            <input type="radio" name="status_absen_${dataS.id}" value="Alpa" id="alpa_${dataS.id}" style="display:none;">
+                            <label for="alpa_${dataS.id}" style="flex:1; text-align:center; padding:8px; border-radius:10px; background:#ddd; color:#333; font-size:0.7rem; cursor:pointer; margin:0;">Alpa</label>
+                        </div>
+                    </div>`;
                 });
             }
         });
 
-        if (totalSantriDitampilkan === 0) {
-            wadahListSantri.innerHTML = '<div style="text-align:center; padding:15px; color:var(--warning); font-weight:bold;">Kelas terpilih belum memiliki santri aktif terdaftar.</div>';
-        }
-        
-        document.querySelectorAll('input[type="radio"]').forEach(radio => { 
-            radio.addEventListener('change', (e) => { 
-                const parent = e.target.closest('.student-item'); 
-                parent.querySelectorAll('label').forEach(lbl => { lbl.style.background = '#ddd'; lbl.style.color = '#333'; }); 
-                const lbl = parent.querySelector(`label[for="${e.target.id}"]`); 
-                lbl.style.color = 'white'; 
-                if(e.target.value === 'Belum') lbl.style.background = '#95a5a6'; 
-                if(e.target.value === 'Hadir') lbl.style.background = 'var(--success)'; 
-                if(e.target.value === 'Izin') lbl.style.background = 'var(--info)'; 
-                if(e.target.value === 'Sakit') lbl.style.background = 'var(--warning)'; 
-                if(e.target.value === 'Alpa') lbl.style.background = 'var(--danger)'; 
-            }); 
-        }); 
+        document.querySelectorAll('input[type=radio][name^="status_absen_"]').forEach(radio => {
+            radio.addEventListener('change', function() {
+                const parent = this.closest('.student-item');
+                parent.querySelectorAll('label').forEach(lbl => {
+                    lbl.style.background = '#ddd';
+                    lbl.style.color = '#333';
+                });
+                const activeLabel = parent.querySelector(`label[for="${this.id}"]`);
+                if (this.value === 'Hadir') { activeLabel.style.background = 'var(--success)'; activeLabel.style.color = 'white'; }
+                else if (this.value === 'Izin' || this.value === 'Sakit') { activeLabel.style.background = 'var(--warning)'; activeLabel.style.color = 'white'; }
+                else if (this.value === 'Alpa') { activeLabel.style.background = 'var(--danger)'; activeLabel.style.color = 'white'; }
+                else { activeLabel.style.background = '#95a5a6'; activeLabel.style.color = 'white'; }
+            });
+        });
     }
 
-    function startScanner() { if(!document.getElementById('pilih-mapel-absen').value) return alert("Pilih mata pelajaran dulu!"); document.getElementById('qr-reader').style.display = 'block'; if(!html5QrcodeScanner) { html5QrcodeScanner = new Html5Qrcode("qr-reader"); html5QrcodeScanner.start({ facingMode: "environment" }, { fps: 20, qrbox: { width: 250, height: 250 } }, (rawScan) => { let nis = rawScan; try { let p = JSON.parse(rawScan); if (p.n) nis = p.n; } catch(e){} eksekusiSaatScanBerhasil(nis); }).catch(() => { document.getElementById('qr-reader').style.display = 'none'; }); } }
-    function stopScanner() { if(html5QrcodeScanner) html5QrcodeScanner.stop().then(() => { document.getElementById('qr-reader').style.display = 'none'; html5QrcodeScanner = null; }); }
-    
-    function eksekusiSaatScanBerhasil(nis) { 
-        const baris = document.getElementById(`baris_santri_${nis}`); 
-        const kotakHasil = document.getElementById('scan-result'); 
-        
-        if(baris) { 
-            const radioHadir = baris.querySelector('input[value="Hadir"]'); 
-            radioHadir.checked = true; 
-            radioHadir.dispatchEvent(new Event('change')); 
-            kotakHasil.innerHTML = `<span style="color:var(--success);">Sukses: [${nis}] Hadir (Reguler).</span>`; 
-        } else { 
-            const dbSantri = getDB('pondok_santri', []);
-            const santriLuar = dbSantri.find(s => s.nis === nis && !s.is_alumni);
-
-            if (santriLuar) {
-                const wadahListSantri = document.getElementById('student-list');
-                let headerTambahan = document.getElementById('header_luar_jadwal');
-                if (!headerTambahan) {
-                    wadahListSantri.innerHTML += `
-                        <div id="header_luar_jadwal" style="background:linear-gradient(135deg, #E67E22, #D35400); color:white; padding:10px 14px; border-radius:12px; margin:16px 0 8px 0; font-weight:700; font-size:0.85rem; display:flex; justify-content:space-between; align-items:center;">
-                            <span><i class="fa-solid fa-user-plus"></i> SANTRI TAMBAHAN / DI LUAR JADWAL</span>
-                            <span style="font-size:0.75rem; background:rgba(255,255,255,0.2); padding:3px 10px; border-radius:15px;">Hadir Tambahan</span>
-                        </div>
-                    `;
+    function startScanner() {
+        if (typeof Html5Qrcode === 'undefined') return alert("Library Scanner belum siap loaded.");
+        document.getElementById('qr-reader').style.display = 'block';
+        if (!html5QrcodeScanner) {
+            html5QrcodeScanner = new Html5Qrcode("qr-reader");
+            html5QrcodeScanner.start({ facingMode: "environment" }, { fps: 15, qrbox: { width: 250, height: 250 } }, (rawScanText) => {
+                let scanResult = rawScanText;
+                try { let parsed = JSON.parse(rawScanText); if (parsed.n) scanResult = parsed.n; } catch(e) {}
+                const baris = document.getElementById(`baris_santri_${scanResult}`);
+                if (baris) {
+                    const radioHadir = baris.querySelector('input[value="Hadir"]');
+                    if (radioHadir) {
+                        radioHadir.checked = true;
+                        radioHadir.dispatchEvent(new Event('change'));
+                        document.getElementById('scan-result').innerHTML = `<span style="color:var(--success);"><i class="fa-solid fa-circle-check"></i> Hadir: ${scanResult}</span>`;
+                    }
+                } else {
+                    document.getElementById('scan-result').innerHTML = `<span style="color:var(--danger);"><i class="fa-solid fa-circle-xmark"></i> NIS ${scanResult} tidak ada di mapel ini</span>`;
                 }
-
-                wadahListSantri.innerHTML += `
-                    <div class="student-item" id="baris_santri_${santriLuar.nis}" data-kelas-nama="Di Luar Jadwal" style="display:flex; flex-direction:column; padding:12px 0; border-bottom:1px solid rgba(0,0,0,0.06); gap:10px; background:#fffaf0; border-left:3px solid #E67E22; padding-left:8px;">
-                        <div style="display:flex; justify-content:space-between; align-items:center;">
-                            <h4 style="color:#D35400; margin:0;">${santriLuar.nama} (Tambahan)</h4>
-                            <p style="font-weight:600; font-size:0.75rem; color:var(--text-muted); margin:0;">NIS: ${santriLuar.nis}</p>
-                        </div>
-                        <div style="display:flex; gap:6px;">
-                            <input type="radio" name="status_absen_${santriLuar.id}" value="Hadir" id="hadir_${santriLuar.id}" style="display:none;" checked>
-                            <label for="hadir_${santriLuar.id}" style="flex:1; text-align:center; padding:8px; border-radius:10px; background:var(--success); color:white; font-size:0.7rem; cursor:pointer; margin:0;">Hadir (Di Luar Jadwal)</label>
-                        </div>
-                    </div>
-                `;
-
-                kotakHasil.innerHTML = `<span style="color:#D35400; font-weight:bold;">Sukses: [${santriLuar.nama}] Berhasil Masuk Di Luar Jadwal!</span>`;
-            } else {
-                kotakHasil.innerHTML = `<span style="color:var(--danger);">NIS [${nis}] tidak ditemukan atau berstatus Alumni!</span>`; 
-            }
-        } 
-
-        stopScanner(); 
-        setTimeout(startScanner, 1200); 
+            }).catch(err => {
+                alert("Gagal mengaktifkan kamera.");
+                document.getElementById('qr-reader').style.display = 'none';
+            });
+        }
     }
-    
-    function kirimDataAbsen() { 
+
+    function stopScanner() {
+        if (html5QrcodeScanner) {
+            html5QrcodeScanner.stop().then(() => {
+                document.getElementById('qr-reader').style.display = 'none';
+                html5QrcodeScanner = null;
+            });
+        } else {
+            document.getElementById('qr-reader').style.display = 'none';
+        }
+    }
+
+    function kirimDataAbsen() {
         const idMapel = document.getElementById('pilih-mapel-absen').value;
         if (!idMapel) return alert("Pilih mata pelajaran terlebih dahulu!");
-
-        const mObj = getDB('pondok_master_mapel', []).find(m => m.id == idMapel);
+        const mObj = getDB('pondok_master_mapel', []).find(x => x.id == idMapel);
         if (!mObj) return;
 
-        let tagihan = getDB('pondok_tagihan_denda', []); 
-        let absen = getDB('pondok_absensi', []); 
-        let santriDB = getDB('pondok_santri', []); 
-        const configUang = getDB('pondok_setting_keuangan', { nominal_alpa: 10000 });
+        const detailAbsen = [];
+        const dbSantri = getDB('pondok_santri', []);
+        let countAlpa = 0;
 
-        const namaMapelAktual = mObj.nama_mapel;
-        const namaUstPj = mObj.ustadz_nama;
+        document.querySelectorAll('.student-item').forEach(item => {
+            const nis = item.id.replace('baris_santri_', '');
+            const santriObj = dbSantri.find(s => s.nis === nis);
+            const radio = item.querySelector('input[type="radio"]:checked');
+            const status = radio ? radio.value : 'Belum';
+            const idKelas = item.getAttribute('data-kelas-id');
 
-        let countAlpa = 0; 
-        
-        let rekam = { 
-            id: Date.now(), 
-            tanggal: new Date().toLocaleDateString('id-ID'), 
-            tanggal_iso: new Date().toISOString(), 
-            id_mapel: mObj.id, 
-            mapel: namaMapelAktual, 
-            nama_kelas: "Lintas Kelas (" + (mObj.kelas_ids || []).length + " Kelas)", 
-            ustadz_pj: namaUstPj, 
-            ustadz_aktual: currentUser.nama, 
-            detail: [] 
-        }; 
+            if (status !== 'Belum') {
+                detailAbsen.push({
+                    nis: nis,
+                    nama: santriObj ? santriObj.nama : nis,
+                    status: status,
+                    id_kelas: idKelas
+                });
+                if (status === 'Alpa') countAlpa++;
+            }
+        });
 
-        document.querySelectorAll('.student-item').forEach(blok => { 
-            const rad = blok.querySelector('input[type="radio"]:checked'); if(!rad) return; 
-            const sId = rad.name.split('_')[2]; 
-            const sObj = santriDB.find(p => p.id == sId); 
-            if (!sObj) return;
+        if (detailAbsen.length === 0) return alert("Belum ada status kehadiran yang diisi!");
 
-            let statusAkhir = rad.value; 
-            if(statusAkhir === 'Belum') statusAkhir = 'Alpa'; 
-            
-            rekam.detail.push({ id_santri: sObj.id, nis: sObj.nis, status: statusAkhir }); 
-            
-            if(statusAkhir === 'Alpa') { 
-                tagihan.push({ id_tagihan: Date.now() + countAlpa, nis: sObj.nis, nama: sObj.nama, keterangan: `Alpa: ${namaMapelAktual}`, nominal: parseInt(configUang.nominal_alpa) || 10000 }); 
-                countAlpa++; 
-            } 
-        }); 
-        
-        absen.push(rekam); 
-        localStorage.setItem('pondok_absensi', JSON.stringify(absen)); 
-        localStorage.setItem('pondok_tagihan_denda', JSON.stringify(tagihan)); 
-        
-        alert("Absensi Selesai! (Data tersimpan di memori lokal, silakan Sync Cloud secara manual apabila diperlukan)."); 
-        switchTab('view-dashboard'); 
+        const sekarang = new Date();
+        const absensiDB = getDB('pondok_absensi', []);
+        absensiDB.push({
+            id_sesi: Date.now(),
+            tanggal: sekarang.toLocaleDateString('id-ID'),
+            tanggal_iso: sekarang.toISOString(),
+            waktu: sekarang.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }),
+            mapel: mObj.nama_mapel,
+            ustadz_pj: mObj.ustadz_nama,
+            ustadz_aktual: currentUser ? currentUser.nama : "Ustadz/Guru",
+            detail: detailAbsen
+        });
+        localStorage.setItem('pondok_absensi', JSON.stringify(absensiDB));
+
+        if (countAlpa > 0) {
+            const configKeuangan = getDB('pondok_setting_keuangan', { nominal_alpa: 10000 });
+            let tagihanDB = getDB('pondok_tagihan_denda', []);
+            detailAbsen.filter(d => d.status === 'Alpa').forEach(a => {
+                tagihanDB.push({
+                    id_tagihan: Date.now() + Math.random(),
+                    nis: a.nis,
+                    nama: a.nama,
+                    keterangan: `Alpa di pelajaran: ${mObj.nama_mapel}`,
+                    nominal: parseInt(configKeuangan.nominal_alpa) || 10000
+                });
+            });
+            localStorage.setItem('pondok_tagihan_denda', JSON.stringify(tagihanDB));
+        }
+
+        alert("Data absensi berhasil disimpan secara lokal!");
+        document.getElementById('pilih-mapel-absen').value = "";
+        document.getElementById('student-list').innerHTML = "";
     }
 
-    function previewGambarApp(e, idEl, prop) { kompresiGambar(e.target.files[0], 200, (res) => { base64TempImages[prop] = res; document.getElementById(idEl).src = res; document.getElementById(idEl).style.display = 'block'; }); }
-    function simpanYayasan() { let db = getDB('pondok_yayasan', {}); db.mode = document.getElementById('setting-app-mode').value; db.pondok = document.getElementById('input-nama-pondok-edit').value; db.yayasan = document.getElementById('input-yayasan-edit').value; db.mudir = document.getElementById('input-mudir-edit').value; db.alamat = document.getElementById('input-alamat-edit').value; db.teks_footer = document.getElementById('setting-footer-text').value; db.teks_lulus = document.getElementById('setting-teks-lulus').value; db.voice_aktif = document.getElementById('setting-voice-aktif').value; db.voice_teks = document.getElementById('setting-voice-teks').value; db.tata_tertib = document.getElementById('setting-tata-tertib').value; db.izin_judul = document.getElementById('setting-izin-judul').value; db.izin_catatan = document.getElementById('setting-izin-catatan').value; db.blur_login = document.getElementById('setting-blur-login').value; if(base64TempImages.logo) db.logo = base64TempImages.logo; if(base64TempImages.bg_login) db.bg_login = base64TempImages.bg_login; if(base64TempImages.bg_idcard) db.bg_idcard = base64TempImages.bg_idcard; if(base64TempImages.ttd_mudir) db.ttd_mudir = base64TempImages.ttd_mudir; localStorage.setItem('pondok_yayasan', JSON.stringify(db)); alert("Identitas Disimpan!"); loadIdentitasApp(); }
-    
-    function renderFormGeofencing() {
-        const config = getGPSConfig();
-        document.getElementById('setting-gps-aktif').value = (config.aktif === false) ? "0" : "1";
-        const wadah = document.getElementById('list-titik-gps');
-        wadah.innerHTML = '';
-        config.titik.forEach((t, idx) => {
-            wadah.innerHTML += `
-                <div class="item-titik-gps" style="border: 1px solid rgba(0,0,0,0.1); padding: 14px; border-radius: 12px; margin-bottom: 12px; background: rgba(255,255,255,0.75);">
-                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
-                        <strong style="font-size:0.85rem; color:var(--primary);"><i class="fa-solid fa-location-dot"></i> Titik Geofencing #${idx+1}</strong>
-                        ${config.titik.length > 1 ? `<button type="button" class="btn-danger" style="padding:5px 10px; font-size:0.7rem;" onclick="hapusBarisTitikGPS(${idx})"><i class="fa-solid fa-trash"></i> Hapus</button>` : ''}
-                    </div>
-                    <label style="margin-top:4px;">Nama Titik / Gedung</label>
-                    <input type="text" class="gps-label-input" value="${t.label || ''}" placeholder="Cth: Masjid / Asrama Putra">
-                    <div style="display:flex; gap:8px;">
-                        <div style="flex:1;"><label style="margin-top:4px;">Latitude</label><input type="number" step="any" class="gps-lat-input" value="${t.lat || ''}"></div>
-                        <div style="flex:1;"><label style="margin-top:4px;">Longitude</label><input type="number" step="any" class="gps-lng-input" value="${t.lng || ''}"></div>
-                    </div>
-                    <label style="margin-top:4px;">Radius Maksimal (Meter)</label>
-                    <input type="number" class="gps-radius-input" value="${t.radius || 100}" placeholder="100">
-                    <button type="button" class="btn-outline" onclick="tarikLokasiOtomatisBaris(${idx})" style="margin:8px 0 0 0; padding:10px; font-size:0.78rem; justify-content:center;">
-                        <i class="fa-solid fa-crosshairs"></i> Ambil Titik Lokasi HP Saat Ini
-                    </button>
-                </div>
-            `;
+    function simpanYayasan() {
+        const mode = document.getElementById('setting-app-mode').value;
+        const pondok = document.getElementById('input-nama-pondok-edit').value.trim();
+        const yayasan = document.getElementById('input-yayasan-edit').value.trim();
+        const mudir = document.getElementById('input-mudir-edit').value.trim();
+        const alamat = document.getElementById('input-alamat-edit').value.trim();
+        const blur_login = document.getElementById('setting-blur-login').value || "4";
+
+        let old = getDB('pondok_yayasan', {});
+        let newConfig = {
+            ...old,
+            mode: mode,
+            pondok: pondok,
+            yayasan: yayasan,
+            mudir: mudir,
+            alamat: alamat,
+            blur_login: blur_login,
+            logo: base64TempImages.logo || old.logo,
+            bg_login: base64TempImages.bg_login || old.bg_login,
+            bg_idcard: base64TempImages.bg_idcard || old.bg_idcard,
+            ttd_mudir: base64TempImages.ttd_mudir || old.ttd_mudir,
+            teks_footer: document.getElementById('setting-footer-text').value,
+            teks_lulus: document.getElementById('setting-teks-lulus').value,
+            voice_aktif: document.getElementById('setting-voice-aktif').value,
+            voice_teks: document.getElementById('setting-voice-teks').value,
+            tata_tertib: document.getElementById('setting-tata-tertib').value,
+            izin_judul: document.getElementById('setting-izin-judul').value,
+            izin_catatan: document.getElementById('setting-izin-catatan').value,
+            pwa_notif_aktif: document.getElementById('setting-pwa-notif-aktif').value,
+            pwa_notif_teks: document.getElementById('setting-pwa-notif-teks').value
+        };
+
+        localStorage.setItem('pondok_yayasan', JSON.stringify(newConfig));
+        loadIdentitasApp();
+        alert("Konfigurasi instansi berhasil disimpan!");
+    }
+
+    function previewGambarApp(event, idPreview, propertyName) {
+        const file = event.target.files[0];
+        if (!file) return;
+        kompresiGambar(file, 400, (res) => {
+            base64TempImages[propertyName] = res;
+            const el = document.getElementById(idPreview);
+            if (el) { el.src = res; el.style.display = 'block'; }
         });
-        toggleTampilanFormGPS();
     }
 
     function toggleTampilanFormGPS() {
-        const val = document.getElementById('setting-gps-aktif').value;
+        const status = document.getElementById('setting-gps-aktif').value;
         const wadah = document.getElementById('wadah-form-multi-gps');
-        if (val === "0") wadah.style.display = 'none';
-        else wadah.style.display = 'block';
+        if (status === "1") wadah.style.display = 'block';
+        else wadah.style.display = 'none';
+    }
+
+    function renderFormGeofencing() {
+        const config = getGPSConfig();
+        document.getElementById('setting-gps-aktif').value = config.aktif ? "1" : "0";
+        toggleTampilanFormGPS();
+
+        const wadah = document.getElementById('list-titik-gps');
+        wadah.innerHTML = '';
+        config.titik.forEach((t, index) => {
+            wadah.innerHTML += `
+                <div class="baris-titik-gps" style="background:#f9f9f9; padding:12px; border:1px solid #ddd; border-radius:10px; margin-bottom:10px;">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+                        <strong style="font-size:0.8rem; color:var(--primary);">Titik Lokasi #${index + 1}</strong>
+                        ${index > 0 ? `<button type="button" class="btn-danger" style="margin:0; padding:4px 8px; font-size:0.7rem;" onclick="this.closest('.baris-titik-gps').remove()">Hapus</button>` : ''}
+                    </div>
+                    <label style="margin-top:0;">Nama/Label Lokasi</label>
+                    <input type="text" class="gps-label" value="${t.label || ''}" placeholder="Cth: Gerbang Depan / Kelas A">
+                    <div style="display:flex; gap:8px;">
+                        <div style="flex:1;"><label>Latitude</label><input type="number" step="any" class="gps-lat" value="${t.lat || ''}"></div>
+                        <div style="flex:1;"><label>Longitude</label><input type="number" step="any" class="gps-lng" value="${t.lng || ''}"></div>
+                        <div style="flex:1;"><label>Radius (m)</label><input type="number" class="gps-rad" value="${t.radius || 100}"></div>
+                    </div>
+                </div>
+            `;
+        });
     }
 
     function tambahBarisTitikGPS() {
-        const config = getGPSConfig();
-        config.titik = kumpulkanDataTitikGPSDariUI();
-        config.titik.push({ label: `Gedung #${config.titik.length + 1}`, lat: '', lng: '', radius: 100 });
-        localStorage.setItem('pondok_gps', JSON.stringify(config));
-        renderFormGeofencing();
-    }
-
-    function hapusBarisTitikGPS(idx) {
-        const config = getGPSConfig();
-        config.titik = kumpulkanDataTitikGPSDariUI();
-        config.titik.splice(idx, 1);
-        localStorage.setItem('pondok_gps', JSON.stringify(config));
-        renderFormGeofencing();
-    }
-
-    function kumpulkanDataTitikGPSDariUI() {
-        const list = [];
-        const items = document.querySelectorAll('.item-titik-gps');
-        items.forEach((item, i) => {
-            const label = item.querySelector('.gps-label-input').value.trim() || `Titik #${i+1}`;
-            const lat = parseFloat(item.querySelector('.gps-lat-input').value) || 0;
-            const lng = parseFloat(item.querySelector('.gps-lng-input').value) || 0;
-            const radius = parseInt(item.querySelector('.gps-radius-input').value) || 100;
-            list.push({ label, lat, lng, radius });
-        });
-        return list;
-    }
-
-    function tarikLokasiOtomatisBaris(idx) {
-        if(!navigator.geolocation) return alert("Browser tidak mendukung fitur lokasi.");
-        navigator.geolocation.getCurrentPosition(res => {
-            const items = document.querySelectorAll('.item-titik-gps');
-            if (items[idx]) {
-                items[idx].querySelector('.gps-lat-input').value = res.coords.latitude;
-                items[idx].querySelector('.gps-lng-input').value = res.coords.longitude;
-            }
-            alert("Titik koordinat berhasil diambil!");
-        }, err => {
-            alert("Gagal menarik lokasi. Pastikan GPS HP & izin lokasi browser aktif.");
-        });
+        const wadah = document.getElementById('list-titik-gps');
+        const count = wadah.querySelectorAll('.baris-titik-gps').length + 1;
+        wadah.innerHTML += `
+            <div class="baris-titik-gps" style="background:#f9f9f9; padding:12px; border:1px solid #ddd; border-radius:10px; margin-bottom:10px;">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+                    <strong style="font-size:0.8rem; color:var(--primary);">Titik Lokasi #${count}</strong>
+                    <button type="button" class="btn-danger" style="margin:0; padding:4px 8px; font-size:0.7rem;" onclick="this.closest('.baris-titik-gps').remove()">Hapus</button>
+                </div>
+                <label style="margin-top:0;">Nama/Label Lokasi</label>
+                <input type="text" class="gps-label" value="" placeholder="Cth: Asrama / Gedung B">
+                <div style="display:flex; gap:8px;">
+                    <div style="flex:1;"><label>Latitude</label><input type="number" step="any" class="gps-lat" value=""></div>
+                    <div style="flex:1;"><label>Longitude</label><input type="number" step="any" class="gps-lng" value=""></div>
+                    <div style="flex:1;"><label>Radius (m)</label><input type="number" class="gps-rad" value="100"></div>
+                </div>
+            </div>
+        `;
     }
 
     function simpanGPS() {
         const aktif = document.getElementById('setting-gps-aktif').value === "1";
-        const titik = kumpulkanDataTitikGPSDariUI();
-        const config = { aktif, titik };
-        localStorage.setItem('pondok_gps', JSON.stringify(config));
-        alert("Pengaturan GPS & Titik Geofencing berhasil disimpan!");
-    }
-
-    function renderCheckboxHakAkses() { 
-        const val = document.getElementById('select-role-akses').value; 
-        const wadah = document.getElementById('container-checkbox-akses'); 
-        wadah.innerHTML = ''; 
-        if(val === 'superadmin') return wadah.innerHTML = '<div style="font-size:0.82rem; color:var(--primary); font-weight:bold; padding:8px;"><i class="fa-solid fa-crown"></i> Super Admin memiliki hak akses penuh/mutlak secara default.</div>'; 
-        
-        const aksesDB = getDB('pondok_akses', {}); 
-        const aksesRoleIni = aksesDB[val] || []; 
-        
-        let gridHTML = '<div class="akses-grid-container">';
-        menuMaster.forEach(item => { 
-            if(item.id !== 'view-pengguna') {
-                const isChecked = aksesRoleIni.includes(item.id) ? 'checked' : '';
-                const namaMenu = item.nama || item.id;
-                gridHTML += `
-                    <label class="akses-card-item">
-                        <input type="checkbox" class="checkbox-perizinan-menu" value="${item.id}" ${isChecked}>
-                        <i class="fa-solid ${item.icon || 'fa-circle'}"></i>
-                        <span>${namaMenu}</span>
-                    </label>
-                `;
+        const daftarTitik = [];
+        document.querySelectorAll('.baris-titik-gps').forEach(baris => {
+            const lbl = baris.querySelector('.gps-label').value.trim() || "Area Instansi";
+            const lat = parseFloat(baris.querySelector('.gps-lat').value);
+            const lng = parseFloat(baris.querySelector('.gps-lng').value);
+            const rad = parseInt(baris.querySelector('.gps-rad').value) || 100;
+            if (!isNaN(lat) && !isNaN(lng)) {
+                daftarTitik.push({ label: lbl, lat: lat, lng: lng, radius: rad });
             }
-        }); 
-        gridHTML += '</div>';
-        wadah.innerHTML = gridHTML;
+        });
+
+        if (aktif && daftarTitik.length === 0) {
+            return alert("Harap isi koordinat Latitude & Longitude minimal satu titik!");
+        }
+
+        localStorage.setItem('pondok_gps', JSON.stringify({ aktif: aktif, titik: daftarTitik }));
+        alert("Konfigurasi geofencing GPS berhasil disimpan!");
     }
 
-    function simpanHakAkses() { 
-        const role = document.getElementById('select-role-akses').value; 
-        let arr = []; 
-        document.querySelectorAll('.checkbox-perizinan-menu:checked').forEach(c => arr.push(c.value)); 
-        let db = getDB('pondok_akses', {}); 
-        db[role] = arr; 
-        localStorage.setItem('pondok_akses', JSON.stringify(db)); 
-        alert("Hak akses untuk " + role.toUpperCase() + " berhasil disimpan!"); 
-    }
-    
-    function renderTabelPegawai() { 
-        const t = document.getElementById('tabel-pengguna-body'); 
-        t.innerHTML = ''; 
-        getDB('pondok_users', []).forEach(u => { 
-            t.innerHTML += `<tr>
-                <td><strong>${u.nama}</strong><br><small>@${u.username} | <b>${u.role.toUpperCase()}</b></small></td>
-                <td>
-                    <div style="display:flex; gap:4px; flex-wrap:wrap;">
-                        <button class="btn-print" style="margin:0; padding:6px; font-size:0.7rem;" onclick="prosesCetakIDCard('${u.username}', 'pegawai')"><i class="fa-solid fa-print"></i> Cetak</button>
-                        <button class="btn-warning" style="margin:0; padding:6px; font-size:0.7rem;" onclick="editPenggunaMode(${u.id})"><i class="fa-solid fa-pen"></i> Edit</button>
-                        <button class="btn-danger" style="margin:0; padding:6px; font-size:0.7rem;" onclick="hapusPengguna(${u.id})"><i class="fa-solid fa-trash"></i> Hapus</button>
-                    </div>
-                </td>
-            </tr>`; 
-        }); 
+    function renderCheckboxHakAkses() {
+        const selectRole = document.getElementById('select-role-akses');
+        const container = document.getElementById('container-checkbox-akses');
+        if (!selectRole || !container) return;
+        const targetRole = selectRole.value;
+        const seluruhAkses = getDB('pondok_akses', defaultAkses);
+        const hakAktif = seluruhAkses[targetRole] || [];
+
+        container.innerHTML = '<div class="akses-grid-container">';
+        menuMaster.forEach(item => {
+            const isChecked = hakAktif.includes(item.id) ? 'checked' : '';
+            container.innerHTML += `
+                <label class="akses-card-item">
+                    <input type="checkbox" value="${item.id}" class="cb-hak-akses" ${isChecked}>
+                    <i class="fa-solid ${item.icon}"></i>
+                    <span>${item.nama || item.id}</span>
+                </label>
+            `;
+        });
+        container.innerHTML += '</div>';
     }
 
-    function simpanPengguna() { 
+    function simpanHakAkses() {
+        const selectRole = document.getElementById('select-role-akses');
+        const targetRole = selectRole.value;
+        let selectedMenu = [];
+        document.querySelectorAll('.cb-hak-akses:checked').forEach(cb => selectedMenu.push(cb.value));
+
+        let seluruhAkses = getDB('pondok_akses', defaultAkses);
+        seluruhAkses[targetRole] = selectedMenu;
+        localStorage.setItem('pondok_akses', JSON.stringify(seluruhAkses));
+
+        alert(`Hak akses untuk peran [${targetRole.toUpperCase()}] berhasil diperbarui!`);
+        renderMenuBerdasarkanAkses();
+    }
+
+    function simpanPengguna() {
         const idEdit = document.getElementById('edit-id-pengguna').value;
         const nama = document.getElementById('reg-nama').value.trim();
         const username = document.getElementById('reg-username').value.trim().toLowerCase();
         const password = document.getElementById('reg-password').value;
         const role = document.getElementById('reg-role').value;
-        const fileFoto = document.getElementById('reg-foto').files[0];
 
-        if (!nama || !username) return alert("Nama dan Username harus diisi!");
-        
+        if (!nama || !username) return alert("Nama dan Username tidak boleh kosong!");
+
         let users = getDB('pondok_users', []);
-
         if (idEdit) {
-            let userIndex = users.findIndex(u => u.id == idEdit);
-            if (userIndex > -1) {
-                users[userIndex].nama = nama;
-                users[userIndex].username = username;
-                users[userIndex].role = role;
-                if (password && password.trim() !== "") {
-                    users[userIndex].password = password;
-                }
-                if (fileFoto) {
-                    kompresiGambar(fileFoto, 150, (resFoto) => {
-                        users[userIndex].foto = resFoto || users[userIndex].foto;
-                        localStorage.setItem('pondok_users', JSON.stringify(users));
-                        alert("Data akun berhasil diperbarui!");
-                        batalEditPengguna();
-                        renderTabelPegawai();
-                    });
-                    return;
-                }
-                localStorage.setItem('pondok_users', JSON.stringify(users));
-                alert("Data akun berhasil diperbarui!");
+            let index = users.findIndex(u => u.id == idEdit);
+            if (index > -1) {
+                users[index].nama = nama;
+                users[index].username = username;
+                users[index].role = role;
+                if (password && password.trim() !== "") users[index].password = password;
+                if (tempFotoPegawaiBase64 !== "") users[index].foto = tempFotoPegawaiBase64;
             }
+            alert("Data akun pegawai berhasil diperbarui!");
         } else {
-            if (!password) return alert("Password harus diisi untuk akun baru!");
-            if (users.some(u => u.username === username)) return alert("Username tersebut sudah digunakan!");
-
-            kompresiGambar(fileFoto, 150, (foto) => { 
-                users.push({ 
-                    id: Date.now(), 
-                    nama: nama, 
-                    username: username, 
-                    password: password, 
-                    pin_login: "123456", 
-                    role: role, 
-                    foto: foto || 'https://cdn-icons-png.flaticon.com/512/149/149071.png' 
-                }); 
-                localStorage.setItem('pondok_users', JSON.stringify(users)); 
-                alert("Akun pegawai berhasil dibuat!");
-                batalEditPengguna();
-                renderTabelPegawai(); 
+            if (!password) return alert("Password wajib diisi untuk pengguna baru!");
+            if (users.some(u => u.username === username)) return alert("Username ini sudah terpakai!");
+            users.push({
+                id: Date.now(),
+                nama: nama,
+                username: username,
+                password: password,
+                role: role,
+                pin_login: null,
+                foto: tempFotoPegawaiBase64 || "https://cdn-icons-png.flaticon.com/512/149/149071.png"
             });
-            return;
+            alert("Pegawai baru berhasil ditambahkan!");
         }
 
+        localStorage.setItem('pondok_users', JSON.stringify(users));
         batalEditPengguna();
         renderTabelPegawai();
-    }
-
-    function editPenggunaMode(idUser) {
-        let users = getDB('pondok_users', []);
-        let user = users.find(u => u.id == idUser);
-        if (!user) return;
-
-        document.getElementById('edit-id-pengguna').value = user.id;
-        document.getElementById('reg-nama').value = user.nama;
-        document.getElementById('reg-username').value = user.username;
-        document.getElementById('reg-password').value = "";
-        document.getElementById('reg-password').placeholder = "(Kosongkan jika password tidak diubah)";
-        document.getElementById('reg-role').value = user.role;
-
-        document.getElementById('form-pengguna-title').innerText = "Edit Data Akun Pegawai";
-        document.getElementById('btn-simpan-pengguna').innerText = "UPDATE AKUN";
-        document.getElementById('btn-batal-edit-pengguna').classList.remove('hidden');
-        window.scrollTo(0, 0);
+        renderMasterMapel();
     }
 
     function batalEditPengguna() {
@@ -2925,151 +3047,288 @@
         document.getElementById('reg-nama').value = "";
         document.getElementById('reg-username').value = "";
         document.getElementById('reg-password').value = "";
-        document.getElementById('reg-password').placeholder = "Password akun...";
         document.getElementById('reg-foto').value = "";
-        document.getElementById('reg-role').value = "admin";
-
+        tempFotoPegawaiBase64 = '';
         document.getElementById('form-pengguna-title').innerText = "Buat Akun Pegawai";
         document.getElementById('btn-simpan-pengguna').innerText = "SIMPAN AKUN";
         document.getElementById('btn-batal-edit-pengguna').classList.add('hidden');
     }
 
-    function hapusPengguna(idUser) {
-        let users = getDB('pondok_users', []);
-        let target = users.find(u => u.id == idUser);
-        if (!target) return;
-
-        if (currentUser && currentUser.username === target.username) {
-            return alert("Anda tidak dapat menghapus akun yang sedang aktif digunakan saat ini!");
-        }
-
-        if (!confirm(`Yakin ingin menghapus akun "${target.nama}" (@${target.username})?`)) return;
-
-        let sisaUsers = users.filter(u => u.id != idUser);
-        localStorage.setItem('pondok_users', JSON.stringify(sisaUsers));
-        alert(`Akun "${target.nama}" berhasil dihapus.`);
-        renderTabelPegawai();
-    }
-
-    function exportDataLokal() { const data = { pondok_users: getDB('pondok_users'), pondok_santri: getDB('pondok_santri'), pondok_kelas: getDB('pondok_kelas'), pondok_master_mapel: getDB('pondok_master_mapel'), pondok_absensi: getDB('pondok_absensi'), pondok_yayasan: getDB('pondok_yayasan'), pondok_tagihan_denda: getDB('pondok_tagihan_denda'), pondok_history_izin: getDB('pondok_history_izin'), pondok_evaluasi: getDB('pondok_evaluasi'), pondok_gps: getDB('pondok_gps'), pondok_akses: getDB('pondok_akses') }; const a = document.createElement('a'); a.href = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(data)); a.download = "Backup_LMS.json"; a.click(); a.remove(); }
-    function importDataLokal(e) { const r = new FileReader(); r.onload = function(evt) { const imp = JSON.parse(evt.target.result); if(imp.pondok_santri) localStorage.setItem('pondok_santri', JSON.stringify(imp.pondok_santri)); if(imp.pondok_kelas) localStorage.setItem('pondok_kelas', JSON.stringify(imp.pondok_kelas)); if(imp.pondok_master_mapel) localStorage.setItem('pondok_master_mapel', JSON.stringify(imp.pondok_master_mapel)); if(imp.pondok_yayasan) localStorage.setItem('pondok_yayasan', JSON.stringify(imp.pondok_yayasan)); if(imp.pondok_evaluasi) localStorage.setItem('pondok_evaluasi', JSON.stringify(imp.pondok_evaluasi)); if(imp.pondok_gps) localStorage.setItem('pondok_gps', JSON.stringify(imp.pondok_gps)); if(imp.pondok_akses) localStorage.setItem('pondok_akses', JSON.stringify(imp.pondok_akses)); alert("Restore Berhasil!"); location.reload(); }; r.readAsText(e.target.files[0]); }
-
-    function bukaModalResetOpsi() { document.getElementById('modal-reset-opsi').classList.remove('hidden'); }
-    function eksekusiResetOpsi(tipe) {
-        if (tipe === 1) {
-            if (!confirm("Yakin ingin menghapus seluruh data Santri, Kelas, & Plotting? Konfigurasi dan data lainnya tetap aman.")) return;
-            localStorage.removeItem('pondok_santri');
-            localStorage.removeItem('pondok_kelas');
-            localStorage.removeItem('pondok_master_mapel');
-            localStorage.removeItem('pondok_evaluasi');
-            alert("Data Santri dan Kelas berhasil direset!");
-            location.reload();
-        } else if (tipe === 2) {
-            if (!confirm("Yakin ingin menghapus seluruh log Absensi & Tagihan Denda?")) return;
-            localStorage.removeItem('pondok_absensi');
-            localStorage.removeItem('pondok_tagihan_denda');
-            localStorage.removeItem('pondok_izin_aktif');
-            localStorage.removeItem('pondok_history_izin');
-            alert("Data Absensi & Denda berhasil direset!");
-            location.reload();
-        } else if (tipe === 3) {
-            if (!confirm("PERINGATAN: Ini akan mereset total seluruh data operasional (Santri, Kelas, Absensi, Denda, Identitas) TAPI URL & Konfigurasi Supabase akan tetap dipertahankan!\n\nLanjutkan?")) return;
-            let savedSupabase = localStorage.getItem('pondok_supabase_config');
-            localStorage.clear();
-            if (savedSupabase) {
-                localStorage.setItem('pondok_supabase_config', savedSupabase);
-            }
-            alert("Reset total berhasil! Konfigurasi Supabase tetap tersimpan.");
-            location.reload();
-        } else if (tipe === 4) {
-            if (!confirm("BAHAYA BESAR: Format Reset Full akan menghapus SEMUA data termasuk URL & Key Supabase Anda tanpa sisa!\n\nYakin lanjutkan?")) return;
-            localStorage.clear();
-            location.reload();
-        }
-    }
-    
-    function simpanKonfigurasiSupabase() { const url = document.getElementById('setting-supabase-url').value.trim(); const key = document.getElementById('setting-supabase-key').value.trim(); if(!url || !key) return alert("Isi URL & Key!"); supabaseConfig = { url: url.endsWith('/') ? url.slice(0, -1) : url, key: key }; localStorage.setItem('pondok_supabase_config', JSON.stringify(supabaseConfig)); alert("Supabase Disimpan!"); }
-    function cekKesiapanSupabase() { if(!supabaseConfig.url || !supabaseConfig.key) { alert("Konfigurasi Supabase belum diatur!"); return false; } return true; }
-    
-    function bukaScannerLoginTarikData() {
-        document.getElementById('modal-scanner-login').classList.remove('hidden'); document.getElementById('qr-reader-login').style.display = 'block';
-        if (!scannerLoginData) scannerLoginData = new Html5Qrcode("qr-reader-login");
-        scannerLoginData.start({ facingMode: "environment" }, { fps: 20, qrbox: { width: 250, height: 250 } }, (txt) => {
-            try {
-                let d = JSON.parse(txt);
-                if(d.u && d.k) { 
-                    supabaseConfig = { url: d.u, key: d.k }; localStorage.setItem('pondok_supabase_config', JSON.stringify(supabaseConfig)); 
-                    if(d.m) {
-                        let yayasan = getDB('pondok_yayasan', {});
-                        yayasan.mode = d.m;
-                        localStorage.setItem('pondok_yayasan', JSON.stringify(yayasan));
-                        loadIdentitasApp();
-                    }
-                    tutupScannerLoginTarikData(); tarikDataDariSupabase(); 
-                }
-            } catch(e) { alert("QR tidak valid"); }
-        }, ()=>{});
-    }
-    function tutupScannerLoginTarikData() { if(scannerLoginData) scannerLoginData.stop().then(() => { document.getElementById('modal-scanner-login').classList.add('hidden'); scannerLoginData = null; }); }
-    function tampilkanQRTarikData() {
-        document.getElementById('modal-show-qr').classList.remove('hidden'); const w = document.getElementById('wadah-qr-sync'); w.innerHTML = '';
-        new QRCode(w, { text: JSON.stringify({ u: supabaseConfig.url, k: supabaseConfig.key, m: document.getElementById('setting-app-mode').value }), width: 220, height: 220 });
-    }
-
-    // SINKRONISASI CLOUD SUPABASE
-    async function sinkronisasiKeCloud() {
-        if(!cekKesiapanSupabase()) return;
-        const payload = { 
-            id: 1, 
-            data_santri: getDB('pondok_santri'), 
-            data_kelas: getDB('pondok_kelas'), 
-            data_master_mapel: getDB('pondok_master_mapel'), 
-            data_absensi: getDB('pondok_absensi'), 
-            data_keuangan: getDB('pondok_tagihan_denda'), 
-            data_yayasan: getDB('pondok_yayasan'), 
-            data_users: getDB('pondok_users'), 
-            data_history_izin: getDB('pondok_history_izin'), 
-            data_evaluasi: getDB('pondok_evaluasi'), 
-            data_gps: getDB('pondok_gps'),
-            data_akses: getDB('pondok_akses')
-        };
-        let res = await fetch(`${supabaseConfig.url}/rest/v1/fdigi`, { method: 'POST', headers: { 'apikey': supabaseConfig.key, 'Authorization': `Bearer ${supabaseConfig.key}`, 'Content-Type': 'application/json', 'Prefer': 'resolution=merge-duplicates' }, body: JSON.stringify(payload) });
-        if(res.ok) alert("Sinkronisasi Cloud Berhasil!"); else alert("Gagal sinkron. Pastikan kolom 'data_akses' bertipe JSONB sudah ada di Supabase.");
-    }
-
-    // TARIK DATA DARI CLOUD SUPABASE
-    async function tarikDataDariSupabase() {
-        if(!cekKesiapanSupabase()) return; if(!confirm("Tarik data akan menimpa data lokal. Lanjutkan?")) return;
-        let res = await fetch(`${supabaseConfig.url}/rest/v1/fdigi?id=eq.1&select=*`, { method: 'GET', headers: { 'apikey': supabaseConfig.key, 'Authorization': `Bearer ${supabaseConfig.key}` } });
-        let d = await res.json();
-        if(d && d.length > 0) {
-            let c = d[0];
-            if(c.data_santri) localStorage.setItem('pondok_santri', JSON.stringify(c.data_santri));
-            if(c.data_kelas) localStorage.setItem('pondok_kelas', JSON.stringify(c.data_kelas));
-            if(c.data_master_mapel) localStorage.setItem('pondok_master_mapel', JSON.stringify(c.data_master_mapel));
-            if(c.data_absensi) localStorage.setItem('pondok_absensi', JSON.stringify(c.data_absensi));
-            if(c.data_keuangan) localStorage.setItem('pondok_tagihan_denda', JSON.stringify(c.data_keuangan));
-            if(c.data_yayasan) localStorage.setItem('pondok_yayasan', JSON.stringify(c.data_yayasan));
-            if(c.data_users) localStorage.setItem('pondok_users', JSON.stringify(c.data_users));
-            if(c.data_history_izin) localStorage.setItem('pondok_history_izin', JSON.stringify(c.data_history_izin));
-            if(c.data_evaluasi) localStorage.setItem('pondok_evaluasi', JSON.stringify(c.data_evaluasi));
-            if(c.data_gps) localStorage.setItem('pondok_gps', JSON.stringify(c.data_gps));
-            if(c.data_akses) localStorage.setItem('pondok_akses', JSON.stringify(c.data_akses));
-            alert("Data Berhasil Ditarik!"); location.reload();
-        } else alert("Cloud kosong.");
-    }
-
-    document.addEventListener('DOMContentLoaded', initApp);
-
-    // ═══ PWA Service Worker ═══
-    if ('serviceWorker' in navigator) {
-        window.addEventListener('load', () => {
-            navigator.serviceWorker.register('./sw.js')
-                .then(r => console.log('[SMS] SW registered:', r.scope))
-                .catch(e => console.warn('[SMS] SW failed:', e));
+    function renderTabelPegawai() {
+        const tbody = document.getElementById('tabel-pengguna-body');
+        if (!tbody) return;
+        tbody.innerHTML = '';
+        const users = getDB('pondok_users', []);
+        users.forEach(u => {
+            tbody.innerHTML += `<tr>
+                <td>
+                    <strong>${u.nama}</strong> (@${u.username})<br>
+                    <span style="font-size:0.7rem; color:var(--accent); font-weight:bold;">ROLE: ${u.role.toUpperCase()}</span>
+                </td>
+                <td>
+                    <div style="display:flex; gap:4px; flex-wrap:wrap;">
+                        <button class="btn-print" style="margin:0; padding:6px; font-size:0.7rem;" onclick="prosesCetakIDCard('${u.username}', 'pegawai')">Kartu</button>
+                        <button class="btn-warning" style="margin:0; padding:6px; font-size:0.7rem;" onclick="editPenggunaMode(${u.id})">Edit</button>
+                        ${u.role !== 'superadmin' ? `<button class="btn-danger" style="margin:0; padding:6px; font-size:0.7rem;" onclick="hapusPengguna(${u.id})">Hapus</button>` : ''}
+                    </div>
+                </td>
+            </tr>`;
         });
     }
 
+    function editPenggunaMode(id) {
+        let u = getDB('pondok_users', []).find(x => x.id == id);
+        if (!u) return;
+        document.getElementById('edit-id-pengguna').value = u.id;
+        document.getElementById('reg-nama').value = u.nama;
+        document.getElementById('reg-username').value = u.username;
+        document.getElementById('reg-password').value = "";
+        document.getElementById('reg-role').value = u.role;
+        document.getElementById('form-pengguna-title').innerText = "Edit Akun Pegawai";
+        document.getElementById('btn-simpan-pengguna').innerText = "UPDATE AKUN";
+        document.getElementById('btn-batal-edit-pengguna').classList.remove('hidden');
+        window.scrollTo(0, 0);
+    }
+
+    function hapusPengguna(id) {
+        if (!confirm("Yakin hapus akun pegawai ini?")) return;
+        let users = getDB('pondok_users', []).filter(u => u.id != id);
+        localStorage.setItem('pondok_users', JSON.stringify(users));
+        renderTabelPegawai();
+        renderMasterMapel();
+    }
+
+    function simpanKonfigurasiSupabase() {
+        const url = document.getElementById('setting-supabase-url').value.trim();
+        const key = document.getElementById('setting-supabase-key').value.trim();
+        supabaseConfig = { url: url, key: key };
+        localStorage.setItem('pondok_supabase_config', JSON.stringify(supabaseConfig));
+        alert("Konfigurasi server Supabase berhasil disimpan!");
+    }
+
+    function exportDataLokal() {
+        const semuaKey = [
+            'pondok_users', 'pondok_akses', 'pondok_santri', 'pondok_evaluasi',
+            'pondok_master_mapel', 'pondok_kelas', 'pondok_gps', 'pondok_yayasan',
+            'pondok_setting_keuangan', 'pondok_absensi', 'pondok_tagihan_denda',
+            'pondok_izin_aktif', 'pondok_history_izin', 'pondok_supabase_config'
+        ];
+        let backup = {};
+        semuaKey.forEach(k => {
+            const val = localStorage.getItem(k);
+            if (val) backup[k] = JSON.parse(val);
+        });
+
+        const stringData = JSON.stringify(backup, null, 2);
+        const blob = new Blob([stringData], { type: 'application/json' });
+        const link = document.createElement('a');
+        link.href = URL.createObjectURL(blob);
+        link.download = `backup_lms_${new Date().toISOString().split('T')[0]}.json`;
+        link.click();
+    }
+
+    function importDataLokal(e) {
+        const file = e.target.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = function(evt) {
+            try {
+                const data = JSON.parse(evt.target.result);
+                for (const k in data) {
+                    if (k.startsWith('pondok_')) {
+                        localStorage.setItem(k, JSON.stringify(data[k]));
+                    }
+                }
+                alert("Restore data berhasil! Sistem akan dimuat ulang.");
+                location.reload();
+            } catch(err) {
+                alert("File backup tidak valid!");
+            }
+        };
+        reader.readAsText(file);
+    }
+
+    function tampilkanQRTarikData() {
+        const wadah = document.getElementById('wadah-qr-sync');
+        wadah.innerHTML = '';
+        const payload = JSON.stringify({ code: KODE_RAHASIA_SYNC, url: supabaseConfig.url, key: supabaseConfig.key });
+        if (typeof QRCode !== 'undefined') {
+            new QRCode(wadah, { text: payload, width: 180, height: 180 });
+            document.getElementById('modal-show-qr').classList.remove('hidden');
+        } else {
+            alert("Library QRCode belum termuat.");
+        }
+    }
+
+    function bukaScannerLoginTarikData() {
+        if (typeof Html5Qrcode === 'undefined') return alert("Library Scanner belum siap.");
+        document.getElementById('qr-reader-login').style.display = 'block';
+        document.getElementById('modal-scanner-login').classList.remove('hidden');
+        if (!scannerLoginData) {
+            scannerLoginData = new Html5Qrcode("qr-reader-login");
+            scannerLoginData.start({ facingMode: "environment" }, { fps: 15, qrbox: { width: 220, height: 220 } }, (res) => {
+                try {
+                    const obj = JSON.parse(res);
+                    if (obj.code === KODE_RAHASIA_SYNC) {
+                        supabaseConfig = { url: obj.url, key: obj.key };
+                        localStorage.setItem('pondok_supabase_config', JSON.stringify(supabaseConfig));
+                        tutupScannerLoginTarikData();
+                        alert("Berhasil menghubungkan server! Menyiapkan sinkronisasi cloud...");
+                        tarikDataDariSupabase();
+                    } else {
+                        alert("QR Code bukan QR Tarik Data yang valid!");
+                    }
+                } catch(e) {
+                    alert("Format Barcode tidak dikenali.");
+                }
+            }).catch(() => {
+                alert("Gagal membuka kamera scan.");
+                tutupScannerLoginTarikData();
+            });
+        }
+    }
+
+    function tutupScannerLoginTarikData() {
+        if (scannerLoginData) {
+            scannerLoginData.stop().then(() => {
+                document.getElementById('qr-reader-login').style.display = 'none';
+                document.getElementById('modal-scanner-login').classList.add('hidden');
+                scannerLoginData = null;
+            });
+        } else {
+            document.getElementById('modal-scanner-login').classList.add('hidden');
+        }
+    }
+
+    async function sinkronisasiKeCloud() {
+        if (!supabaseConfig.url || !supabaseConfig.key) {
+            return alert("Konfigurasi URL & Key Supabase belum diisi di menu Database!");
+        }
+        const btn = document.getElementById('btn-sync-cloud');
+        if (btn) btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> MENGIRIM KE CLOUD...';
+
+        try {
+            const payload = {
+                santri: getDB('pondok_santri', []),
+                absensi: getDB('pondok_absensi', []),
+                kelas: getDB('pondok_kelas', []),
+                mapel: getDB('pondok_master_mapel', []),
+                evaluasi: getDB('pondok_evaluasi', []),
+                tagihan: getDB('pondok_tagihan_denda', []),
+                izin_aktif: getDB('pondok_izin_aktif', []),
+                history_izin: getDB('pondok_history_izin', [])
+            };
+
+            const response = await fetch(`${supabaseConfig.url}/rest/v1/backup_lms?id=eq.1`, {
+                method: 'PATCH',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'apikey': supabaseConfig.key,
+                    'Authorization': `Bearer ${supabaseConfig.key}`,
+                    'Prefer': 'return=representation'
+                },
+                body: JSON.stringify({ data_json: payload, updated_at: new Date().toISOString() })
+            });
+
+            if (response.ok) {
+                alert("Berhasil mengunggah dan menyinkronkan seluruh data ke Cloud!");
+            } else {
+                await fetch(`${supabaseConfig.url}/rest/v1/backup_lms`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'apikey': supabaseConfig.key,
+                        'Authorization': `Bearer ${supabaseConfig.key}`
+                    },
+                    body: JSON.stringify({ id: 1, data_json: payload, updated_at: new Date().toISOString() })
+                });
+                alert("Berhasil membuat rekam cadangan baru di Cloud!");
+            }
+        } catch (err) {
+            alert("Gagal koneksi ke server Cloud. Periksa jaringan internet kamu.");
+        } finally {
+            if (btn) btn.innerHTML = '<i class="fa-solid fa-cloud-arrow-up"></i> KIRIM DATA KE CLOUD (SYNC MANUAL)';
+        }
+    }
+
+    async function tarikDataDariSupabase() {
+        if (!supabaseConfig.url || !supabaseConfig.key) {
+            return alert("URL & Key Supabase belum tersedia!");
+        }
+        if (!confirm("Peringatan: Menarik data dari Cloud akan menimpa seluruh database lokal HP ini. Lanjutkan?")) return;
+
+        const btn = document.getElementById('btn-pull-cloud');
+        if (btn) btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> MENARIK DATA...';
+
+        try {
+            const response = await fetch(`${supabaseConfig.url}/rest/v1/backup_lms?id=eq.1&select=data_json`, {
+                headers: {
+                    'apikey': supabaseConfig.key,
+                    'Authorization': `Bearer ${supabaseConfig.key}`
+                }
+            });
+
+            const rows = await response.json();
+            if (rows && rows.length > 0 && rows[0].data_json) {
+                const data = rows[0].data_json;
+                if (data.santri) localStorage.setItem('pondok_santri', JSON.stringify(data.santri));
+                if (data.absensi) localStorage.setItem('pondok_absensi', JSON.stringify(data.absensi));
+                if (data.kelas) localStorage.setItem('pondok_kelas', JSON.stringify(data.kelas));
+                if (data.mapel) localStorage.setItem('pondok_master_mapel', JSON.stringify(data.mapel));
+                if (data.evaluasi) localStorage.setItem('pondok_evaluasi', JSON.stringify(data.evaluasi));
+                if (data.tagihan) localStorage.setItem('pondok_tagihan_denda', JSON.stringify(data.tagihan));
+                if (data.izin_aktif) localStorage.setItem('pondok_izin_aktif', JSON.stringify(data.izin_aktif));
+                if (data.history_izin) localStorage.setItem('pondok_history_izin', JSON.stringify(data.history_izin));
+
+                alert("Berhasil menarik data terbaru dari Cloud! Sistem akan dimuat ulang.");
+                location.reload();
+            } else {
+                alert("Belum ada data cadangan tersimpan di server Supabase kamu.");
+            }
+        } catch (err) {
+            alert("Gagal menarik data dari server Cloud.");
+        } finally {
+            if (btn) btn.innerHTML = '<i class="fa-solid fa-triangle-exclamation"></i> TARIK DATA DARI CLOUD (TIMPA DATA LOKAL)';
+        }
+    }
+
+    function bukaModalResetOpsi() {
+        document.getElementById('modal-reset-opsi').classList.remove('hidden');
+    }
+
+    function eksekusiResetOpsi(pilihan) {
+        if (pilihan === 1) {
+            if (!confirm("Kosongkan semua data Santri & Kelas?")) return;
+            localStorage.setItem('pondok_santri', JSON.stringify([]));
+            localStorage.setItem('pondok_kelas', JSON.stringify([]));
+            alert("Data Santri & Kelas berhasil dikosongkan.");
+        } else if (pilihan === 2) {
+            if (!confirm("Kosongkan semua data Absensi & Denda?")) return;
+            localStorage.setItem('pondok_absensi', JSON.stringify([]));
+            localStorage.setItem('pondok_tagihan_denda', JSON.stringify([]));
+            alert("Data Absensi & Denda berhasil dikosongkan.");
+        } else if (pilihan === 3) {
+            if (!confirm("Reset Total lokal tanpa menghapus konfigurasi Supabase?")) return;
+            const configSave = localStorage.getItem('pondok_supabase_config');
+            localStorage.clear();
+            if (configSave) localStorage.setItem('pondok_supabase_config', configSave);
+            alert("Reset total berhasil! Sistem akan dimuat ulang.");
+            location.reload();
+            return;
+        } else if (pilihan === 4) {
+            if (!confirm("PERINGATAN KERAS: Hapus SEGALANYA termasuk konfigurasi Supabase?")) return;
+            localStorage.clear();
+            alert("Seluruh data dihabiskan bersih. Sistem akan dimuat ulang.");
+            location.reload();
+            return;
+        }
+        document.getElementById('modal-reset-opsi').classList.add('hidden');
+        renderTabelSantri();
+        renderTabelDaftarKelas();
+        renderTabelKeuanganDenda();
+    }
+
+    window.onload = initApp;
 </script>
 </body>
 </html>
