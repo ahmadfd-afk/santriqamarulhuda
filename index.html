@@ -95,7 +95,6 @@
         .nav-item.active { color: var(--primary); font-weight: 700; transform: translateY(-2px); }
         .hidden { display: none !important; }
 
-        /* STYLES KHUSUS GRID HAK AKSES RAPI */
         .akses-grid-container { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 8px; margin-top: 8px; margin-bottom: 14px; }
         .akses-card-item { display: flex; align-items: center; gap: 8px; background: rgba(255,255,255,0.8); border: 1px solid rgba(0,0,0,0.1); border-radius: 10px; padding: 8px 10px; cursor: pointer; transition: 0.2s ease; user-select: none; }
         .akses-card-item:hover { background: #ffffff; border-color: var(--primary); }
@@ -266,11 +265,20 @@
                 </div>
             </div>
 
-            <!-- VIEW SANTRI -->
+            <!-- VIEW SANTRI (DILENGKAPI TAB SANTRI AKTIF vs RUANG ALUMNI) -->
             <div id="view-santri" class="hidden page-view">
                 <div class="back-nav" onclick="closeSubMenu()"><i class="fa-solid fa-arrow-left"></i> Kembali ke Dashboard</div>
                 
-                <div class="card card-premium">
+                <div style="display: flex; gap: 8px; margin-bottom: 14px;">
+                    <button type="button" id="btn-tab-santri-aktif" class="btn-primary" style="flex: 1; margin: 0; padding: 12px; font-size: 0.8rem;" onclick="switchTabSantri('aktif')">
+                        <i class="fa-solid fa-user-graduate"></i> Santri Aktif (<span id="count-santri-aktif">0</span>)
+                    </button>
+                    <button type="button" id="btn-tab-santri-alumni" class="btn-outline" style="flex: 1; margin: 0; padding: 12px; font-size: 0.8rem; justify-content: center;" onclick="switchTabSantri('alumni')">
+                        <i class="fa-solid fa-award"></i> Ruang Alumni (<span id="count-santri-alumni">0</span>)
+                    </button>
+                </div>
+
+                <div class="card card-premium" id="card-registrasi-santri">
                     <h3 id="form-santri-title" style="margin-bottom: 14px; color: var(--primary);">Registrasi Santri Baru</h3>
                     <input type="hidden" id="edit-id-santri" value="">
                     
@@ -314,13 +322,15 @@
                 
                 <div class="card">
                     <div style="display: flex; flex-direction: column; margin-bottom: 14px; gap:10px;">
-                        <h3 id="title-db-santri" style="color: var(--primary); margin: 0;">Database Santri</h3>
-                        <button class="btn-primary" onclick="cetakKolektifF4Gabung()" style="margin: 0; padding: 12px; font-size: 0.82rem; background: var(--info);">
-                            <i class="fa-solid fa-print"></i> Cetak F4 (Depan & Belakang)
-                        </button>
-                        <button class="btn-outline" onclick="cetakRekapSantriPDF()" style="justify-content: center; font-size: 0.75rem; background: #fff3cd; border-color: var(--warning);">
-                            <i class="fa-solid fa-file-pdf"></i> Download Rekap PDF
-                        </button>
+                        <h3 id="title-db-santri" style="color: var(--primary); margin: 0;">Database Santri Aktif</h3>
+                        <div style="display:flex; gap:8px;">
+                            <button class="btn-primary" onclick="cetakKolektifF4Gabung()" style="margin: 0; padding: 12px; font-size: 0.78rem; background: var(--info); flex: 1;">
+                                <i class="fa-solid fa-print"></i> Cetak F4 (Kolektif)
+                            </button>
+                            <button class="btn-outline" onclick="cetakRekapSantriPDF()" style="justify-content: center; font-size: 0.75rem; background: #fff3cd; border-color: var(--warning); flex: 1; margin: 0;">
+                                <i class="fa-solid fa-file-pdf"></i> Rekap PDF
+                            </button>
+                        </div>
                     </div>
                     <div style="overflow-x:auto;">
                         <table>
@@ -379,17 +389,44 @@
                 </div>
             </div>
 
-            <!-- VIEW PLOTTING KELAS & MAPEL -->
+            <!-- VIEW PLOTTING KELAS & MAPEL (DILENGKAPI JADWAL HARI & JAM DAN G-CAL) -->
             <div id="view-kelas" class="hidden page-view">
                 <div class="back-nav" onclick="closeSubMenu()"><i class="fa-solid fa-arrow-left"></i> Kembali ke Dashboard</div>
                 
                 <div class="card card-premium" style="border-left-color: var(--info);">
-                    <h3 style="margin-bottom: 14px; color: var(--info);"><i class="fa-solid fa-book"></i> Buat Master Mata Pelajaran</h3>
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; flex-wrap:wrap; gap:8px;">
+                        <h3 style="color: var(--info); margin:0;"><i class="fa-solid fa-book"></i> Buat Master Mata Pelajaran</h3>
+                        <button type="button" class="btn-outline" style="width:auto; padding:6px 12px; margin:0; font-size:0.72rem; border-color:var(--info); color:var(--info);" onclick="aktifkanNotifikasiJadwal()">
+                            <i class="fa-solid fa-bell"></i> Aktifkan Notifikasi Jadwal
+                        </button>
+                    </div>
                     <p style="font-size:0.75rem; color:var(--text-muted); margin-bottom:10px;">Buat mata pelajaran dan tentukan ustadz/guru penanggung jawabnya (bisa lebih dari satu), lalu centang kelas mana saja yang mempelajarinya.</p>
                     
                     <label>Nama Mata Pelajaran</label>
                     <input type="text" id="input-nama-mapel" placeholder="Cth: Fiqih / Al-Qur'an / Nahwu">
                     
+                    <!-- FITUR JADWAL OPSIONAL BERDASARKAN HARI & JAM -->
+                    <label style="cursor:pointer; display:flex; align-items:center; gap:8px; color:var(--primary); margin-top:14px;">
+                        <input type="checkbox" id="input-opsi-jadwal" onchange="toggleFormJadwalMapel()" style="width:18px; height:18px; margin:0;">
+                        <span>Atur Jadwal Hari & Jam (Opsional)</span>
+                    </label>
+                    <div id="wadah-input-jadwal" class="hidden" style="margin-top:10px; background:rgba(4,67,42,0.05); padding:12px; border-radius:12px; border:1px solid rgba(0,0,0,0.08);">
+                        <label style="margin-top:0;">Hari Pelaksanaan</label>
+                        <select id="input-hari-mapel">
+                            <option value="Senin">Senin</option>
+                            <option value="Selasa">Selasa</option>
+                            <option value="Rabu">Rabu</option>
+                            <option value="Kamis">Kamis</option>
+                            <option value="Jumat">Jumat</option>
+                            <option value="Sabtu">Sabtu</option>
+                            <option value="Minggu">Minggu</option>
+                        </select>
+                        <div style="display:flex; gap:8px;">
+                            <div style="flex:1;"><label>Jam Mulai</label><input type="time" id="input-jam-mulai"></div>
+                            <div style="flex:1;"><label>Jam Selesai</label><input type="time" id="input-jam-selesai"></div>
+                        </div>
+                    </div>
+
                     <label style="color:var(--primary); margin-top:14px;"><i class="fa-solid fa-users"></i> Pilih Ustadz / Guru Pengajar (Bisa Lebih dari 1):</label>
                     <div id="input-ustadz-mapel-container" style="max-height: 320px; overflow-y: auto; border: 1px solid #ddd; padding: 10px; border-radius: 12px; background: #fff; margin-bottom: 14px;"></div>
 
@@ -400,7 +437,7 @@
                     
                     <div style="margin-top: 15px; border-top: 1px solid rgba(0,0,0,0.08); padding-top: 10px;">
                         <h4 style="font-size:0.8rem; color:var(--primary); margin-bottom:8px;">Daftar Mata Pelajaran & Kelas Peserta:</h4>
-                        <div style="overflow-x:auto;"><table><thead><tr><th>Mata Pelajaran</th><th>Ustadz PJ</th><th>Kelas Peserta</th><th>Aksi</th></tr></thead><tbody id="tabel-mapel-body"></tbody></table></div>
+                        <div style="overflow-x:auto;"><table><thead><tr><th>Mata Pelajaran</th><th>Ustadz PJ</th><th>Kelas & Jadwal</th><th>Aksi</th></tr></thead><tbody id="tabel-mapel-body"></tbody></table></div>
                     </div>
                 </div>
 
@@ -545,7 +582,7 @@
                 </div>
             </div>
 
-            <!-- VIEW HAK AKSES DENGAN DESAIN GRID CHECKBOX RAPI -->
+            <!-- VIEW HAK AKSES -->
             <div id="view-hak-akses" class="hidden page-view">
                 <div class="back-nav" onclick="closeSubMenu()"><i class="fa-solid fa-arrow-left"></i> Kembali</div>
                 <div class="card card-premium">
@@ -629,7 +666,7 @@
     <nav class="bottom-nav hidden" id="app-nav"></nav>
 </div>
 
-<!-- MODAL EDIT PROFIL SAYA (SELF EDIT) -->
+<!-- MODAL EDIT PROFIL SAYA -->
 <div id="modal-edit-profil-self" class="hidden">
     <div class="glass-panel" style="padding: 24px; border-radius: var(--radius-md); text-align:left; width: 92%; max-width: 420px;">
         <h3 style="color:var(--primary); margin-bottom:8px; border-bottom:2px solid var(--accent); padding-bottom:8px; font-size: 1rem;">
@@ -844,6 +881,7 @@
 <script>
     const KODE_RAHASIA_SYNC = "SYNC_PONDOK_SUPABASE_ENTERPRISE_V1";
     let appMode = 'pondok';
+    let modeTampilanSantri = 'aktif'; // 'aktif' atau 'alumni'
 
     const termDict = {
         pondok: { santri: "Santri", ustadz: "Ustadz", asrama: "Asrama", kamar: "Kamar", mudir: "Pimpinan (Mudir)", instansi: "Pondok", labelAsramaOpsi: ["Asrama Putra", "Asrama Putri"] },
@@ -969,8 +1007,8 @@
     }
 
     function cetakKolektifF4Gabung() {
-        let databaseSantri = getDB('pondok_santri', []); 
-        if (databaseSantri.length === 0) return alert("Belum ada memori data santri.");
+        let databaseSantri = getDB('pondok_santri', []).filter(s => !s.is_alumni); 
+        if (databaseSantri.length === 0) return alert("Belum ada data santri aktif untuk dicetak F4.");
         
         const dataYayasan = getDB('pondok_yayasan', {});
         let bgCardStyle = dataYayasan.bg_idcard ? `background-image: url('${dataYayasan.bg_idcard}');` : ''; 
@@ -1051,12 +1089,13 @@
     }
 
     function cetakRekapSantriPDF() {
-        let databaseSantri = getDB('pondok_santri', []); if (databaseSantri.length === 0) return alert("Belum ada data untuk direkap.");
+        let databaseSantri = getDB('pondok_santri', []).filter(s => modeTampilanSantri === 'alumni' ? s.is_alumni : !s.is_alumni); 
+        if (databaseSantri.length === 0) return alert("Belum ada data untuk direkap.");
         let rekapData = {};
         databaseSantri.forEach(s => { if (!rekapData[s.asrama]) rekapData[s.asrama] = {}; if (!rekapData[s.asrama][s.kamar]) rekapData[s.asrama][s.kamar] = []; rekapData[s.asrama][s.kamar].push(s); });
         
         let htmlPrint = generateStandardKopSuratHTML();
-        htmlPrint += `<div style="text-align:center; margin-bottom: 20px;"><h3 style="margin:0; text-transform:uppercase;">REKAPITULASI JUMLAH ${getTerm('santri').toUpperCase()}</h3><p style="margin:2px 0; font-size:11px;">Berdasarkan Distribusi ${getTerm('asrama')} dan ${getTerm('kamar')}</p></div>`;
+        htmlPrint += `<div style="text-align:center; margin-bottom: 20px;"><h3 style="margin:0; text-transform:uppercase;">REKAPITULASI JUMLAH ${modeTampilanSantri === 'alumni' ? 'ALUMNI' : getTerm('santri').toUpperCase()}</h3><p style="margin:2px 0; font-size:11px;">Berdasarkan Distribusi ${getTerm('asrama')} dan ${getTerm('kamar')}</p></div>`;
         
         for (const [asrama, kamarObj] of Object.entries(rekapData)) {
             htmlPrint += `<h3 style="margin-top: 20px; background: #eee; padding: 6px 10px; border: 1px solid #000; font-size: 13px;">${getTerm('asrama').toUpperCase()}: ${asrama.toUpperCase()}</h3>`;
@@ -1234,6 +1273,7 @@
         cetakElemenHTML(htmlPrint, 'portrait');
     }
 
+    // PDF JADWAL PER KELAS BERDURASI HARI & JAM
     function cetakJadwalPerKelas(idKelas) {
         const dbKelas = getDB('pondok_kelas', []);
         const dbMapel = getDB('pondok_master_mapel', []);
@@ -1248,7 +1288,7 @@
         );
 
         const santriKelasIni = dbSantri.filter(s => 
-            (kls.santri_ids || []).includes(s.id)
+            (kls.santri_ids || []).includes(s.id) && !s.is_alumni
         );
 
         let htmlPrint = generateStandardKopSuratHTML();
@@ -1258,28 +1298,31 @@
                 <p style="margin:2px 0; font-size:13px;">Kelas / Forum: <strong style="text-transform:uppercase;">${kls.nama}</strong></p>
             </div>
 
-            <h4 style="margin-bottom:8px; font-size:12px;">A. DAFTAR MATA PELAJARAN & PENGAJAR</h4>
+            <h4 style="margin-bottom:8px; font-size:12px;">A. DAFTAR MATA PELAJARAN, JADWAL & PENGAJAR</h4>
             <table style="margin-bottom: 25px;">
                 <thead>
                     <tr>
                         <th style="width: 5%; text-align:center;">No</th>
-                        <th style="width: 40%;">Mata Pelajaran</th>
-                        <th style="width: 35%;">Ustadz / Guru Pengajar</th>
-                        <th style="width: 20%; text-align:center;">Keterangan</th>
+                        <th style="width: 30%;">Mata Pelajaran</th>
+                        <th style="width: 25%;">Jadwal (Hari & Jam)</th>
+                        <th style="width: 25%;">Ustadz / Guru Pengajar</th>
+                        <th style="width: 15%; text-align:center;">Keterangan</th>
                     </tr>
                 </thead>
                 <tbody>`;
 
         if (mapelKelasIni.length === 0) {
-            htmlPrint += `<tr><td colspan="4" align="center" style="font-style:italic; color:#777;">Belum ada mata pelajaran yang diplotting ke kelas ini.</td></tr>`;
+            htmlPrint += `<tr><td colspan="5" align="center" style="font-style:italic; color:#777;">Belum ada mata pelajaran yang diplotting ke kelas ini.</td></tr>`;
         } else {
             mapelKelasIni.forEach((m, i) => {
+                let txtJadwalPrint = (m.jadwal_aktif && m.hari) ? `<strong>${m.hari}</strong> (${m.jam_mulai || '08:00'} - ${m.jam_selesai || '10:00'})` : `<em>Fleksibel / Opsional</em>`;
                 htmlPrint += `
                     <tr>
                         <td style="text-align:center;">${i + 1}</td>
                         <td><strong>${m.nama_mapel}</strong></td>
+                        <td>${txtJadwalPrint}</td>
                         <td>${m.ustadz_nama}</td>
-                        <td style="text-align:center; color:#777;">-</td>
+                        <td style="text-align:center; color:#777;">Aktif</td>
                     </tr>`;
             });
         }
@@ -1301,7 +1344,7 @@
                 <tbody>`;
 
         if (santriKelasIni.length === 0) {
-            htmlPrint += `<tr><td colspan="4" align="center" style="font-style:italic; color:#777;">Belum ada santri yang terdaftar di kelas ini.</td></tr>`;
+            htmlPrint += `<tr><td colspan="4" align="center" style="font-style:italic; color:#777;">Belum ada santri aktif yang terdaftar di kelas ini.</td></tr>`;
         } else {
             santriKelasIni.forEach((s, i) => {
                 htmlPrint += `
@@ -1347,7 +1390,7 @@
         if(document.getElementById('label-foto-santri')) document.getElementById('label-foto-santri').innerText = `Foto ${t.santri}`;
         if(document.getElementById('label-asrama-input')) document.getElementById('label-asrama-input').innerText = t.asrama;
         if(document.getElementById('label-kamar-input')) document.getElementById('label-kamar-input').innerText = t.kamar;
-        if(document.getElementById('title-db-santri')) document.getElementById('title-db-santri').innerText = `Database ${t.santri}`;
+        if(document.getElementById('title-db-santri')) document.getElementById('title-db-santri').innerText = `Database ${t.santri} Aktif`;
         if(document.getElementById('th-kamar-nis')) document.getElementById('th-kamar-nis').innerText = `NIS / ${t.kamar}`;
         if(document.getElementById('label-mudir-edit')) document.getElementById('label-mudir-edit').innerText = t.mudir;
         if(document.getElementById('label-asrama')) document.getElementById('label-asrama').innerText = t.asrama + ":";
@@ -1494,8 +1537,8 @@
         
         if (!localStorage.getItem('pondok_master_mapel')) {
             localStorage.setItem('pondok_master_mapel', JSON.stringify([
-                { id: 101, nama_mapel: "Fiqih Shalat & Thaharah", ustadz_ids: ["ustadz"], ustadz_nama: "Guru / Ustadz", kelas_ids: [201] },
-                { id: 102, nama_mapel: "Tahfidz & Tahsin Al-Qur'an", ustadz_ids: ["ustadz"], ustadz_nama: "Guru / Ustadz", kelas_ids: [201] }
+                { id: 101, nama_mapel: "Fiqih Shalat & Thaharah", ustadz_ids: ["ustadz"], ustadz_nama: "Guru / Ustadz", kelas_ids: [201], jadwal_aktif: true, hari: "Senin", jam_mulai: "08:00", jam_selesai: "09:30" },
+                { id: 102, nama_mapel: "Tahfidz & Tahsin Al-Qur'an", ustadz_ids: ["ustadz"], ustadz_nama: "Guru / Ustadz", kelas_ids: [201], jadwal_aktif: false, hari: null, jam_mulai: "", jam_selesai: "" }
             ]));
         } else {
             let listM = getDB('pondok_master_mapel', []);
@@ -1568,7 +1611,7 @@
     }
 
     function bukaFungsiTabSesuaiTujuan(lastTab) {
-        if(lastTab === 'view-santri') { renderTabelSantri(); renderDropdownKelasSantri(); }
+        if(lastTab === 'view-santri') { switchTabSantri('aktif'); renderDropdownKelasSantri(); }
         if(lastTab === 'view-evaluasi') renderDropdownKelasEvaluasi();
         if(lastTab === 'view-izin') renderTabelIzinAktif();
         if(lastTab === 'view-kelas') { renderMasterMapel(); renderTabelDaftarKelas(); }
@@ -1630,7 +1673,7 @@
         const containerMenu = document.getElementById('render-menu-buttons'); containerMenu.innerHTML = ''; 
         const seluruhAkses = getDB('pondok_akses', defaultAkses); const aksesSaya = seluruhAkses[currentUser.role] || []; 
         const dynMenuMaster = menuMaster.map(item => {
-            if(item.id === 'view-santri') return { ...item, nama: `Database ${getTerm('santri')}` };
+            if(item.id === 'view-santri') return { ...item, nama: `Database ${getTerm('santri')} & Ruang Alumni` };
             if(item.id === 'view-izin') return { ...item, nama: `Surat Izin ${getTerm('santri')} & Validasi Balik` };
             return item;
         });
@@ -1653,6 +1696,31 @@
         getDB('pondok_kelas', []).forEach(k => {
             dropdown.innerHTML += `<option value="${k.id}">${k.nama} (${(k.mapel_ids || []).length} Mapel)</option>`;
         });
+    }
+
+    // TAB SWITCHER: SANTRI AKTIF VS RUANG ALUMNI
+    function switchTabSantri(mode) {
+        modeTampilanSantri = mode;
+        const btnAktif = document.getElementById('btn-tab-santri-aktif');
+        const btnAlumni = document.getElementById('btn-tab-santri-alumni');
+        const cardReg = document.getElementById('card-registrasi-santri');
+        const thKamarNis = document.getElementById('th-kamar-nis');
+        const titleDB = document.getElementById('title-db-santri');
+
+        if (mode === 'aktif') {
+            btnAktif.className = 'btn-primary';
+            btnAlumni.className = 'btn-outline';
+            if (cardReg) cardReg.style.display = 'block';
+            if (thKamarNis) thKamarNis.innerText = 'NIS / Kamar';
+            if (titleDB) titleDB.innerText = `Database ${getTerm('santri')} Aktif`;
+        } else {
+            btnAktif.className = 'btn-outline';
+            btnAlumni.className = 'btn-primary';
+            if (cardReg) cardReg.style.display = 'none'; // Sembunyikan form reg agar bersih di ruang alumni
+            if (thKamarNis) thKamarNis.innerText = 'NIS / Tahun Lulus';
+            if (titleDB) titleDB.innerText = 'Ruang Alumni (Daftar Kelulusan)';
+        }
+        renderTabelSantri();
     }
 
     function simpanSantri() { 
@@ -1685,7 +1753,18 @@
             const nisTerbentuk = new Date().getFullYear().toString().slice(-2) + String(Date.now()).slice(-4); 
             if(fotoBase64Hasil === '') fotoBase64Hasil = 'https://cdn-icons-png.flaticon.com/512/847/847969.png'; 
             targetIdSantri = Date.now();
-            databaseSantri.push({ id: targetIdSantri, nis: nisTerbentuk, nik: nikSantri, nama: namaLengkap, alamat: alamatAsal, asrama: pilihanAsrama, kamar: nomorKamar, foto: fotoBase64Hasil }); 
+            databaseSantri.push({ 
+                id: targetIdSantri, 
+                nis: nisTerbentuk, 
+                nik: nikSantri, 
+                nama: namaLengkap, 
+                alamat: alamatAsal, 
+                asrama: pilihanAsrama, 
+                kamar: nomorKamar, 
+                foto: fotoBase64Hasil,
+                is_alumni: false,
+                tahun_lulus: null
+            }); 
             alert(`Registrasi Berhasil!\nNIS Terbentuk: ${nisTerbentuk}`); 
         } 
 
@@ -1709,11 +1788,47 @@
     function batalEditSantri() { document.getElementById('edit-id-santri').value = ""; document.getElementById('input-nama-santri').value = ""; document.getElementById('input-nik-santri').value = ""; document.getElementById('input-kamar-santri').value = ""; document.getElementById('input-alamat-santri').value = ""; document.getElementById('input-foto-kamera').value = ""; document.getElementById('input-foto-galeri').value = ""; document.getElementById('input-kelas-santri').value = ""; document.getElementById('preview-foto-santri-ui').style.display = "none"; document.getElementById('preview-foto-santri-ui').src = ""; tempFotoSantriBase64 = ''; document.getElementById('form-santri-title').innerText = `Registrasi ${getTerm('santri')} Baru`; document.getElementById('btn-simpan-santri').innerText = "SIMPAN DATA & GENERATE NIS"; document.getElementById('btn-batal-edit-santri').classList.add('hidden'); }
     function editSantriMode(idString) { let db = getDB('pondok_santri', []); let santri = db.find(s => s.id == idString); if(!santri) return; document.getElementById('edit-id-santri').value = santri.id; document.getElementById('input-nama-santri').value = santri.nama; document.getElementById('input-nik-santri').value = santri.nik || ''; document.getElementById('input-kamar-santri').value = santri.kamar; document.getElementById('input-alamat-santri').value = santri.alamat; document.getElementById('input-asrama-santri').value = santri.asrama; document.getElementById('form-santri-title').innerText = `Edit Data ${getTerm('santri')}`; document.getElementById('btn-simpan-santri').innerText = "UPDATE DATA"; document.getElementById('btn-batal-edit-santri').classList.remove('hidden'); window.scrollTo(0,0); }
     
+    // FITUR BATAL LULUS (MENGEMBALIKAN ALUMNI MENJADI SANTRI AKTIF)
+    function batalLulusSantri(idSantri) {
+        let dbSantri = getDB('pondok_santri', []);
+        let target = dbSantri.find(s => s.id == idSantri);
+        if (!target) return;
+        if (!confirm(`Kembalikan status "${target.nama}" menjadi Santri Aktif?\n\nSantri akan dipindahkan kembali dari Ruang Alumni ke daftar Santri Aktif.`)) return;
+        
+        target.is_alumni = false;
+        target.tahun_lulus = null;
+        localStorage.setItem('pondok_santri', JSON.stringify(dbSantri));
+        alert(`Status "${target.nama}" berhasil dikembalikan menjadi Santri Aktif!`);
+        renderTabelSantri();
+    }
+
+    // FITUR LANJUT JENJANG (DUPLIKASI DATA ALUMNI MENJADI SANTRI AKTIF BARU DENGAN NIS BARU)
+    function lanjutJenjangSantri(idSantri) {
+        let dbSantri = getDB('pondok_santri', []);
+        let target = dbSantri.find(s => s.id == idSantri);
+        if (!target) return;
+        if (!confirm(`Lanjutkan jenjang pendidikan untuk "${target.nama}"?\n\nSistem akan membuatkan data Santri Aktif baru dengan NIS baru, sementara data historinya sebagai Alumni tetap tersimpan abadi.`)) return;
+        
+        const nisBaru = new Date().getFullYear().toString().slice(-2) + String(Date.now()).slice(-4);
+        const santriLanjut = {
+            ...target,
+            id: Date.now(),
+            nis: nisBaru,
+            is_alumni: false,
+            tahun_lulus: null
+        };
+        dbSantri.push(santriLanjut);
+        localStorage.setItem('pondok_santri', JSON.stringify(dbSantri));
+        
+        alert(`Berhasil! Data Santri Aktif baru untuk "${target.nama}" telah dibuat dengan NIS: ${nisBaru}.\n\nSilakan sesuaikan penempatan kamar barunya di daftar Santri Aktif.`);
+        switchTabSantri('aktif');
+    }
+
     function hapusSantri(idSantri) {
         let dbSantri = getDB('pondok_santri', []);
         let target = dbSantri.find(s => s.id == idSantri);
         if (!target) return;
-        if (!confirm(`Yakin ingin menghapus data "${target.nama}" (${target.nis})?\n\nData santri juga akan dibersihkan dari seluruh daftar kelas secara otomatis.`)) return;
+        if (!confirm(`Yakin ingin menghapus data "${target.nama}" (${target.nis})?\n\nData akan dibersihkan dari seluruh daftar kelas secara otomatis.`)) return;
         
         let sisaSantri = dbSantri.filter(s => s.id != idSantri);
         localStorage.setItem('pondok_santri', JSON.stringify(sisaSantri));
@@ -1728,22 +1843,63 @@
         alert(`Data "${target.nama}" berhasil dihapus.`);
     }
 
+    // RENDER TABEL SANTRI AKTIF VS RUANG ALUMNI
     function renderTabelSantri() { 
-        let databaseSantri = getDB('pondok_santri', []); const elemenTbody = document.getElementById('tabel-santri-body'); elemenTbody.innerHTML = ''; 
-        if(databaseSantri.length === 0) { return elemenTbody.innerHTML = '<tr><td colspan="3" align="center">Belum ada data.</td></tr>'; } 
-        databaseSantri.forEach(s => { 
-            elemenTbody.innerHTML += `<tr>
-                <td><strong>${s.nis}</strong><br><span style="font-size:0.65rem; color:var(--text-muted);">${s.kamar}</span></td>
-                <td>${s.nama}</td>
-                <td>
-                    <div style="display:flex; gap:4px; flex-wrap:wrap; justify-content:flex-start;">
-                        <button class="btn-print" style="margin:0; padding:6px; font-size:0.7rem;" onclick="prosesCetakIDCard('${s.nis}', 'santri')">Kartu</button>
-                        <button class="btn-outline" style="margin:0; padding:6px; font-size:0.7rem; border-color:var(--info); color:var(--info);" onclick="bukaModalSertifikat('${s.nis}')">Sertifikat</button>
-                        <button class="btn-warning" style="margin:0; padding:6px; font-size:0.7rem;" onclick="editSantriMode(${s.id})">Edit</button>
-                        <button class="btn-danger" style="margin:0; padding:6px; font-size:0.7rem;" onclick="hapusSantri(${s.id})">Hapus</button>
-                    </div>
-                </td>
-            </tr>`; 
+        let databaseSantri = getDB('pondok_santri', []);
+        const aktifList = databaseSantri.filter(s => !s.is_alumni);
+        const alumniList = databaseSantri.filter(s => s.is_alumni === true);
+
+        // Update jumlah badge tombol
+        const countAktifEl = document.getElementById('count-santri-aktif');
+        const countAlumniEl = document.getElementById('count-santri-alumni');
+        if (countAktifEl) countAktifEl.innerText = aktifList.length;
+        if (countAlumniEl) countAlumniEl.innerText = alumniList.length;
+
+        const elemenTbody = document.getElementById('tabel-santri-body');
+        if (!elemenTbody) return;
+        elemenTbody.innerHTML = ''; 
+
+        const dataDitampilkan = (modeTampilanSantri === 'alumni') ? alumniList : aktifList;
+
+        if(dataDitampilkan.length === 0) { 
+            return elemenTbody.innerHTML = `<tr><td colspan="3" align="center">Belum ada data ${modeTampilanSantri === 'alumni' ? 'alumni' : 'santri aktif'}.</td></tr>`; 
+        } 
+
+        dataDitampilkan.forEach(s => {
+            if (modeTampilanSantri === 'alumni') {
+                elemenTbody.innerHTML += `<tr>
+                    <td>
+                        <strong>${s.nis}</strong><br>
+                        <span style="font-size:0.68rem; color:var(--accent); font-weight:bold;">Lulus: ${s.tahun_lulus || 'Alumni'}</span>
+                    </td>
+                    <td>
+                        <strong>${s.nama}</strong><br>
+                        <span style="font-size:0.68rem; color:var(--text-muted);">Riwayat: ${s.asrama} (${s.kamar})</span>
+                    </td>
+                    <td>
+                        <div style="display:flex; gap:4px; flex-wrap:wrap; justify-content:flex-start;">
+                            <button class="btn-print" style="margin:0; padding:6px; font-size:0.7rem;" onclick="prosesCetakIDCard('${s.nis}', 'alumni')"><i class="fa-solid fa-award"></i> Kartu Alumni</button>
+                            <button class="btn-outline" style="margin:0; padding:6px; font-size:0.7rem; border-color:var(--info); color:var(--info);" onclick="bukaModalSertifikat('${s.nis}')">Sertifikat</button>
+                            <button class="btn-warning" style="margin:0; padding:6px; font-size:0.7rem;" onclick="batalLulusSantri(${s.id})"><i class="fa-solid fa-rotate-left"></i> Batal Lulus</button>
+                            <button class="btn-primary" style="margin:0; padding:6px; font-size:0.7rem;" onclick="lanjutJenjangSantri(${s.id})"><i class="fa-solid fa-user-plus"></i> Lanjut Jenjang</button>
+                            <button class="btn-danger" style="margin:0; padding:6px; font-size:0.7rem;" onclick="hapusSantri(${s.id})">Hapus</button>
+                        </div>
+                    </td>
+                </tr>`;
+            } else {
+                elemenTbody.innerHTML += `<tr>
+                    <td><strong>${s.nis}</strong><br><span style="font-size:0.65rem; color:var(--text-muted);">${s.kamar}</span></td>
+                    <td>${s.nama}</td>
+                    <td>
+                        <div style="display:flex; gap:4px; flex-wrap:wrap; justify-content:flex-start;">
+                            <button class="btn-print" style="margin:0; padding:6px; font-size:0.7rem;" onclick="prosesCetakIDCard('${s.nis}', 'santri')">Kartu</button>
+                            <button class="btn-outline" style="margin:0; padding:6px; font-size:0.7rem; border-color:var(--info); color:var(--info);" onclick="bukaModalSertifikat('${s.nis}')">Sertifikat</button>
+                            <button class="btn-warning" style="margin:0; padding:6px; font-size:0.7rem;" onclick="editSantriMode(${s.id})">Edit</button>
+                            <button class="btn-danger" style="margin:0; padding:6px; font-size:0.7rem;" onclick="hapusSantri(${s.id})">Hapus</button>
+                        </div>
+                    </td>
+                </tr>`;
+            }
         }); 
     }
 
@@ -1756,7 +1912,7 @@
         const idKelasTerpilih = document.getElementById('pilih-kelas-evaluasi').value; const wadah = document.getElementById('wadah-form-evaluasi'); wadah.innerHTML = '';
         if(!idKelasTerpilih) return;
         const objKelas = getDB('pondok_kelas', []).find(x => x.id == idKelasTerpilih); if(!objKelas) return;
-        const dbSantri = getDB('pondok_santri', []); const dbEvaluasi = getDB('pondok_evaluasi', []);
+        const dbSantri = getDB('pondok_santri', []).filter(s => !s.is_alumni); const dbEvaluasi = getDB('pondok_evaluasi', []);
         
         let htmlList = `<div style="overflow-x:auto;"><table><thead><tr><th>${getTerm('santri')}</th><th>Nilai Ujian (0-100)</th><th>Nilai Keaktifan / Akhlak (0-100)</th></tr></thead><tbody>`;
         dbSantri.filter(s => (objKelas.santri_ids || []).includes(s.id)).forEach(dataS => {
@@ -1776,7 +1932,7 @@
         const objKelas = getDB('pondok_kelas', []).find(x => x.id == idKelas);
         let dbEvaluasi = getDB('pondok_evaluasi', []);
         
-        getDB('pondok_santri', []).filter(s => (objKelas.santri_ids || []).includes(s.id)).forEach(dataS => {
+        getDB('pondok_santri', []).filter(s => !s.is_alumni && (objKelas.santri_ids || []).includes(s.id)).forEach(dataS => {
             const nUjian = parseInt(document.getElementById(`eval_ujian_${dataS.nis}`).value) || 0;
             const nAktif = parseInt(document.getElementById(`eval_aktif_${dataS.nis}`).value) || 0;
             const rata = (nUjian + nAktif) / 2;
@@ -1807,6 +1963,7 @@
         document.getElementById('modal-sertifikat').classList.remove('hidden');
     }
 
+    // TERBITKAN SERTIFIKAT & TANDAI SEBAGAI ALUMNI TANPA MERUSAK HISTORI KAMAR
     function prosesCetakSertifikatFinal() {
         const nis = document.getElementById('cert-nis').value;
         const orientasi = document.getElementById('cert-orientasi').value;
@@ -1819,7 +1976,9 @@
         const yayasan = getDB('pondok_yayasan', {});
         const evaluasi = getDB('pondok_evaluasi', []).find(e => e.nis === nis) || { rata: 0, predikat: "Belum Dievaluasi" };
         
-        santriDB[idx].kamar = "LULUS / ALUMNI";
+        // Tandai sebagai alumni dan catat tahun kelulusan TANPA MERUSAK histori kamar/asrama!
+        santriDB[idx].is_alumni = true;
+        santriDB[idx].tahun_lulus = new Date(tgl).getFullYear();
         localStorage.setItem('pondok_santri', JSON.stringify(santriDB));
         renderTabelSantri();
 
@@ -1861,6 +2020,7 @@
     function setOrientasiKartu(tipe) { const card = document.getElementById('area-cetak-kartu'); if (tipe === 'portrait') card.classList.add('portrait'); else card.classList.remove('portrait'); }
     function gantiSisiKartu(sisi) { if (sisi === 'depan') { document.getElementById('sisi-depan-kartu').classList.remove('hidden'); document.getElementById('sisi-belakang-kartu').classList.add('hidden'); document.getElementById('btn-kartu-depan').className = 'btn-primary'; document.getElementById('btn-kartu-belakang').className = 'btn-outline'; } else { document.getElementById('sisi-depan-kartu').classList.add('hidden'); document.getElementById('sisi-belakang-kartu').classList.remove('hidden'); document.getElementById('btn-kartu-depan').className = 'btn-outline'; document.getElementById('btn-kartu-belakang').className = 'btn-primary'; } }
 
+    // GENERATE KARTU IDENTITAS UNTUK SANTRI, ALUMNI (PENANDA KHUSUS), DAN PEGAWAI
     function prosesCetakIDCard(identifier, tipePengguna = 'santri') { 
         const yayasan = getDB('pondok_yayasan', {}); const card = document.getElementById('area-cetak-kartu'); card.classList.remove('portrait'); gantiSisiKartu('depan'); 
         card.style.backgroundImage = yayasan.bg_idcard ? `url('${yayasan.bg_idcard}')` : `url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" opacity="0.05"><circle cx="50" cy="50" r="40" stroke="%2304432A" stroke-width="2" fill="none"/></svg>')`; 
@@ -1873,13 +2033,23 @@
         if (yayasan.ttd_mudir) { document.getElementById('back-ttd-img').src = yayasan.ttd_mudir; document.getElementById('back-ttd-img').style.display = 'block'; } else { document.getElementById('back-ttd-img').style.display = 'none'; }
 
         let qrDataPayload = identifier; 
-        if(tipePengguna === 'santri') { 
+        if(tipePengguna === 'santri' || tipePengguna === 'alumni') { 
             let db = getDB('pondok_santri', []); let s = db.find(x => x.nis === identifier); if(!s) return; 
             document.getElementById('card-foto').src = s.foto || ""; 
             document.getElementById('card-nama').innerText = s.nama; 
             document.getElementById('label-nomor').innerText = "NIS:"; document.getElementById('card-nis').innerText = s.nis; 
-            document.getElementById('label-asrama').innerText = getTerm('asrama') + ":"; document.getElementById('card-asrama').innerText = s.asrama; 
-            document.getElementById('label-kamar').innerText = getTerm('kamar') + ":"; document.getElementById('card-kamar').innerText = s.kamar; 
+            
+            if (tipePengguna === 'alumni') {
+                document.getElementById('card-yayasan').innerText = "KARTU ANGGOTA ALUMNI";
+                document.getElementById('label-asrama').innerText = "Status:";
+                document.getElementById('card-asrama').innerText = `ALUMNI (${s.tahun_lulus || 'Lulus'})`;
+                document.getElementById('label-kamar').innerText = "Riwayat Kamar:";
+                document.getElementById('card-kamar').innerText = `${s.asrama} - ${s.kamar}`;
+            } else {
+                document.getElementById('label-asrama').innerText = getTerm('asrama') + ":"; document.getElementById('card-asrama').innerText = s.asrama; 
+                document.getElementById('label-kamar').innerText = getTerm('kamar') + ":"; document.getElementById('card-kamar').innerText = s.kamar; 
+            }
+
             document.getElementById('card-alamat').innerText = (s.alamat || '-').substring(0, 36); 
             qrDataPayload = JSON.stringify({ n: s.nis, u: supabaseConfig.url || "", k: supabaseConfig.key || "" });
         } else { 
@@ -1892,10 +2062,13 @@
             document.getElementById('card-alamat').innerText = (yayasan.alamat || '-').substring(0, 36); 
             qrDataPayload = "PEG-" + p.id; 
         } 
-        terapkanKustomisasiLayoutIDCard(yayasan, qrDataPayload); document.getElementById('id-card-modal').classList.remove('hidden'); 
+
+        const footerCustomText = (tipePengguna === 'alumni') ? "KARTU ANGGOTA ALUMNI RESMI" : yayasan.teks_footer;
+        terapkanKustomisasiLayoutIDCard(footerCustomText, qrDataPayload); 
+        document.getElementById('id-card-modal').classList.remove('hidden'); 
     }
 
-    function terapkanKustomisasiLayoutIDCard(yayasan, qrText) { const wadahQR = document.getElementById("card-qr"); wadahQR.innerHTML = ''; const footerEl = document.getElementById('card-footer-custom'); if(yayasan.teks_footer && yayasan.teks_footer.trim() !== "") { footerEl.innerText = yayasan.teks_footer; footerEl.classList.remove('hidden'); } else { footerEl.classList.add('hidden'); } if (typeof QRCode !== 'undefined') { new QRCode(wadahQR, { text: qrText, width: 85, height: 85, colorDark: "#000000", colorLight: "#ffffff", correctLevel: QRCode.CorrectLevel.L }); } }
+    function terapkanKustomisasiLayoutIDCard(teksFooter, qrText) { const wadahQR = document.getElementById("card-qr"); wadahQR.innerHTML = ''; const footerEl = document.getElementById('card-footer-custom'); if(teksFooter && teksFooter.trim() !== "") { footerEl.innerText = teksFooter; footerEl.classList.remove('hidden'); } else { footerEl.classList.add('hidden'); } if (typeof QRCode !== 'undefined') { new QRCode(wadahQR, { text: qrText, width: 85, height: 85, colorDark: "#000000", colorLight: "#ffffff", correctLevel: QRCode.CorrectLevel.L }); } }
 
     function getStatistikIzin(nisSantri) { const histDB = getDB('pondok_history_izin', []); const riwayatSantri = histDB.filter(x => x.nis === nisSantri); let totalHari = 0; riwayatSantri.forEach(item => { totalHari += (parseInt(item.durasi_hari) || 1); }); return { total_kali: riwayatSantri.length, total_hari: totalHari }; }
 
@@ -1918,6 +2091,56 @@
     function buatSuratKembaliProfesional(targetIzin, santri, statusKembaliText) { const yayasan = getDB('pondok_yayasan', {}); const tglBalikID = new Date().toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' }); const jamSekarang = new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }); const blnRomawi = ['I','II','III','IV','V','VI','VII','VIII','IX','X','XI','XII'][new Date().getMonth()]; const noSurat = `No: 015/KEMBALI-LMS/${blnRomawi}/${new Date().getFullYear()}`; let ttdMudirHTML = (yayasan.ttd_mudir) ? `<img src="${yayasan.ttd_mudir}" style="max-height:35px; display:block; margin:4px auto;">` : '<div style="height:35px;"></div>'; const htmlSurat = `<div class="surat-header"><img src="${yayasan.logo || 'https://cdn-icons-png.flaticon.com/512/3592/3592078.png'}"><div class="surat-header-text"><h3>${yayasan.pondok || 'NAMA INSTANSI PENDIDIKAN'}</h3><p><strong>${yayasan.yayasan || 'Sistem Manajemen'}</strong><br>${yayasan.alamat || 'Indonesia'}</p></div></div><div class="surat-no">${noSurat}</div><p>Menerangkan bahwa santri bersangkutan di bawah ini <strong>TELAH KEMBALI</strong> ke asrama dari masa izin keluar/pulang:</p><table style="margin:10px 0; border:none;"><tr style="border:none;"><td style="width:130px; border:none; padding:4px;"><strong>Nama Lengkap</strong></td><td style="border:none; padding:4px;">: ${santri.nama}</td></tr><tr style="border:none;"><td style="width:130px; border:none; padding:4px;"><strong>NIS</strong></td><td style="border:none; padding:4px;">: <strong>${santri.nis}</strong></td></tr><tr style="border:none;"><td style="width:130px; border:none; padding:4px;"><strong>Asrama / Kamar</strong></td><td style="border:none; padding:4px;">: ${santri.asrama} (${santri.kamar})</td></tr><tr style="border:none;"><td style="width:130px; border:none; padding:4px;"><strong>Keperluan Izin</strong></td><td style="border:none; padding:4px;">: ${targetIzin.keperluan}</td></tr><tr style="border:none;"><td style="width:130px; border:none; padding:4px;"><strong>Tanggal Lapor Balik</strong></td><td style="border:none; padding:4px;">: ${tglBalikID} (${jamSekarang} WITA)</td></tr><tr style="border:none;"><td style="width:130px; border:none; padding:4px;"><strong>Status Keterlambatan</strong></td><td style="border:none; padding:4px; font-weight:bold; color:${statusKembaliText.includes('TERLAMBAT') ? 'red' : 'green'};">: ${statusKembaliText}</td></tr></table><div class="surat-ttd-grid"><div><span>Santri Yang Melapor,</span><div style="height:40px; border-bottom:1px solid #111; margin-top:15px; width:120px; margin-left:auto; margin-right:auto;"></div><span>( ${santri.nama} )</span></div><div><span>Mengetahui Pimpinan,</span>${ttdMudirHTML}<span><strong>${yayasan.mudir || 'Pimpinan / Mudir'}</strong></span></div></div>`; document.getElementById('surat-izin-konten').innerHTML = htmlSurat; document.getElementById('area-cetak-surat-izin').classList.remove('hidden'); }
 
     function renderTabelIzinAktif() { const tbody = document.getElementById('tabel-izin-aktif-body'); if (!tbody) return; tbody.innerHTML = ''; const izinAktifDB = getDB('pondok_izin_aktif', []); if (izinAktifDB.length === 0) return tbody.innerHTML = '<tr><td colspan="3" align="center">Tidak ada santri yang sedang izin di luar.</td></tr>'; izinAktifDB.forEach(iz => { const isLate = new Date().toISOString().split('T')[0] > iz.tgl_balik; tbody.innerHTML += `<tr><td><strong>${iz.nama}</strong> <small>[${iz.nis}]</small><br><span style="font-size:0.75rem; color:var(--primary);">${iz.keperluan}</span></td><td><strong style="color:${isLate ? 'red' : 'var(--primary)'};">${iz.tgl_balik}</strong></td><td><button class="btn-success" style="margin:0; padding:6px 10px; font-size:0.7rem;" onclick="validasiSantriBalikIzin('${iz.nis}')"><i class="fa-solid fa-check"></i> Balik</button></td></tr>`; }); }
+
+    // INTEGRASI NOTIFIKASI WEB/PWA AGAR SISTEM MENGIRIM PENGINGAT KE LAYAR HP
+    function aktifkanNotifikasiJadwal() {
+        if (!("Notification" in window)) {
+            alert("Browser/HP ini tidak mendukung Web Notification.");
+            return;
+        }
+        Notification.requestPermission().then(permission => {
+            if (permission === "granted") {
+                kirimNotifikasiLokal("Notifikasi Jadwal Aktif!", "Sistem LMS akan mengirimkan pengingat jadwal pelajaran dan pengumuman langsung ke layar HP Anda.");
+                alert("Pengingat notifikasi jadwal berhasil diaktifkan!");
+            } else {
+                alert("Izin notifikasi ditolak oleh peramban/perangkat.");
+            }
+        });
+    }
+
+    function kirimNotifikasiLokal(judul, pesan) {
+        if ("Notification" in window && Notification.permission === "granted") {
+            try {
+                if (navigator.serviceWorker && navigator.serviceWorker.controller) {
+                    navigator.serviceWorker.ready.then(registration => {
+                        registration.showNotification(judul, {
+                            body: pesan,
+                            icon: 'https://cdn-icons-png.flaticon.com/512/3592/3592078.png',
+                            badge: 'https://cdn-icons-png.flaticon.com/512/3592/3592078.png',
+                            vibrate: [200, 100, 200]
+                        });
+                    });
+                } else {
+                    new Notification(judul, {
+                        body: pesan,
+                        icon: 'https://cdn-icons-png.flaticon.com/512/3592/3592078.png'
+                    });
+                }
+            } catch(e) {
+                console.log("Notifikasi fallback:", e);
+            }
+        }
+    }
+
+    // TOGGLE FORM INPUT JADWAL HARI & JAM
+    function toggleFormJadwalMapel() {
+        const cb = document.getElementById('input-opsi-jadwal');
+        const wadah = document.getElementById('wadah-input-jadwal');
+        if (cb && wadah) {
+            if (cb.checked) wadah.classList.remove('hidden');
+            else wadah.classList.add('hidden');
+        }
+    }
 
     function renderMasterMapel() {
         const wadahUstadz = document.getElementById('input-ustadz-mapel-container');
@@ -1969,12 +2192,27 @@
             });
             let txtKelas = namaKelasTerpilih.length > 0 ? namaKelasTerpilih.join(", ") : "<em>Belum ada kelas</em>";
 
+            // Tampilkan keterangan hari & jam
+            let txtJadwal = (m.jadwal_aktif && m.hari)
+                ? `<span style="color:#D35400; font-weight:700;"><i class="fa-solid fa-clock"></i> ${m.hari}, ${m.jam_mulai || ''} - ${m.jam_selesai || ''} WITA</span>`
+                : `<span style="color:#7f8c8d; font-style:italic;">Fleksibel / Belum Diatur</span>`;
+
+            // Buat Link Pintasan Google Calendar
+            const detailText = `Pengajar: ${m.ustadz_nama}\nJadwal: ${(m.hari || 'Fleksibel')} ${m.jam_mulai || ''}-${m.jam_selesai || ''}\nKelas: ${namaKelasTerpilih.join(", ")}`;
+            const gcalUrl = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(m.nama_mapel)}&details=${encodeURIComponent(detailText)}&location=${encodeURIComponent("Ruang Kelas Pondok / Sekolah")}`;
+
             tbodyMapel.innerHTML += `<tr>
                 <td><strong>${m.nama_mapel}</strong></td>
                 <td>${m.ustadz_nama}</td>
-                <td style="font-size:0.75rem; color:var(--primary); font-weight:bold;">${txtKelas}</td>
                 <td>
-                    <button class="btn-danger" style="margin:0; padding:5px 8px; font-size:0.7rem;" onclick="hapusMasterMapel(${m.id})">Hapus</button>
+                    <div style="font-size:0.75rem; color:var(--primary); font-weight:bold;">${txtKelas}</div>
+                    <div style="font-size:0.72rem; margin-top:3px;">${txtJadwal}</div>
+                </td>
+                <td>
+                    <div style="display:flex; gap:4px; flex-wrap:wrap;">
+                        <button class="btn-outline" style="margin:0; padding:6px 8px; font-size:0.7rem; border-color:var(--info); color:var(--info);" onclick="window.open('${gcalUrl}', '_blank')"><i class="fa-solid fa-calendar-plus"></i> G-Cal</button>
+                        <button class="btn-danger" style="margin:0; padding:6px 8px; font-size:0.7rem;" onclick="hapusMasterMapel(${m.id})">Hapus</button>
+                    </div>
                 </td>
             </tr>`;
         });
@@ -1995,6 +2233,12 @@
         let selectedKelasIds = [];
         document.querySelectorAll('.cb-kelas-mapel:checked').forEach(cb => selectedKelasIds.push(parseInt(cb.value)));
 
+        // Tangkap opsi Jadwal Hari & Jam
+        const jadwalAktif = document.getElementById('input-opsi-jadwal').checked;
+        const hariMapel = jadwalAktif ? document.getElementById('input-hari-mapel').value : null;
+        const jamMulai = jadwalAktif ? document.getElementById('input-jam-mulai').value : '';
+        const jamSelesai = jadwalAktif ? document.getElementById('input-jam-selesai').value : '';
+
         const newMapelId = Date.now();
 
         let listMapel = getDB('pondok_master_mapel', []);
@@ -2003,7 +2247,11 @@
             nama_mapel: namaMapel,
             ustadz_ids: selectedUstadzIds,
             ustadz_nama: selectedUstadzNama.join(", "),
-            kelas_ids: selectedKelasIds
+            kelas_ids: selectedKelasIds,
+            jadwal_aktif: jadwalAktif,
+            hari: hariMapel,
+            jam_mulai: jamMulai,
+            jam_selesai: jamSelesai
         });
         localStorage.setItem('pondok_master_mapel', JSON.stringify(listMapel));
 
@@ -2017,6 +2265,9 @@
         localStorage.setItem('pondok_kelas', JSON.stringify(listKelas));
 
         document.getElementById('input-nama-mapel').value = '';
+        document.getElementById('input-opsi-jadwal').checked = false;
+        toggleFormJadwalMapel();
+
         alert(`Mata pelajaran "${namaMapel}" berhasil disimpan untuk ${selectedKelasIds.length} Kelas dengan ${selectedUstadzIds.length} Pengajar!`);
         renderMasterMapel();
         renderTabelDaftarKelas();
@@ -2060,13 +2311,15 @@
         if (!elemenTbodyKelas) return;
         elemenTbodyKelas.innerHTML = '';
         const databaseKelas = getDB('pondok_kelas', []);
+        const dbSantri = getDB('pondok_santri', []);
         if (databaseKelas.length === 0) return elemenTbodyKelas.innerHTML = '<tr><td colspan="4" align="center">Belum ada kelas.</td></tr>';
         
         databaseKelas.forEach(kls => {
+            const santriAktifDiKelas = dbSantri.filter(s => !s.is_alumni && (kls.santri_ids || []).includes(s.id));
             elemenTbodyKelas.innerHTML += `<tr>
                 <td><strong>${kls.nama}</strong></td>
                 <td>${(kls.mapel_ids || []).length} Mapel</td>
-                <td>${(kls.santri_ids || []).length} Santri</td>
+                <td>${santriAktifDiKelas.length} Santri</td>
                 <td>
                     <div style="display:flex; gap:6px; flex-wrap:wrap;">
                         <button class="btn-print" style="margin:0; padding:6px 10px; font-size:0.75rem;" onclick="cetakJadwalPerKelas(${kls.id})"><i class="fa-solid fa-file-pdf"></i> Jadwal</button>
@@ -2101,9 +2354,9 @@
 
         const wadahSantri = document.getElementById('list-checkbox-santri-plotting');
         wadahSantri.innerHTML = '';
-        const semuaSantri = getDB('pondok_santri', []);
+        const semuaSantri = getDB('pondok_santri', []).filter(s => !s.is_alumni);
         if (semuaSantri.length === 0) {
-            wadahSantri.innerHTML = '<div style="color:red; font-size:0.8rem;">Belum ada santri terdaftar.</div>';
+            wadahSantri.innerHTML = '<div style="color:red; font-size:0.8rem;">Belum ada santri aktif terdaftar.</div>';
         } else {
             semuaSantri.forEach(s => {
                 const isChecked = (kls.santri_ids || []).includes(s.id) ? 'checked' : '';
@@ -2278,7 +2531,7 @@
         if(!mObj) return; 
         
         const dbKelas = getDB('pondok_kelas', []);
-        const dbSantri = getDB('pondok_santri', []);
+        const dbSantri = getDB('pondok_santri', []).filter(s => !s.is_alumni); // Alumni otomatis disaring keluar
 
         let kelasTerlibat = dbKelas.filter(k => (mObj.kelas_ids || []).includes(k.id) || (k.mapel_ids || []).includes(parseInt(idMapel)));
 
@@ -2307,7 +2560,7 @@
         });
 
         if (totalSantriDitampilkan === 0) {
-            wadahListSantri.innerHTML = '<div style="text-align:center; padding:15px; color:var(--warning); font-weight:bold;">Kelas terpilih belum memiliki santri terdaftar.</div>';
+            wadahListSantri.innerHTML = '<div style="text-align:center; padding:15px; color:var(--warning); font-weight:bold;">Kelas terpilih belum memiliki santri aktif terdaftar.</div>';
         }
         
         document.querySelectorAll('input[type="radio"]').forEach(radio => { 
@@ -2339,7 +2592,7 @@
             kotakHasil.innerHTML = `<span style="color:var(--success);">Sukses: [${nis}] Hadir (Reguler).</span>`; 
         } else { 
             const dbSantri = getDB('pondok_santri', []);
-            const santriLuar = dbSantri.find(s => s.nis === nis);
+            const santriLuar = dbSantri.find(s => s.nis === nis && !s.is_alumni);
 
             if (santriLuar) {
                 const wadahListSantri = document.getElementById('student-list');
@@ -2368,7 +2621,7 @@
 
                 kotakHasil.innerHTML = `<span style="color:#D35400; font-weight:bold;">Sukses: [${santriLuar.nama}] Berhasil Masuk Di Luar Jadwal!</span>`;
             } else {
-                kotakHasil.innerHTML = `<span style="color:var(--danger);">NIS [${nis}] tidak ditemukan di database pesantren!</span>`; 
+                kotakHasil.innerHTML = `<span style="color:var(--danger);">NIS [${nis}] tidak ditemukan atau berstatus Alumni!</span>`; 
             }
         } 
 
@@ -2520,7 +2773,6 @@
         alert("Pengaturan GPS & Titik Geofencing berhasil disimpan!");
     }
 
-    // FUNGSI RENDER HAK AKSES DESAIN GRID & COMPACT
     function renderCheckboxHakAkses() { 
         const val = document.getElementById('select-role-akses').value; 
         const wadah = document.getElementById('container-checkbox-akses'); 
@@ -2749,7 +3001,7 @@
         new QRCode(w, { text: JSON.stringify({ u: supabaseConfig.url, k: supabaseConfig.key, m: document.getElementById('setting-app-mode').value }), width: 220, height: 220 });
     }
 
-    // SINKRONISASI CLOUD DENGAN PONDOK_AKSES
+    // SINKRONISASI CLOUD SUPABASE
     async function sinkronisasiKeCloud() {
         if(!cekKesiapanSupabase()) return;
         const payload = { 
@@ -2770,7 +3022,7 @@
         if(res.ok) alert("Sinkronisasi Cloud Berhasil!"); else alert("Gagal sinkron. Pastikan kolom 'data_akses' bertipe JSONB sudah ada di Supabase.");
     }
 
-    // TARIK DATA DARI CLOUD DENGAN PONDOK_AKSES
+    // TARIK DATA DARI CLOUD SUPABASE
     async function tarikDataDariSupabase() {
         if(!cekKesiapanSupabase()) return; if(!confirm("Tarik data akan menimpa data lokal. Lanjutkan?")) return;
         let res = await fetch(`${supabaseConfig.url}/rest/v1/fdigi?id=eq.1&select=*`, { method: 'GET', headers: { 'apikey': supabaseConfig.key, 'Authorization': `Bearer ${supabaseConfig.key}` } });
