@@ -967,14 +967,24 @@
         `;
     }
 
-    function cetakElemenHTML(htmlIsiKonten, orientasiHalaman = 'portrait') {
+        function cetakElemenHTML(htmlIsiKonten, orientasiHalaman = 'portrait') {
         const iframeLama = document.getElementById('iframe-pencetakan-aman');
         if (iframeLama) iframeLama.remove();
-        const iframe = document.createElement('iframe'); iframe.id = 'iframe-pencetakan-aman'; iframe.style.position = 'fixed'; iframe.style.right = '-10000px'; iframe.style.bottom = '-10000px'; iframe.style.width = '100vw'; iframe.style.height = '100vh'; iframe.style.border = '0'; document.body.appendChild(iframe);
-        const doc = iframe.contentWindow.document; doc.open();
+        const iframe = document.createElement('iframe'); 
+        iframe.id = 'iframe-pencetakan-aman'; 
+        iframe.style.position = 'fixed'; 
+        iframe.style.right = '-10000px'; 
+        iframe.style.bottom = '-10000px'; 
+        iframe.style.width = '100vw'; 
+        iframe.style.height = '100vh'; 
+        iframe.style.border = '0'; 
+        document.body.appendChild(iframe);
+        
+        const doc = iframe.contentWindow.document; 
+        doc.open();
         doc.write(`<!DOCTYPE html><html><head><meta charset="utf-8"><title>Dokumen Cetak</title><style>
         * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif; } 
-        body { margin: 0; padding: 15px; background: white !important; color: black; } 
+        body { margin: 0; padding: 10px; background: white !important; color: black; } 
         table { width: 100%; border-collapse: collapse; margin-bottom: 15px; font-size: 11px; } 
         th, td { border: 1px solid #000; padding: 6px; text-align: left; } th { background-color: #e0e0e0 !important; font-weight: bold; } 
         
@@ -1014,7 +1024,8 @@
         .evaluasi-izin-box { background: #f8f9fa; border: 1px solid #D4AF37; border-left: 4px solid #04432A; padding: 10px 14px; border-radius: 6px; margin: 12px 0; font-size: 12px; } 
         .surat-ttd-grid { display: flex; justify-content: space-between; margin-top: 35px; text-align: center; font-size: 12px; font-weight: bold; } 
 
-        .sertifikat-wrapper { width: 100%; height: 95%; background-color: rgba(255,255,255,0.9); background-size: cover; background-position: center; border: 12px solid #04432A; padding: 30px; text-align: center; font-family: 'Times New Roman', serif; position: relative; margin: 0 auto; color: #111; display:flex; flex-direction:column; justify-content:center;}
+        /* PENYESUAIAN TINGGI SERTIFIKAT AGAR PAS DI A4 */
+        .sertifikat-wrapper { width: 100%; min-height: 180mm; background-color: rgba(255,255,255,0.9); background-size: cover; background-position: center; border: 12px solid #04432A; padding: 30px; text-align: center; font-family: 'Times New Roman', serif; position: relative; margin: 0 auto; color: #111; display:flex; flex-direction:column; justify-content:center;}
         .sertifikat-header img { width: 90px; height: 90px; margin-bottom: 15px; }
         .sertifikat-title { font-size: 2.4rem; font-weight: bold; color: #04432A; text-transform: uppercase; margin-bottom: 5px; letter-spacing: 2px;}
         .sertifikat-subtitle { font-size: 1.2rem; color: #333; margin-bottom: 30px; text-transform: uppercase; letter-spacing: 2px; font-weight: bold;}
@@ -1024,11 +1035,20 @@
         .sertifikat-footer { margin-top: 50px; display: flex; justify-content: flex-end; padding-right: 50px; text-align: center; }
         .sertifikat-ttd img { max-height: 70px; margin: 5px auto; display: block;}
         
-        @page { size: ${orientasiHalaman === 'landscape' ? 'landscape' : 'portrait'}; margin: 1cm; }
+        /* PERUBAHAN UTAMA: PAKSA UKURAN KERTAS A4 SAAT PRINT */
+        @page { size: A4 ${orientasiHalaman === 'landscape' ? 'landscape' : 'portrait'}; margin: 10mm; }
         </style></head><body>${htmlIsiKonten}</body></html>`);
         doc.close();
-        setTimeout(() => { try { iframe.contentWindow.focus(); iframe.contentWindow.print(); } catch(err) { alert("Fitur Print dipicu melalui dialog browser."); } }, 1000);
+        setTimeout(() => { 
+            try { 
+                iframe.contentWindow.focus(); 
+                iframe.contentWindow.print(); 
+            } catch(err) { 
+                alert("Fitur Print dipicu melalui dialog browser."); 
+            } 
+        }, 1000);
     }
+
 
     function cetakAreaKhusus(idElemen) {
         const elemen = document.getElementById(idElemen);
@@ -1147,7 +1167,7 @@
         cetakElemenHTML(htmlPrint, 'portrait');
     }
 
-    function cetakLaporanPDF() {
+        function cetakLaporanPDF() {
         const filterBulan = document.getElementById('filter-bulan-rekap').value; 
         const filterKelasId = document.getElementById('filter-kelas-rekap').value;
         const santriDB = getDB('pondok_santri', []); 
@@ -1158,7 +1178,20 @@
         if(santriDB.length === 0) return alert("Belum ada data terdaftar.");
         
         let dataRekap = {}; 
-        santriDB.forEach(s => { 
+
+        // PERBAIKAN 1: Filter santri sesuai dengan ID kelas yang dipilih di dropdown
+        let santriTerfilter = santriDB.filter(s => !s.is_alumni);
+        if (filterKelasId !== 'all') {
+            const klsObj = getDB('pondok_kelas', []).find(k => k.id == filterKelasId);
+            if (klsObj) {
+                santriTerfilter = santriDB.filter(s => (klsObj.santri_ids || []).includes(s.id));
+            }
+        }
+        
+        if(santriTerfilter.length === 0) return alert("Tidak ada santri di kelas ini.");
+
+        // PERBAIKAN 2: Hanya masukkan santri yang sudah terfilter ke kerangka laporan
+        santriTerfilter.forEach(s => { 
             dataRekap[s.nis] = { 
                 nama: s.nama, 
                 kamar: s.kamar, 
@@ -1167,10 +1200,12 @@
             }; 
         });
 
+        // PERBAIKAN 3: Filter sesi absensi (gunakan String.includes karena kelas gabungan)
         let absensiTerfilter = absensiDB.filter(sesi => { 
             let stringBulan = sesi.tanggal_iso ? sesi.tanggal_iso.substring(0,7) : ''; 
-            return (filterBulan ? stringBulan === filterBulan : true) && 
-                   (filterKelasId === 'all' ? true : sesi.id_kelas == filterKelasId); 
+            let cocokBulan = filterBulan ? (stringBulan === filterBulan) : true;
+            let cocokKelas = filterKelasId === 'all' ? true : String(sesi.id_kelas).includes(String(filterKelasId));
+            return cocokBulan && cocokKelas; 
         });
 
         absensiTerfilter.forEach(sesi => { 
@@ -1206,8 +1241,8 @@
                 <thead>
                     <tr>
                         <th>NIS</th>
-                        <th>Nama ${getTerm('santri')} & Mapel / Kegiatan</th>
-                        <th>${getTerm('kamar')}</th>
+                        <th>Nama Santri & Mapel / Kegiatan</th>
+                        <th>Asrama / Kamar</th>
                         <th style="text-align:center;">Hadir</th>
                         <th style="text-align:center;">Izin</th>
                         <th style="text-align:center;">Sakit</th>
@@ -1289,9 +1324,8 @@
                         <th>Tgl Pelaksanaan</th>
                         <th>Jam / Waktu</th>
                         <th>Kelas / Mapel</th>
-                        <th>${getTerm('ustadz')} PJ</th>
-                        <th>${getTerm('ustadz')} Aktual</th>
-                        <th>Ket</th>
+                        <th>Pengajar PJ</th>
+                        <th>Pengajar Aktual</th>
                     </tr>
                 </thead>
                 <tbody>`;
@@ -1300,10 +1334,9 @@
                     <tr>
                         <td>${log.tanggal}</td>
                         <td>${log.waktu || '-'}</td>
-                        <td>${log.nama_kelas} - ${log.mapel}</td>
+                        <td><strong>${log.nama_kelas || 'Kelas Tidak Diketahui'}</strong> - ${log.mapel}</td>
                         <td>${log.ustadz_pj}</td>
                         <td><strong>${log.ustadz_aktual}</strong></td>
-                        <td>${log.is_pengganti ? 'Digantikan' : 'Hadir Penuh'}</td>
                     </tr>`; 
             });
             htmlPrint += `</tbody></table>`;
@@ -1311,6 +1344,7 @@
         
         cetakElemenHTML(htmlPrint, 'portrait');
     }
+
 
     // PDF JADWAL PER KELAS BERDURASI HARI & JAM
     function cetakJadwalPerKelas(idKelas) {
@@ -2780,7 +2814,7 @@
         }
     }
 
-    function kirimDataAbsen() {
+        function kirimDataAbsen() {
         const idMapel = document.getElementById('pilih-mapel-absen').value;
         if (!idMapel) return alert("Pilih mata pelajaran terlebih dahulu!");
         const mObj = getDB('pondok_master_mapel', []).find(x => x.id == idMapel);
@@ -2790,14 +2824,23 @@
         const dbSantri = getDB('pondok_santri', []);
         let countAlpa = 0;
 
+        // PERBAIKAN 1: Variabel penampung Nama dan ID Kelas untuk sesi ini
+        let himpunanIdKelas = new Set();
+        let himpunanNamaKelas = new Set();
+
         document.querySelectorAll('.student-item').forEach(item => {
             const nis = item.id.replace('baris_santri_', '');
             const santriObj = dbSantri.find(s => s.nis === nis);
             const radio = item.querySelector('input[type="radio"]:checked');
             const status = radio ? radio.value : 'Belum';
+            
             const idKelas = item.getAttribute('data-kelas-id');
+            const namaKelas = item.getAttribute('data-kelas-nama');
 
             if (status !== 'Belum') {
+                himpunanIdKelas.add(idKelas);
+                himpunanNamaKelas.add(namaKelas);
+
                 detailAbsen.push({
                     nis: nis,
                     nama: santriObj ? santriObj.nama : nis,
@@ -2812,6 +2855,7 @@
 
         const sekarang = new Date();
         const absensiDB = getDB('pondok_absensi', []);
+        
         absensiDB.push({
             id_sesi: Date.now(),
             tanggal: sekarang.toLocaleDateString('id-ID'),
@@ -2820,6 +2864,11 @@
             mapel: mObj.nama_mapel,
             ustadz_pj: mObj.ustadz_nama,
             ustadz_aktual: currentUser ? currentUser.nama : "Ustadz/Guru",
+            
+            // PERBAIKAN 2: Simpan nama & id kelas di sesi agar tidak undefined di laporan
+            id_kelas: Array.from(himpunanIdKelas).join(','),
+            nama_kelas: Array.from(himpunanNamaKelas).join(', '),
+            
             detail: detailAbsen
         });
         localStorage.setItem('pondok_absensi', JSON.stringify(absensiDB));
@@ -2843,6 +2892,7 @@
         document.getElementById('pilih-mapel-absen').value = "";
         document.getElementById('student-list').innerHTML = "";
     }
+
 
     function simpanYayasan() {
         const mode = document.getElementById('setting-app-mode').value;
