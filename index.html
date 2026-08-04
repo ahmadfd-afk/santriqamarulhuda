@@ -118,33 +118,202 @@
         .akses-card-item i { font-size: 0.82rem; color: var(--primary); }
 
         #id-card-modal, #modal-scanner-login, #modal-show-qr, #modal-input-izin, #modal-sertifikat, #modal-plotting-kelas, #modal-reset-opsi, #modal-edit-profil-self { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px); z-index: 9999; display: flex; align-items: center; justify-content: center; flex-direction: column; padding: 15px; }
-        .id-card-wrapper { width: 324px; min-height: 204px; background-color: white; background-size: cover; background-position: center; border-radius: 14px; overflow: hidden; position: relative; box-shadow: 0 15px 35px rgba(0,0,0,0.35); display: flex; flex-direction: column; margin: 0 auto; }
-        .id-header { background: rgba(4, 67, 42, 0.95); color: white; padding: 10px; text-align: center; border-bottom: 3px solid var(--accent); display: flex; align-items: center; justify-content: center; gap: 8px; }
-        .id-header img { width: 30px; height: 30px; border-radius: 50%; background: white; padding: 2px; }
-        .id-header h4 { font-size: 0.85rem; margin: 0; }
-        .id-header p { font-size: 0.55rem; color: var(--accent-light); margin: 0; }
-        .id-body { padding: 12px; display: flex; gap: 12px; background: rgba(255, 255, 255, 0.94); flex: 1; position: relative; align-items: center; }
-        .id-photo { width: 75px; height: 95px; object-fit: cover; border: 2px solid var(--primary); border-radius: 8px; background: #eee; }
-        .id-details { flex: 1; font-size: 0.68rem; line-height: 1.45; font-weight: 600; text-align: left; }
-        .id-details strong { color: var(--primary); font-size: 0.8rem; display: block; margin-bottom: 3px; }
-        .id-footer-custom { background: var(--primary); color: white; text-align: center; font-size: 0.62rem; padding: 6px; font-weight: bold; border-top: 2px solid var(--accent); width: 100%; }
-        .id-back-content { padding: 10px 12px; background: rgba(255, 255, 255, 0.95); flex: 1; display: flex; flex-direction: row; gap: 10px; align-items: center; justify-content: space-between; }
-        .id-back-left { flex: 1; display: flex; flex-direction: column; justify-content: space-between; height: 100%; }
-        .id-back-title { font-size: 0.72rem; font-weight: 800; color: var(--primary); text-align: left; border-bottom: 1px solid #ddd; padding-bottom: 4px; margin-bottom: 4px; }
-        .id-back-rules { font-size: 0.56rem; line-height: 1.35; color: #2C3E50; white-space: pre-line; flex: 1; overflow: hidden; }
-        .id-back-ttd { text-align: center !important; font-size: 0.58rem; font-weight: bold; color: var(--primary); margin-top: auto; }
-        .id-back-ttd img { max-height: 28px; display: block; margin: 2px auto; }
-        .id-back-right { display: flex; flex-direction: column; align-items: center; justify-content: center; padding-left: 6px; border-left: 1px dashed #ccc; }
-        .id-qr-back { width: 85px !important; height: 85px !important; border: 2px solid var(--primary); padding: 3px; background: #ffffff !important; border-radius: 8px; display: flex; align-items: center; justify-content: center; }
-        .id-card-wrapper.portrait { width: 204px; min-height: 324px; }
-        .id-card-wrapper.portrait .id-header { flex-direction: column; padding: 8px 5px; gap: 2px; }
-        .id-card-wrapper.portrait .id-body { flex-direction: column; padding: 12px 8px; align-items: center; gap: 8px; }
-        .id-card-wrapper.portrait .id-details { text-align: center; width: 100%; font-size: 0.65rem; }
-        .id-card-wrapper.portrait .id-back-content { flex-direction: column; text-align: center; gap: 8px; }
-        .id-card-wrapper.portrait .id-back-left { text-align: center; }
-        .id-card-wrapper.portrait .id-back-title { text-align: center; }
-        .id-card-wrapper.portrait .id-back-right { border-left: none; border-top: 1px dashed #ccc; padding-left: 0; padding-top: 8px; width: 100%; }
+                /* ========================================= */
+        /* CSS PERBAIKAN TATA LETAK ID CARD PREVIEW  */
+        /* ========================================= */
+        .id-card-wrapper { 
+            width: 324px; 
+            height: 204px; 
+            background-color: white; 
+            background-size: cover; 
+            background-position: center; 
+            border-radius: 14px; 
+            overflow: hidden; 
+            position: relative; 
+            box-shadow: 0 15px 35px rgba(0,0,0,0.35); 
+            display: flex; 
+            flex-direction: column; 
+            margin: 0 auto; 
+            border: 1px solid #ccc;
+        }
+        .id-card-wrapper.portrait { 
+            width: 204px; 
+            height: 324px; 
+        }
 
+        /* Wajib agar div depan/belakang merentang penuh */
+        #sisi-depan-kartu, #sisi-belakang-kartu {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* 1. STYLING BAGIAN DEPAN KARTU */
+        .id-header {
+            background: var(--primary);
+            color: white;
+            padding: 8px 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            border-bottom: 3px solid var(--accent);
+        }
+        .id-header img {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: white;
+            padding: 2px;
+            object-fit: contain;
+        }
+        .id-header h4 { font-size: 0.85rem; margin: 0; line-height: 1.1; }
+        .id-header p { font-size: 0.55rem; color: var(--accent-light); margin: 0; }
+
+        .id-body {
+            display: flex;
+            flex-direction: row; /* Berjajar ke samping untuk Landscape */
+            padding: 10px 12px;
+            gap: 12px;
+            flex: 1; 
+            align-items: center;
+            background: rgba(255, 255, 255, 0.85); /* Agar teks terbaca jelas */
+        }
+        .id-photo {
+            width: 75px;
+            height: 95px;
+            object-fit: cover;
+            border: 2px solid var(--primary);
+            border-radius: 6px;
+            background: #eee;
+            flex-shrink: 0;
+        }
+        .id-details {
+            flex: 1;
+            text-align: left;
+            font-size: 0.65rem;
+            line-height: 1.4;
+            color: #111;
+        }
+        .id-details strong {
+            font-size: 0.85rem;
+            color: var(--primary);
+            display: block;
+            margin-bottom: 4px;
+            border-bottom: 1px solid #ccc;
+            padding-bottom: 2px;
+            text-transform: uppercase;
+        }
+        .id-footer-custom {
+            background: var(--primary);
+            color: white;
+            text-align: center;
+            font-size: 0.6rem;
+            padding: 4px;
+            font-weight: bold;
+            border-top: 2px solid var(--accent);
+        }
+
+        /* 2. STYLING BAGIAN BELAKANG KARTU */
+        .id-back-content {
+            display: flex;
+            flex-direction: row; /* Berjajar ke samping untuk Landscape */
+            padding: 10px;
+            gap: 10px;
+            flex: 1;
+            background: rgba(255, 255, 255, 0.9);
+            align-items: center;
+        }
+        .id-back-left {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            height: 100%;
+            text-align: left;
+            overflow: hidden;
+        }
+        .id-back-title {
+            font-size: 0.75rem;
+            font-weight: bold;
+            color: var(--primary);
+            border-bottom: 1px solid #ccc;
+            padding-bottom: 4px;
+            margin-bottom: 4px;
+        }
+        .id-back-rules {
+            font-size: 0.55rem;
+            line-height: 1.4;
+            color: #222;
+            white-space: pre-line;
+        }
+        .id-back-ttd {
+            text-align: center;
+            font-size: 0.6rem;
+            font-weight: bold;
+            color: var(--primary);
+            margin-top: auto;
+        }
+        .id-back-ttd img {
+            max-height: 35px;
+            display: block;
+            margin: 2px auto;
+        }
+        .id-back-right {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding-left: 10px;
+            border-left: 1px dashed #999;
+        }
+        .id-qr-back {
+            width: 85px;
+            height: 85px;
+            border: 2px solid var(--primary);
+            padding: 3px;
+            background: white;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* 3. PERILAKU KHUSUS UNTUK MODE PORTRAIT */
+        .id-card-wrapper.portrait .id-header {
+            flex-direction: column; /* Tumpuk atas bawah */
+            padding: 8px 5px;
+            gap: 4px;
+            text-align: center;
+        }
+        .id-card-wrapper.portrait .id-body {
+            flex-direction: column; /* Foto di atas, teks di bawah */
+            justify-content: flex-start;
+            text-align: center;
+            gap: 8px;
+            padding: 12px 10px;
+        }
+        .id-card-wrapper.portrait .id-details {
+            text-align: center;
+        }
+        .id-card-wrapper.portrait .id-back-content {
+            flex-direction: column; /* Tata tertib di atas, QR di bawah */
+            text-align: center;
+        }
+        .id-card-wrapper.portrait .id-back-left {
+            text-align: center;
+            align-items: center;
+        }
+        .id-card-wrapper.portrait .id-back-right {
+            border-left: none;
+            border-top: 1px dashed #999;
+            padding-left: 0;
+            padding-top: 8px;
+            width: 100%;
+            margin-top: auto;
+        }
+        
         .surat-izin-box { border: 2px solid var(--primary); padding: 22px 18px; border-radius: 12px; background: #fff; color: #111; font-size: 0.82rem; line-height: 1.55; width: 100%; }
         .surat-header { text-align: center; border-bottom: 3px double var(--primary); padding-bottom: 12px; margin-bottom: 15px; display: flex; align-items: center; justify-content: center; gap: 12px; }
         .surat-header img { width: 45px; height: 45px; object-fit: contain; }
@@ -347,9 +516,14 @@
                             </button>
                         </div>
                         <div style="display:flex; gap:8px;">
-                            <button class="btn-primary" onclick="cetakKolektifF4Gabung()" style="margin: 0; padding: 12px; font-size: 0.78rem; background: var(--info); flex: 1;">
-                                <i class="fa-solid fa-print"></i> Cetak F4 (Kolektif)
-                            </button>
+                            <div style="display: flex; gap: 4px; flex: 1;">
+    <button class="btn-primary" onclick="cetakKolektifF4Gabung('landscape')" style="margin: 0; padding: 12px 6px; font-size: 0.75rem; background: var(--info); flex: 1;">
+        <i class="fa-solid fa-print"></i> Cetak Landscape
+    </button>
+    <button class="btn-primary" onclick="cetakKolektifF4Gabung('portrait')" style="margin: 0; padding: 12px 6px; font-size: 0.75rem; background: #8E44AD; flex: 1;">
+        <i class="fa-solid fa-id-badge"></i> Cetak Portrait
+    </button>
+</div>
                             <button class="btn-outline" onclick="cetakRekapSantriPDF()" style="justify-content: center; font-size: 0.75rem; background: #fff3cd; border-color: var(--warning); flex: 1; margin: 0;">
                                 <i class="fa-solid fa-file-pdf"></i> Rekap PDF
                             </button>
@@ -1472,87 +1646,94 @@ const menuMaster = [
     }
 }
 
-    function cetakKolektifF4Gabung() {
-        let databaseSantri = getDB('pondok_santri', []).filter(s => !s.is_alumni); 
-        if (databaseSantri.length === 0) return alert("Belum ada data santri aktif untuk dicetak F4.");
-        
-        const dataYayasan = getDB('pondok_yayasan', {});
-        let bgCardStyle = dataYayasan.bg_idcard ? `background-image: url('${dataYayasan.bg_idcard}');` : ''; 
-        let footerHTML = (dataYayasan.teks_footer && dataYayasan.teks_footer.trim() !== "") ? `<div class="id-footer-custom">${dataYayasan.teks_footer}</div>` : '';
-        
-        let htmlKartuKolektif = ``;
+    function cetakKolektifF4Gabung(orientasi = 'landscape') {
+    let databaseSantri = getDB('pondok_santri', []).filter(s => !s.is_alumni); 
+    if (databaseSantri.length === 0) return alert("Belum ada data santri aktif untuk dicetak F4.");
+    
+    const dataYayasan = getDB('pondok_yayasan', {});
+    let bgCardStyle = dataYayasan.bg_idcard ? `background-image: url('${dataYayasan.bg_idcard}');` : ''; 
+    let footerHTML = (dataYayasan.teks_footer && dataYayasan.teks_footer.trim() !== "") ? `<div class="id-footer-custom">${dataYayasan.teks_footer}</div>` : '';
+    
+    let htmlKartuKolektif = ``;
+    
+    // Deteksi jika user memilih portrait, tambahkan class 'portrait'
+    let classTambahan = orientasi === 'portrait' ? ' portrait' : '';
 
-        databaseSantri.forEach((santri) => {
-            let qrPayload = JSON.stringify({ n: santri.nis, u: supabaseConfig.url || "", k: supabaseConfig.key || "" });
-            let ttdImg = dataYayasan.ttd_mudir ? `<img src="${dataYayasan.ttd_mudir}" style="max-height:26px; display:block; margin:2px auto;">` : '';
+    databaseSantri.forEach((santri) => {
+        let qrPayload = JSON.stringify({ n: santri.nis, u: supabaseConfig.url || "", k: supabaseConfig.key || "" });
+        let ttdImg = dataYayasan.ttd_mudir ? `<img src="${dataYayasan.ttd_mudir}" style="max-height:26px; display:block; margin:2px auto;">` : '';
 
-            htmlKartuKolektif += `<div class="kolektif-grid-gabung">`;
-            htmlKartuKolektif += `
-                <div class="id-card-wrapper" style="${bgCardStyle}">
-                    <div class="id-header">
-                        <img src="${dataYayasan.logo || 'https://cdn-icons-png.flaticon.com/512/3592/3592078.png'}">
-                        <div><h4 style="margin: 0;">${dataYayasan.pondok || 'Nama Instansi'}</h4><p style="margin: 0;">${dataYayasan.yayasan || 'Sistem Manajemen'}</p></div>
-                    </div>
-                    <div class="id-body">
-                        <img src="${santri.foto}" class="id-photo">
-                        <div class="id-details">
-                            <strong style="text-transform: uppercase;">${santri.nama}</strong>
-                            <div style="margin-top: 5px;">NIS: <span style="font-weight: bold;">${santri.nis}</span><br>${getTerm('asrama')}: <span>${santri.asrama}</span><br>${getTerm('kamar')}: <span>${santri.kamar}</span><br>Alamat: <span>${(santri.alamat || '-').substring(0, 32)}</span></div>
-                        </div>
-                    </div>
-                    ${footerHTML}
+        htmlKartuKolektif += `<div class="kolektif-grid-gabung">`;
+        
+        // SISI DEPAN (Sisipkan classTambahan di id-card-wrapper)
+        htmlKartuKolektif += `
+            <div class="id-card-wrapper${classTambahan}" style="${bgCardStyle}">
+                <div class="id-header">
+                    <img src="${dataYayasan.logo || 'https://cdn-icons-png.flaticon.com/512/3592/3592078.png'}">
+                    <div><h4 style="margin: 0;">${dataYayasan.pondok || 'Nama Instansi'}</h4><p style="margin: 0;">${dataYayasan.yayasan || 'Sistem Manajemen'}</p></div>
                 </div>
-            `;
-            
-            htmlKartuKolektif += `
-                <div class="id-card-wrapper" style="${bgCardStyle}">
-                    <div class="id-header" style="padding:6px;"><h4 style="font-size:0.78rem; margin:0;">TATA TERTIB & BARCODE SCANNER</h4></div>
-                    <div class="id-back-content">
-                        <div class="id-back-left">
-                            <div>
-                                <div class="id-back-title">${dataYayasan.pondok || 'INSTANSI PENDIDIKAN'}</div>
-                                <div class="id-back-rules">${dataYayasan.tata_tertib || '1. Wajib menjaga tata tertib...\n2. Kartu wajib dibawa setiap saat.'}</div>
-                            </div>
-                            <div class="id-back-ttd">
-                                <div>Mengetahui, Pimpinan</div>
-                                ${ttdImg}
-                                <div>${dataYayasan.mudir || 'Pimpinan'}</div>
-                            </div>
-                        </div>
-                        <div class="id-back-right">
-                            <div class="id-qr-back" id="qr-gabung-${santri.nis}" data-payload='${qrPayload}'></div>
-                            <span style="font-size:0.5rem; font-weight:bold; color:var(--primary); margin-top:4px;">SCAN E-SAN</span>
-                        </div>
+                <div class="id-body">
+                    <img src="${santri.foto}" class="id-photo">
+                    <div class="id-details">
+                        <strong style="text-transform: uppercase;">${santri.nama}</strong>
+                        <div style="margin-top: 5px;">NIS: <span style="font-weight: bold;">${santri.nis}</span><br>${getTerm('asrama')}: <span>${santri.asrama}</span><br>${getTerm('kamar')}: <span>${santri.kamar}</span><br>Alamat: <span>${(santri.alamat || '-').substring(0, 32)}</span></div>
                     </div>
                 </div>
-            `;
-            htmlKartuKolektif += `</div>`;
-        });
-
-        const containerTemp = document.createElement('div'); 
-        containerTemp.style.position = 'fixed'; containerTemp.style.right = '200vw'; 
-        document.body.appendChild(containerTemp); 
-        containerTemp.innerHTML = htmlKartuKolektif;
+                ${footerHTML}
+            </div>
+        `;
         
-        databaseSantri.forEach(santri => {
-            const wadahQR = containerTemp.querySelector(`#qr-gabung-${santri.nis}`);
-            if (wadahQR && typeof QRCode !== 'undefined') {
-                new QRCode(wadahQR, { text: wadahQR.getAttribute('data-payload'), width: 85, height: 85, correctLevel: QRCode.CorrectLevel.L });
-            }
-        });
+        // SISI BELAKANG (Sisipkan classTambahan di id-card-wrapper)
+        htmlKartuKolektif += `
+            <div class="id-card-wrapper${classTambahan}" style="${bgCardStyle}">
+                <div class="id-header" style="padding:6px;"><h4 style="font-size:0.78rem; margin:0;">TATA TERTIB & BARCODE SCANNER</h4></div>
+                <div class="id-back-content">
+                    <div class="id-back-left">
+                        <div>
+                            <div class="id-back-title">${dataYayasan.pondok || 'INSTANSI PENDIDIKAN'}</div>
+                            <div class="id-back-rules">${dataYayasan.tata_tertib || '1. Wajib menjaga tata tertib...\n2. Kartu wajib dibawa setiap saat.'}</div>
+                        </div>
+                        <div class="id-back-ttd">
+                            <div>Mengetahui, Pimpinan</div>
+                            ${ttdImg}
+                            <div>${dataYayasan.mudir || 'Pimpinan'}</div>
+                        </div>
+                    </div>
+                    <div class="id-back-right">
+                        <div class="id-qr-back" id="qr-gabung-${santri.nis}" data-payload='${qrPayload}'></div>
+                        <span style="font-size:0.5rem; font-weight:bold; color:var(--primary); margin-top:4px;">SCAN E-SAN</span>
+                    </div>
+                </div>
+            </div>
+        `;
+        htmlKartuKolektif += `</div>`;
+    });
 
-        setTimeout(() => { 
-            const canvases = containerTemp.querySelectorAll('canvas');
-            canvases.forEach(canvas => {
-                const img = document.createElement('img'); img.src = canvas.toDataURL('image/png'); 
-                img.style.width = '85px'; img.style.height = '85px';
-                const siblingImg = canvas.nextElementSibling; if(siblingImg && siblingImg.tagName === 'IMG') siblingImg.remove();
-                canvas.parentNode.replaceChild(img, canvas);
-            });
-            cetakElemenHTML(containerTemp.innerHTML, 'portrait'); 
-            containerTemp.remove();
-        }, 600);
-    }
+    const containerTemp = document.createElement('div'); 
+    containerTemp.style.position = 'fixed'; containerTemp.style.right = '200vw'; 
+    document.body.appendChild(containerTemp); 
+    containerTemp.innerHTML = htmlKartuKolektif;
+    
+    databaseSantri.forEach(santri => {
+        const wadahQR = containerTemp.querySelector(`#qr-gabung-${santri.nis}`);
+        if (wadahQR && typeof QRCode !== 'undefined') {
+            new QRCode(wadahQR, { text: wadahQR.getAttribute('data-payload'), width: 85, height: 85, correctLevel: QRCode.CorrectLevel.L });
+        }
+    });
+
+    setTimeout(() => { 
+        const canvases = containerTemp.querySelectorAll('canvas');
+        canvases.forEach(canvas => {
+            const img = document.createElement('img'); img.src = canvas.toDataURL('image/png'); 
+            img.style.width = '85px'; img.style.height = '85px';
+            const siblingImg = canvas.nextElementSibling; if(siblingImg && siblingImg.tagName === 'IMG') siblingImg.remove();
+            canvas.parentNode.replaceChild(img, canvas);
+        });
+        // Kita kunci settingan cetak kertasnya ke 'portrait' untuk cetak massal F4/A4 agar rapi ke bawah
+        cetakElemenHTML(containerTemp.innerHTML, 'portrait'); 
+        containerTemp.remove();
+    }, 600);
+}
 
     function cetakRekapSantriPDF() {
         let databaseSantri = getDB('pondok_santri', []).filter(s => modeTampilanSantri === 'alumni' ? s.is_alumni : !s.is_alumni); 
