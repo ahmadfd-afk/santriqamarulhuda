@@ -1359,10 +1359,11 @@ const menuMaster = [
             display: block;
         }
 
-        /* CSS ID CARD & LAINNYA */
+                /* CSS ID CARD & LAINNYA */
         .id-card-wrapper {
             width: 324px;
-            min-height: 204px;
+            height: 204px;
+            max-height: 204px;
             background-color: white;
             background-size: cover;
             background-position: center;
@@ -1376,7 +1377,8 @@ const menuMaster = [
         }
         .id-card-wrapper.portrait {
             width: 204px;
-            min-height: 324px;
+            height: 324px;
+            max-height: 324px;
         }
         .id-header {
             background: #04432A !important;
@@ -1401,7 +1403,14 @@ const menuMaster = [
             background: white;
             padding: 2px;
         }
-        .id-header h4 { font-size: 0.8rem; margin: 0; }
+        .id-header h4 { 
+            font-size: 0.8rem; 
+            margin: 0; 
+            white-space: nowrap; 
+            overflow: hidden; 
+            text-overflow: ellipsis; 
+            max-width: 220px; 
+        }
         .id-header p { font-size: 0.5rem; color: #F4E29F; margin: 0; }
         .id-body {
             padding: 10px;
@@ -1411,6 +1420,7 @@ const menuMaster = [
             flex: 1;
             position: relative;
             align-items: center;
+            overflow: hidden;
         }
         .id-card-wrapper.portrait .id-body {
             flex-direction: column;
@@ -1425,6 +1435,7 @@ const menuMaster = [
             border: 2px solid #04432A;
             border-radius: 6px;
             background: #eee;
+            flex-shrink: 0;
         }
         .id-details {
             flex: 1;
@@ -1433,6 +1444,7 @@ const menuMaster = [
             color: #111;
             font-weight: 600;
             text-align: left;
+            overflow: hidden;
         }
         .id-card-wrapper.portrait .id-details {
             text-align: center;
@@ -1444,7 +1456,11 @@ const menuMaster = [
             font-size: 0.75rem;
             display: block;
             margin-bottom: 3px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
         }
+
         .id-footer-custom {
             background: #04432A !important;
             color: white !important;
