@@ -589,8 +589,16 @@
                 </div>
                 <div class="card card-premium" style="border-left-color: var(--info);">
                     <h3 style="margin-bottom: 14px; color: var(--info);">Kustomisasi Layout ID Card & Sertifikat</h3>
-                    <label>Teks Footer Kartu Depan</label><input type="text" id="setting-footer-text" placeholder="Cth: KARTU IDENTITAS AKTIF">
-                    <label>Teks Keputusan Kelulusan Sertifikat</label><input type="text" id="setting-teks-lulus" placeholder="Telah mengikuti proses belajar dan dinyatakan:">
+<label>Teks Footer Kartu Depan</label><input type="text" id="setting-footer-text" placeholder="Cth: KARTU IDENTITAS AKTIF">
+<label>Teks Keputusan Kelulusan Sertifikat</label><input type="text" id="setting-teks-lulus" placeholder="Telah mengikuti proses belajar dan dinyatakan:">
+<!-- TAMBAHAN PILIHAN KERTAS -->
+<label style="color: var(--danger);"><i class="fa-solid fa-scroll"></i> Ukuran Kertas Cetak Sertifikat</label>
+<select id="setting-kertas-sertifikat">
+    <option value="A4">A4 (Standar Internasional)</option>
+    <option value="F4">F4 (Folio / Kertas Panjang)</option>
+    <option value="Letter">Letter (Kuarto)</option>
+</select>
+
                     <button class="btn-primary" onclick="simpanYayasan()">SIMPAN IDENTITAS & MODE</button>
                 </div>
             </div>
@@ -697,6 +705,44 @@
                     </div>
                 </div>
             </div>
+<!-- VIEW TABUNGAN SANTRI -->
+<div id="view-tabungan" class="hidden page-view">
+    <div class="back-nav" onclick="closeSubMenu()"><i class="fa-solid fa-arrow-left"></i> Kembali ke Dashboard</div>
+    <div class="card card-premium" style="border-left-color: var(--success);">
+        <h3 style="margin-bottom: 14px; color: var(--success);"><i class="fa-solid fa-piggy-bank"></i> Tabungan Santri</h3>
+        
+        <div style="display: flex; gap: 8px; margin-bottom: 14px;">
+            <button class="btn-primary" onclick="startScannerTabungan()" style="flex:1;"><i class="fa-solid fa-qrcode"></i> Scan ID Santri</button>
+            <button class="btn-outline" onclick="stopScannerTabungan()" id="btn-stop-scanner-tabungan" style="flex:1; display:none;"><i class="fa-solid fa-stop"></i> Tutup</button>
+        </div>
+        <div id="qr-reader-tabungan" style="width:100%; display:none; margin-bottom:14px;"></div>
+        
+        <div id="area-input-tabungan" class="hidden">
+            <div style="background:rgba(4, 67, 42, 0.08); padding:12px; border-radius:12px; margin-bottom:12px;">
+                <strong>Santri:</strong> <span id="tabungan-nama-santri" style="color:var(--primary);"></span><br>
+                <strong>NIS:</strong> <span id="tabungan-nis-santri"></span>
+                <input type="hidden" id="tabungan-nis-hidden">
+            </div>
+
+            <label>Pilih Nominal Tabungan (Bisa Checklist Ganda)</label>
+            <div class="akses-grid-container" style="grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));">
+                <label class="akses-card-item"><input type="checkbox" class="cb-nominal" value="1000" onchange="kalkulasiTabungan()"> <span>Rp 1.000</span></label>
+                <label class="akses-card-item"><input type="checkbox" class="cb-nominal" value="2000" onchange="kalkulasiTabungan()"> <span>Rp 2.000</span></label>
+                <label class="akses-card-item"><input type="checkbox" class="cb-nominal" value="3000" onchange="kalkulasiTabungan()"> <span>Rp 3.000</span></label>
+                <label class="akses-card-item"><input type="checkbox" class="cb-nominal" value="4000" onchange="kalkulasiTabungan()"> <span>Rp 4.000</span></label>
+                <label class="akses-card-item"><input type="checkbox" class="cb-nominal" value="5000" onchange="kalkulasiTabungan()"> <span>Rp 5.000</span></label>
+                <label class="akses-card-item"><input type="checkbox" class="cb-nominal" value="10000" onchange="kalkulasiTabungan()"> <span>Rp 10.000</span></label>
+                <label class="akses-card-item"><input type="checkbox" class="cb-nominal" value="20000" onchange="kalkulasiTabungan()"> <span>Rp 20.000</span></label>
+            </div>
+            
+            <div style="font-size:1.2rem; font-weight:bold; color:var(--primary); text-align:right; margin: 15px 0;">
+                Total: Rp <span id="total-tabungan-ui">0</span>
+            </div>
+
+            <button class="btn-success" onclick="simpanTabungan()" style="width: 100%; padding: 12px;"><i class="fa-solid fa-save"></i> SIMPAN TABUNGAN</button>
+        </div>
+    </div>
+</div>
 
         </div> 
     </main>
@@ -783,31 +829,35 @@
     </div>
 </div>
 
-<!-- MODAL SERTIFIKAT KELULUSAN -->
+<!-- MODAL SERTIFIKAT KELULUSAN (DENGAN RUANG PREVIEW) -->
 <div id="modal-sertifikat" class="hidden">
-    <div class="glass-panel" style="padding: 24px; border-radius: var(--radius-md); text-align:left; width: 92%; max-width: 500px;">
-        <h3 style="color:var(--primary); margin-bottom:6px; border-bottom:2px solid var(--accent); padding-bottom:8px; font-size: 1rem;"><i class="fa-solid fa-certificate"></i> Terbitkan Sertifikat</h3>
+    <div class="glass-panel" style="padding: 20px; border-radius: var(--radius-md); text-align:center; width: 95%; max-width: 850px; max-height: 90vh; overflow-y: auto;">
+        <h3 style="color:var(--primary); margin-bottom:14px; font-weight:800; font-size:1.1rem;">
+            <i class="fa-solid fa-certificate"></i> Preview & Terbitkan Sertifikat
+        </h3>
         
         <input type="hidden" id="cert-nis">
-        <div style="background:rgba(4, 67, 42, 0.08); padding:12px; border-radius:12px; margin-bottom:12px; font-size:0.82rem;">
-            <strong>Nama:</strong> <span id="cert-nama" style="color:var(--primary);"></span><br>
-            <strong>NIS:</strong> <span id="cert-nis-txt"></span><br>
-            <strong>NIK:</strong> <span id="cert-nik-txt"></span><br>
-            <strong>Rata-Rata Nilai (Evaluasi):</strong> <span id="cert-nilai" style="color:#D35400; font-weight:700;"></span>
+        
+        <!-- Tombol Pengaturan Orientasi & Tanggal yang akan langsung merubah Preview -->
+        <div style="margin-bottom: 15px; display:flex; justify-content:center; gap:10px; flex-wrap:wrap; background:rgba(4,67,42,0.05); padding:10px; border-radius:12px;">
+            <select id="cert-orientasi" style="width:auto; margin:0; font-weight:bold;" onchange="renderPreviewSertifikat()">
+                <option value="landscape">Landscape (Mendatar)</option>
+                <option value="portrait">Portrait (Berdiri)</option>
+            </select>
+            <input type="date" id="cert-tgl" style="width:auto; margin:0;" onchange="renderPreviewSertifikat()">
+        </div>
+
+        <!-- LAYAR PREVIEW SERTIFIKAT (Diperkecil ukurannya agar muat di layar HP) -->
+        <div style="background:#e0e0e0; padding:15px; border-radius:10px; overflow:hidden; margin-bottom:15px; display:flex; justify-content:center; border:2px dashed #999;">
+            <!-- Menggunakan skala 45% agar kertas aslinya muat di dalam kotak modal -->
+            <div id="area-preview-sertifikat" style="transform: scale(0.45); transform-origin: top center; margin-bottom: -55%;">
+                <!-- Tampilan sertifikat akan digambar di sini oleh JavaScript -->
+            </div>
         </div>
         
-        <label>Orientasi Kertas Cetak</label>
-        <select id="cert-orientasi">
-            <option value="landscape">Landscape (Mendatar)</option>
-            <option value="portrait">Portrait (Berdiri)</option>
-        </select>
-        
-        <label>Tanggal Diterbitkan</label>
-        <input type="date" id="cert-tgl" value="">
-        
-        <div style="display:flex; gap:10px; margin-top:18px;">
+        <div style="display:flex; gap:10px;">
             <button type="button" class="btn-outline" style="flex:1; justify-content:center; margin:0;" onclick="document.getElementById('modal-sertifikat').classList.add('hidden')">Batal</button>
-            <button type="button" class="btn-primary" style="flex:1; margin:0;" onclick="prosesCetakSertifikatFinal()"><i class="fa-solid fa-print"></i> Luluskan & Cetak</button>
+            <button type="button" class="btn-primary" style="flex:1; margin:0;" onclick="prosesCetakSertifikatFinal()"><i class="fa-solid fa-print"></i> Luluskan & Cetak PDF</button>
         </div>
     </div>
 </div>
@@ -945,8 +995,29 @@
     let base64TempImages = { logo: '', bg_login: '', bg_idcard: '', ttd_mudir: '' }, tempFotoSantriBase64 = ''; 
     let tempFotoPegawaiBase64 = '', tempSelfFotoBase64 = '';
     
-    const defaultAkses = { superadmin: ['view-santri', 'view-evaluasi', 'view-izin', 'view-rekap', 'view-kelas', 'view-absen', 'view-keuangan', 'view-yayasan', 'view-lokasi', 'view-hak-akses', 'view-pengguna', 'view-database'], admin: ['view-santri', 'view-evaluasi', 'view-izin', 'view-rekap', 'view-kelas', 'view-database'], ustadz: ['view-absen', 'view-evaluasi', 'view-database'], accounting: ['view-keuangan', 'view-database'] };
-    const menuMaster = [ { id: 'view-santri', icon: 'fa-id-card' }, { id: 'view-evaluasi', nama: 'Evaluasi & Kelulusan', icon: 'fa-star' }, { id: 'view-izin', nama: 'Surat Izin Santri & Validasi Balik', icon: 'fa-file-signature' }, { id: 'view-rekap', nama: 'Laporan Rekap Absen', icon: 'fa-file-pdf' }, { id: 'view-kelas', nama: 'Plotting Kelas & Mapel', icon: 'fa-calendar-alt' }, { id: 'view-absen', nama: 'Absensi Kamera Scanner', icon: 'fa-camera' }, { id: 'view-keuangan', nama: 'Laporan Denda Keuangan', icon: 'fa-wallet' }, { id: 'view-yayasan', nama: 'Identitas, Suara & Tata Tertib', icon: 'fa-building' }, { id: 'view-lokasi', nama: 'Area Geofencing', icon: 'fa-map-location-dot' }, { id: 'view-hak-akses', nama: 'Hak Akses Role', icon: 'fa-shield-halved' }, { id: 'view-pengguna', nama: 'Akun Pegawai', icon: 'fa-users-gear' }, { id: 'view-database', nama: 'Database & Sync', icon: 'fa-cloud-arrow-up' } ];
+    const defaultAkses = { 
+    superadmin: ['view-santri', 'view-evaluasi', 'view-izin', 'view-rekap', 'view-kelas', 'view-absen', 'view-keuangan', 'view-tabungan', 'view-yayasan', 'view-lokasi', 'view-hak-akses', 'view-pengguna', 'view-database'], 
+    admin: ['view-santri', 'view-evaluasi', 'view-izin', 'view-rekap', 'view-kelas', 'view-database', 'view-tabungan'], 
+    ustadz: ['view-absen', 'view-evaluasi', 'view-database'], 
+    accounting: ['view-keuangan', 'view-tabungan', 'view-database'] 
+};
+
+const menuMaster = [ 
+    { id: 'view-santri', icon: 'fa-id-card' }, 
+    { id: 'view-evaluasi', nama: 'Evaluasi & Kelulusan', icon: 'fa-star' }, 
+    { id: 'view-izin', nama: 'Surat Izin Santri & Validasi Balik', icon: 'fa-file-signature' }, 
+    { id: 'view-rekap', nama: 'Laporan Rekap Absen', icon: 'fa-file-pdf' }, 
+    { id: 'view-kelas', nama: 'Plotting Kelas & Mapel', icon: 'fa-calendar-alt' }, 
+    { id: 'view-absen', nama: 'Absensi Kamera Scanner', icon: 'fa-camera' }, 
+    { id: 'view-keuangan', nama: 'Laporan Denda Keuangan', icon: 'fa-wallet' }, 
+    { id: 'view-tabungan', nama: 'Tabungan Santri', icon: 'fa-piggy-bank' }, // <--- TAMBAHAN MENU BARU
+    { id: 'view-yayasan', nama: 'Identitas, Suara & Tata Tertib', icon: 'fa-building' }, 
+    { id: 'view-lokasi', nama: 'Area Geofencing', icon: 'fa-map-location-dot' }, 
+    { id: 'view-hak-akses', nama: 'Hak Akses Role', icon: 'fa-shield-halved' }, 
+    { id: 'view-pengguna', nama: 'Akun Pegawai', icon: 'fa-users-gear' }, 
+    { id: 'view-database', nama: 'Database & Sync', icon: 'fa-cloud-arrow-up' } 
+];
+
 
     function generateStandardKopSuratHTML() {
         const yayasanDB = getDB('pondok_yayasan', {});
@@ -968,102 +1039,438 @@
     }
 
         function cetakElemenHTML(htmlIsiKonten, orientasiHalaman = 'portrait') {
-        const iframeLama = document.getElementById('iframe-pencetakan-aman');
-        if (iframeLama) iframeLama.remove();
-        const iframe = document.createElement('iframe'); 
-        iframe.id = 'iframe-pencetakan-aman'; 
-        iframe.style.position = 'fixed'; 
-        iframe.style.right = '-10000px'; 
-        iframe.style.bottom = '-10000px'; 
-        iframe.style.width = '100vw'; 
-        iframe.style.height = '100vh'; 
-        iframe.style.border = '0'; 
-        document.body.appendChild(iframe);
+    const yayasanConfig = getDB('pondok_yayasan', {});
+    const ukuranKertasDinamic = yayasanConfig.kertas_sertifikat || 'A4';
+    
+    const iframeLama = document.getElementById('iframe-pencetakan-aman');
+    if (iframeLama) iframeLama.remove();
+    
+    const iframe = document.createElement('iframe'); 
+    iframe.id = 'iframe-pencetakan-aman'; 
+    iframe.style.position = 'fixed'; 
+    iframe.style.right = '0'; 
+    iframe.style.bottom = '0'; 
+    iframe.style.width = '0'; 
+    iframe.style.height = '0'; 
+    iframe.style.border = '0'; 
+    document.body.appendChild(iframe);
+    
+    const doc = iframe.contentWindow.document; 
+    doc.open();
+    doc.write(`<!DOCTYPE html>
+    <html>
+    <head>
+    <meta charset="utf-8">
+    <title>Cetak Dokumen</title>
+    <style>
+        @page {
+            size: ${ukuranKertasDinamic} ${orientasiHalaman === 'landscape' ? 'landscape' : 'portrait'};
+            margin: 8mm; /* Margin dipadatkan agar tidak memicu halaman ke-2 */
+        }
+        * {
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
+            box-sizing: border-box !important;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
+        }
+        html, body {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            background: #fff !important;
+            color: #000;
+        }
         
-        const doc = iframe.contentWindow.document; 
-        doc.open();
-        doc.write(`<!DOCTYPE html><html><head><meta charset="utf-8"><title>Dokumen Cetak</title><style>
-        * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif; } 
-        body { margin: 0; padding: 10px; background: white !important; color: black; } 
-        table { width: 100%; border-collapse: collapse; margin-bottom: 15px; font-size: 11px; } 
-        th, td { border: 1px solid #000; padding: 6px; text-align: left; } th { background-color: #e0e0e0 !important; font-weight: bold; } 
+        /* ATURAN TABEL AGAR RAPI & TIDAK TERPOTONG JELEK */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 12px;
+            font-size: 11px;
+            page-break-inside: auto;
+        }
+        tr {
+            page-break-inside: avoid;
+            page-break-after: auto;
+        }
+        th, td {
+            border: 1px solid #000;
+            padding: 6px 8px;
+            text-align: left;
+            vertical-align: middle;
+        }
+        th {
+            background-color: #e0e0e0 !important;
+            font-weight: bold;
+        }
         
-        .id-card-wrapper { width: 324px; min-height: 204px; background-color: white; background-size: cover; background-position: center; border-radius: 12px; overflow: hidden; position: relative; border: 1px solid #bbb; display: flex; flex-direction: column; page-break-inside: avoid; } 
-        .id-card-wrapper.portrait { width: 204px; min-height: 324px; } 
-        .id-header { background: #04432A !important; color: white !important; padding: 8px; text-align: center; border-bottom: 2px solid #D4AF37; display: flex; align-items: center; justify-content: center; gap: 8px; } 
-        .id-card-wrapper.portrait .id-header { flex-direction: column; padding: 6px; gap: 2px; } 
-        .id-header img { width: 28px; height: 28px; border-radius: 50%; background: white; padding: 2px; } 
-        .id-header h4 { font-size: 0.8rem; margin: 0; } .id-header p { font-size: 0.5rem; color: #F4E29F; margin: 0; } 
-        .id-body { padding: 10px; display: flex; gap: 10px; background: rgba(255, 255, 255, 0.92) !important; flex: 1; position: relative; align-items: center; } 
-        .id-card-wrapper.portrait .id-body { flex-direction: column; align-items: center; justify-content: flex-start; gap: 6px; } 
-        .id-photo { width: 70px; height: 90px; object-fit: cover; border: 2px solid #04432A; border-radius: 6px; background: #eee; } 
-        .id-details { flex: 1; font-size: 0.65rem; line-height: 1.4; color: #111; font-weight: 600; text-align: left; } 
-        .id-card-wrapper.portrait .id-details { text-align: center; width: 100%; font-size: 0.6rem; } 
-        .id-details strong { color: #04432A; font-size: 0.75rem; display: block; margin-bottom: 3px; } 
-        .id-footer-custom { background: #04432A !important; color: white !important; text-align: center; font-size: 0.58rem; padding: 5px; font-weight: bold; border-top: 1px solid #D4AF37; width: 100%; } 
-        .id-back-content { padding: 10px; background: rgba(255, 255, 255, 0.95); flex: 1; display: flex; flex-direction: row; gap: 10px; align-items: center; justify-content: space-between; } 
-        .id-back-left { flex: 1; display: flex; flex-direction: column; justify-content: space-between; height: 100%; } 
-        .id-back-title { font-size: 0.72rem; font-weight: bold; color: #04432A; text-align: left; border-bottom: 1px solid #ddd; padding-bottom: 4px; margin-bottom: 4px; } 
-        .id-back-rules { font-size: 0.56rem; line-height: 1.35; color: #111; white-space: pre-line; flex: 1; } 
-        .id-back-ttd { text-align: center !important; font-size: 0.58rem; font-weight: bold; color: #04432A; margin-top: auto; } 
-        .id-back-ttd img { max-height: 26px; display: block; margin: 2px auto; } 
-        .id-back-right { display: flex; flex-direction: column; align-items: center; justify-content: center; padding-left: 6px; border-left: 1px dashed #ccc; } 
-        .id-qr-back { width: 85px !important; height: 85px !important; border: 2px solid #04432A; padding: 3px; background: white !important; border-radius: 8px; display: flex; align-items: center; justify-content: center; } 
-        .id-card-wrapper.portrait .id-back-content { flex-direction: column; text-align: center; gap: 8px; } 
-        .id-card-wrapper.portrait .id-back-left { text-align: center; } 
-        .id-card-wrapper.portrait .id-back-title { text-align: center; } 
-        .id-card-wrapper.portrait .id-back-right { border-left: none; border-top: 1px dashed #ccc; padding-left: 0; padding-top: 8px; width: 100%; } 
-        
-        .kolektif-grid-gabung { display: grid; grid-template-columns: auto auto; justify-content: center; gap: 15px; margin-bottom: 15px; page-break-inside: avoid; }
-        
-        .surat-izin-box { border: 2px solid #04432A; padding: 25px; border-radius: 8px; background: #fff; color: #111; font-size: 13px; line-height: 1.6; } 
-        .surat-header { text-align: center; border-bottom: 3px double #04432A; padding-bottom: 12px; margin-bottom: 15px; display:flex; align-items:center; justify-content:center; gap:12px; } 
-        .surat-header img { width: 48px; height: 48px; object-fit:contain; } 
-        .surat-header-text h3 { color: #04432A; margin: 0; font-size: 17px; font-weight:bold; text-transform:uppercase; } 
-        .surat-no { text-align:center; font-weight:bold; font-size:14px; text-decoration:underline; margin-bottom:15px; color:#04432A; } 
-        .evaluasi-izin-box { background: #f8f9fa; border: 1px solid #D4AF37; border-left: 4px solid #04432A; padding: 10px 14px; border-radius: 6px; margin: 12px 0; font-size: 12px; } 
-        .surat-ttd-grid { display: flex; justify-content: space-between; margin-top: 35px; text-align: center; font-size: 12px; font-weight: bold; } 
+        /* CSS SERTIFIKAT - DIKUNCI PAS 1 LEMBAR A4 (TIDAK JADI 2 HALAMAN) */
+        .sertifikat-wrapper {
+            width: 100%;
+            height: ${orientasiHalaman === 'landscape' ? '188mm' : '275mm'};
+            max-height: ${orientasiHalaman === 'landscape' ? '188mm' : '275mm'};
+            background-color: #fff;
+            background-size: cover;
+            background-position: center;
+            border: 8px solid #04432A;
+            padding: 16px 24px;
+            text-align: center;
+            font-family: 'Times New Roman', serif;
+            position: relative;
+            margin: 0 auto;
+            color: #111;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            overflow: hidden;
+            page-break-inside: avoid;
+            page-break-after: avoid;
+        }
+        .sertifikat-header img {
+            width: 70px;
+            height: 70px;
+            margin-bottom: 4px;
+        }
+        .sertifikat-title {
+            font-size: 1.8rem;
+            font-weight: bold;
+            color: #04432A;
+            text-transform: uppercase;
+            margin-bottom: 2px;
+            letter-spacing: 2px;
+        }
+        .sertifikat-subtitle {
+            font-size: 0.95rem;
+            color: #333;
+            margin-bottom: 10px;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            font-weight: bold;
+        }
+        .sertifikat-body {
+            font-size: 1.05rem;
+            line-height: 1.5;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+        .sertifikat-name {
+            font-size: 2.1rem;
+            font-weight: bold;
+            font-style: italic;
+            color: #000;
+            border-bottom: 2px solid #ccc;
+            display: inline-block;
+            padding: 0 20px;
+            margin: 8px auto;
+            text-transform: uppercase;
+        }
+        .sertifikat-predikat {
+            font-size: 1.25rem;
+            font-weight: bold;
+            color: #D4AF37;
+            margin: 8px 0;
+        }
+        .sertifikat-footer {
+            margin-top: 10px;
+            display: flex;
+            justify-content: flex-end;
+            padding-right: 30px;
+            text-align: center;
+        }
+        .sertifikat-ttd img {
+            max-height: 50px;
+            margin: 4px auto;
+            display: block;
+        }
 
-        /* PENYESUAIAN TINGGI SERTIFIKAT AGAR PAS DI A4 */
-        .sertifikat-wrapper { width: 100%; min-height: 180mm; background-color: rgba(255,255,255,0.9); background-size: cover; background-position: center; border: 12px solid #04432A; padding: 30px; text-align: center; font-family: 'Times New Roman', serif; position: relative; margin: 0 auto; color: #111; display:flex; flex-direction:column; justify-content:center;}
-        .sertifikat-header img { width: 90px; height: 90px; margin-bottom: 15px; }
-        .sertifikat-title { font-size: 2.4rem; font-weight: bold; color: #04432A; text-transform: uppercase; margin-bottom: 5px; letter-spacing: 2px;}
-        .sertifikat-subtitle { font-size: 1.2rem; color: #333; margin-bottom: 30px; text-transform: uppercase; letter-spacing: 2px; font-weight: bold;}
-        .sertifikat-body { font-size: 1.2rem; line-height: 1.8; }
-        .sertifikat-name { font-size: 2.8rem; font-weight: bold; font-style: italic; color: #000; border-bottom: 2px solid #ccc; display: inline-block; padding: 0 30px; margin: 20px 0; text-transform: uppercase;}
-        .sertifikat-predikat { font-size: 1.5rem; font-weight: bold; color: #D4AF37; margin: 15px 0; text-shadow: 1px 1px 1px #000;}
-        .sertifikat-footer { margin-top: 50px; display: flex; justify-content: flex-end; padding-right: 50px; text-align: center; }
-        .sertifikat-ttd img { max-height: 70px; margin: 5px auto; display: block;}
+        /* CSS ID CARD & LAINNYA */
+        .id-card-wrapper {
+            width: 324px;
+            min-height: 204px;
+            background-color: white;
+            background-size: cover;
+            background-position: center;
+            border-radius: 12px;
+            overflow: hidden;
+            position: relative;
+            border: 1px solid #bbb;
+            display: flex;
+            flex-direction: column;
+            page-break-inside: avoid;
+        }
+        .id-card-wrapper.portrait {
+            width: 204px;
+            min-height: 324px;
+        }
+        .id-header {
+            background: #04432A !important;
+            color: white !important;
+            padding: 8px;
+            text-align: center;
+            border-bottom: 2px solid #D4AF37;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+        .id-card-wrapper.portrait .id-header {
+            flex-direction: column;
+            padding: 6px;
+            gap: 2px;
+        }
+        .id-header img {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            background: white;
+            padding: 2px;
+        }
+        .id-header h4 { font-size: 0.8rem; margin: 0; }
+        .id-header p { font-size: 0.5rem; color: #F4E29F; margin: 0; }
+        .id-body {
+            padding: 10px;
+            display: flex;
+            gap: 10px;
+            background: rgba(255, 255, 255, 0.92) !important;
+            flex: 1;
+            position: relative;
+            align-items: center;
+        }
+        .id-card-wrapper.portrait .id-body {
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+            gap: 6px;
+        }
+        .id-photo {
+            width: 70px;
+            height: 90px;
+            object-fit: cover;
+            border: 2px solid #04432A;
+            border-radius: 6px;
+            background: #eee;
+        }
+        .id-details {
+            flex: 1;
+            font-size: 0.65rem;
+            line-height: 1.4;
+            color: #111;
+            font-weight: 600;
+            text-align: left;
+        }
+        .id-card-wrapper.portrait .id-details {
+            text-align: center;
+            width: 100%;
+            font-size: 0.6rem;
+        }
+        .id-details strong {
+            color: #04432A;
+            font-size: 0.75rem;
+            display: block;
+            margin-bottom: 3px;
+        }
+        .id-footer-custom {
+            background: #04432A !important;
+            color: white !important;
+            text-align: center;
+            font-size: 0.58rem;
+            padding: 5px;
+            font-weight: bold;
+            border-top: 1px solid #D4AF37;
+            width: 100%;
+        }
+        .id-back-content {
+            padding: 10px;
+            background: rgba(255, 255, 255, 0.95);
+            flex: 1;
+            display: flex;
+            flex-direction: row;
+            gap: 10px;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .id-back-left {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            height: 100%;
+        }
+        .id-back-title {
+            font-size: 0.72rem;
+            font-weight: bold;
+            color: #04432A;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+            padding-bottom: 4px;
+            margin-bottom: 4px;
+        }
+        .id-back-rules {
+            font-size: 0.56rem;
+            line-height: 1.35;
+            color: #111;
+            white-space: pre-line;
+            flex: 1;
+        }
+        .id-back-ttd {
+            text-align: center !important;
+            font-size: 0.58rem;
+            font-weight: bold;
+            color: #04432A;
+            margin-top: auto;
+        }
+        .id-back-ttd img {
+            max-height: 26px;
+            display: block;
+            margin: 2px auto;
+        }
+        .id-back-right {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding-left: 6px;
+            border-left: 1px dashed #ccc;
+        }
+        .id-qr-back {
+            width: 85px !important;
+            height: 85px !important;
+            border: 2px solid #04432A;
+            padding: 3px;
+            background: white !important;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .id-card-wrapper.portrait .id-back-content {
+            flex-direction: column;
+            text-align: center;
+            gap: 8px;
+        }
+        .id-card-wrapper.portrait .id-back-left { text-align: center; }
+        .id-card-wrapper.portrait .id-back-title { text-align: center; }
+        .id-card-wrapper.portrait .id-back-right {
+            border-left: none;
+            border-top: 1px dashed #ccc;
+            padding-left: 0;
+            padding-top: 8px;
+            width: 100%;
+        }
         
-        /* PERUBAHAN UTAMA: PAKSA UKURAN KERTAS A4 SAAT PRINT */
-        @page { size: A4 ${orientasiHalaman === 'landscape' ? 'landscape' : 'portrait'}; margin: 10mm; }
-        </style></head><body>${htmlIsiKonten}</body></html>`);
-        doc.close();
-        setTimeout(() => { 
-            try { 
-                iframe.contentWindow.focus(); 
-                iframe.contentWindow.print(); 
-            } catch(err) { 
-                alert("Fitur Print dipicu melalui dialog browser."); 
-            } 
-        }, 1000);
-    }
-
+        .kolektif-grid-gabung {
+            display: grid;
+            grid-template-columns: auto auto;
+            justify-content: center;
+            gap: 15px;
+            margin-bottom: 15px;
+            page-break-inside: avoid;
+        }
+        
+        .surat-izin-box {
+            border: 2px solid #04432A;
+            padding: 25px;
+            border-radius: 8px;
+            background: #fff;
+            color: #111;
+            font-size: 13px;
+            line-height: 1.6;
+        }
+        .surat-header {
+            text-align: center;
+            border-bottom: 3px double #04432A;
+            padding-bottom: 12px;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+        }
+        .surat-header img { width: 48px; height: 48px; object-fit: contain; }
+        .surat-header-text h3 {
+            color: #04432A;
+            margin: 0;
+            font-size: 17px;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+        .surat-no {
+            text-align: center;
+            font-weight: bold;
+            font-size: 14px;
+            text-decoration: underline;
+            margin-bottom: 15px;
+            color: #04432A;
+        }
+        .evaluasi-izin-box {
+            background: #f8f9fa;
+            border: 1px solid #D4AF37;
+            border-left: 4px solid #04432A;
+            padding: 10px 14px;
+            border-radius: 6px;
+            margin: 12px 0;
+            font-size: 12px;
+        }
+        .surat-ttd-grid {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 35px;
+            text-align: center;
+            font-size: 12px;
+            font-weight: bold;
+        }
+    </style>
+    </head>
+    <body>${htmlIsiKonten}</body>
+    </html>`);
+    doc.close();
+    
+    setTimeout(() => { 
+        try { 
+            iframe.contentWindow.focus(); 
+            iframe.contentWindow.print(); 
+        } catch(err) { 
+            alert("Fitur Print dipicu melalui dialog browser."); 
+        } 
+    }, 800);
+}
 
     function cetakAreaKhusus(idElemen) {
-        const elemen = document.getElementById(idElemen);
-        if(elemen) {
-            const clone = elemen.cloneNode(true);
-            const originalCanvases = elemen.querySelectorAll('canvas'); const clonedCanvases = clone.querySelectorAll('canvas');
-            originalCanvases.forEach((canvas, index) => {
-                const img = document.createElement('img'); img.src = canvas.toDataURL('image/png'); img.style.width = canvas.style.width || (canvas.width + 'px'); img.style.height = canvas.style.height || (canvas.height + 'px');
-                if (clonedCanvases[index]) clonedCanvases[index].parentNode.replaceChild(img, clonedCanvases[index]);
-            });
-            const allImages = clone.querySelectorAll('img'); allImages.forEach(img => { if(img.style.display === 'none') img.remove(); });
-            let htmlYangDicetak = `<div style="display:flex; flex-direction:column; align-items:center; width:100%;">${clone.outerHTML}</div>`;
-            cetakElemenHTML(htmlYangDicetak, 'portrait');
-        } else { alert("Elemen tidak ditemukan untuk dicetak."); }
+    const elemen = document.getElementById(idElemen);
+    if (elemen) {
+        const clone = elemen.cloneNode(true);
+        const originalCanvases = elemen.querySelectorAll('canvas'); 
+        const clonedCanvases = clone.querySelectorAll('canvas');
+        
+        originalCanvases.forEach((canvas, index) => {
+            const img = document.createElement('img'); 
+            img.src = canvas.toDataURL('image/png'); 
+            img.style.width = canvas.style.width || (canvas.width + 'px'); 
+            img.style.height = canvas.style.height || (canvas.height + 'px');
+            if (clonedCanvases[index]) {
+                clonedCanvases[index].parentNode.replaceChild(img, clonedCanvases[index]);
+            }
+        });
+        
+        const allImages = clone.querySelectorAll('img'); 
+        allImages.forEach(img => { 
+            if (img.style.display === 'none') img.remove(); 
+        });
+        
+        // DETEKSI OTOMATIS ORIENTASI KARTU
+        let orientasi = 'portrait';
+        if (idElemen === 'area-cetak-kartu' && !elemen.classList.contains('portrait')) {
+            orientasi = 'landscape';
+        }
+        
+        let htmlYangDicetak = `<div style="display:flex; flex-direction:column; align-items:center; width:100%;">${clone.outerHTML}</div>`;
+        cetakElemenHTML(htmlYangDicetak, orientasi);
+    } else { 
+        alert("Elemen tidak ditemukan untuk dicetak."); 
     }
+}
 
     function cetakKolektifF4Gabung() {
         let databaseSantri = getDB('pondok_santri', []).filter(s => !s.is_alumni); 
@@ -1607,7 +2014,7 @@
         let cekAkses = getDB('pondok_akses', defaultAkses); localStorage.setItem('pondok_akses', JSON.stringify(cekAkses));
         if (!localStorage.getItem('pondok_absensi')) localStorage.setItem('pondok_absensi', JSON.stringify([]));
         if (!localStorage.getItem('pondok_evaluasi')) localStorage.setItem('pondok_evaluasi', JSON.stringify([]));
-        
+        if (!localStorage.getItem('pondok_tabungan')) localStorage.setItem('pondok_tabungan', JSON.stringify([]));
         if (!localStorage.getItem('pondok_master_mapel')) {
             localStorage.setItem('pondok_master_mapel', JSON.stringify([
                 { id: 101, nama_mapel: "Fiqih Shalat & Thaharah", ustadz_ids: ["ustadz"], ustadz_nama: "Guru / Ustadz", kelas_ids: [201], jadwal_aktif: true, hari: "Senin", jam_mulai: "08:00", jam_selesai: "09:30" },
@@ -1814,6 +2221,8 @@
                 document.getElementById('input-alamat-edit').value = data.alamat || ''; 
                 document.getElementById('setting-footer-text').value = data.teks_footer || ""; 
                 document.getElementById('setting-teks-lulus').value = data.teks_lulus || ""; 
+                
+document.getElementById('setting-kertas-sertifikat').value = data.kertas_sertifikat || "A4";
                 document.getElementById('setting-voice-aktif').value = data.voice_aktif || "1"; 
                 document.getElementById('setting-voice-teks').value = data.voice_teks || ""; 
                 document.getElementById('setting-tata-tertib').value = data.tata_tertib || ""; 
@@ -2138,21 +2547,77 @@
         alert("Nilai Evaluasi Berhasil Disimpan!");
     }
 
-    function bukaModalSertifikat(nis) {
-        const santri = getDB('pondok_santri', []).find(s => s.nis === nis); if(!santri) return;
-        const evaluasi = getDB('pondok_evaluasi', []).find(e => e.nis === nis);
-        
-        document.getElementById('cert-nis').value = santri.nis;
-        document.getElementById('cert-nama').innerText = santri.nama;
-        document.getElementById('cert-nis-txt').innerText = santri.nis;
-        document.getElementById('cert-nik-txt').innerText = santri.nik || "Tidak ada NIK";
-        document.getElementById('cert-tgl').value = new Date().toISOString().split('T')[0];
-        
-        if (evaluasi) { document.getElementById('cert-nilai').innerText = `${evaluasi.rata} (${evaluasi.predikat})`; } 
-        else { document.getElementById('cert-nilai').innerText = "Belum Ada Nilai Evaluasi (Default: 0)"; }
-        
-        document.getElementById('modal-sertifikat').classList.remove('hidden');
+    function renderPreviewSertifikat() {
+    const nis = document.getElementById('cert-nis').value;
+    const orientasi = document.getElementById('cert-orientasi').value;
+    const tgl = document.getElementById('cert-tgl').value;
+    
+    const santri = getDB('pondok_santri', []).find(s => s.nis === nis);
+    if (!santri) return;
+    
+    const yayasan = getDB('pondok_yayasan', {});
+    const evaluasi = getDB('pondok_evaluasi', []).find(e => e.nis === nis) || { rata: 0, predikat: "Belum Ada Nilai" };
+    const tglID = tgl ? new Date(tgl).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' }) : '-';
+    let bgStyle = yayasan.bg_idcard ? `background-image: url('${yayasan.bg_idcard}');` : `background: #fff;`;
+    
+    const area = document.getElementById('area-preview-sertifikat');
+    
+    // Gunakan rasio A4 fleksibel agar rapi di layar HP
+    if (orientasi === 'landscape') {
+        area.style.width = '100%';
+        area.style.maxWidth = '680px';
+        area.style.aspectRatio = '1.414 / 1';
+        area.style.height = 'auto';
+        area.style.transform = 'none';
+        area.style.margin = '0 auto';
+    } else {
+        area.style.width = '100%';
+        area.style.maxWidth = '460px';
+        area.style.aspectRatio = '1 / 1.414';
+        area.style.height = 'auto';
+        area.style.transform = 'none';
+        area.style.margin = '0 auto';
     }
+
+    area.innerHTML = `
+        <div class="sertifikat-wrapper" style="${bgStyle} width:100%; height:100%; box-sizing:border-box; display:flex; flex-direction:column; justify-content:space-between; padding:4%; border:6px solid #04432A;">
+            <div class="sertifikat-header" style="margin-bottom:0;">
+                <img src="${yayasan.logo || 'https://cdn-icons-png.flaticon.com/512/3592/3592078.png'}" style="width:50px; height:50px; margin-bottom:4px;">
+                <div class="sertifikat-title" style="font-size:1.3rem;">SERTIFIKAT KELULUSAN</div>
+                <div class="sertifikat-subtitle" style="font-size:0.75rem; margin-bottom:8px;">${yayasan.pondok || 'Instansi'} - ${yayasan.yayasan || 'Lembaga Pendidikan'}</div>
+            </div>
+            <div class="sertifikat-body" style="font-size:0.85rem; line-height:1.4;">
+                <p>Diberikan Kepada:</p>
+                <div class="sertifikat-name" style="font-size:1.4rem; margin:8px 0; padding:0 10px;">${santri.nama}</div>
+                <p style="font-size:0.8rem;">NIS: ${santri.nis} ${santri.nik ? ' | NIK: ' + santri.nik : ''}</p>
+                <p style="margin-top: 10px; font-size:0.8rem;">${yayasan.teks_lulus || 'Telah mengikuti seluruh program pembelajaran dengan baik dan dinyatakan:'}</p>
+                <div class="sertifikat-predikat" style="font-size:1rem; margin:6px 0;">LULUS DENGAN PREDIKAT: ${evaluasi.predikat.toUpperCase()}</div>
+                <p style="font-size:0.75rem; margin-top:2px;">(Nilai Rata-rata: ${evaluasi.rata})</p>
+            </div>
+            <div class="sertifikat-footer" style="margin-top:10px; padding-right:10px;">
+                <div>
+                    <p style="margin-bottom: 2px; font-size:0.75rem;">Ditetapkan di Tempat, ${tglID}</p>
+                    <p style="font-size:0.75rem;">Mengetahui Pimpinan,</p>
+                    <div class="sertifikat-ttd">
+                        ${yayasan.ttd_mudir ? `<img src="${yayasan.ttd_mudir}" style="max-height:40px; margin:2px auto;">` : '<div style="height:40px;"></div>'}
+                    </div>
+                    <p style="font-weight:bold; font-size:0.75rem;">${yayasan.mudir || 'Pimpinan'}</p>
+                </div>
+            </div>
+        </div>
+    `;
+}
+
+function bukaModalSertifikat(nis) {
+    const santri = getDB('pondok_santri', []).find(s => s.nis === nis); if(!santri) return;
+    
+    document.getElementById('cert-nis').value = santri.nis;
+    document.getElementById('cert-tgl').value = new Date().toISOString().split('T')[0];
+    
+    // Panggil fungsi gambar (render) sebelum modal terbuka
+    renderPreviewSertifikat();
+    document.getElementById('modal-sertifikat').classList.remove('hidden');
+}
 
     function prosesCetakSertifikatFinal() {
         const nis = document.getElementById('cert-nis').value;
@@ -2392,13 +2857,15 @@
                     <div style="font-size:0.75rem; color:var(--primary); font-weight:bold;">${txtKelas}</div>
                     <div style="font-size:0.72rem; margin-top:3px;">${txtJadwal}</div>
                 </td>
-                <td>
+                                <td>
                     <div style="display:flex; gap:4px; flex-wrap:wrap;">
-                        <button class="btn-outline" style="margin:0; padding:6px 8px; font-size:0.7rem; border-color:var(--info); color:var(--info);" onclick="window.open('${gcalUrl}', '_blank')"><i class="fa-solid fa-calendar-plus"></i> G-Cal</button>
-                        <button class="btn-danger" style="margin:0; padding:6px 8px; font-size:0.7rem;" onclick="hapusMasterMapel(${m.id})">Hapus</button>
+                        <button class="btn-success" style="margin:0; padding:6px 8px; font-size:0.7rem;" onclick="validasiDanNotifManual(${m.id})"><i class="fa-solid fa-check"></i> Valid & Notif</button>
+                        <button class="btn-print" style="margin:0; padding:6px 8px; font-size:0.7rem; background:#2C3E50;" onclick="cetakJadwalMapelPDF(${m.id})"><i class="fa-solid fa-file-pdf"></i> PDF</button>
+                        <button class="btn-danger" style="margin:0; padding:6px 8px; font-size:0.7rem;" onclick="hapusMasterMapel(${m.id})"><i class="fa-solid fa-trash"></i></button>
                     </div>
                 </td>
             </tr>`;
+
         });
     }
 
@@ -2917,7 +3384,8 @@
             ttd_mudir: base64TempImages.ttd_mudir || old.ttd_mudir,
             teks_footer: document.getElementById('setting-footer-text').value,
             teks_lulus: document.getElementById('setting-teks-lulus').value,
-            voice_aktif: document.getElementById('setting-voice-aktif').value,
+            kertas_sertifikat: document.getElementById('setting-kertas-sertifikat').value,
+            voice_aktif:             document.getElementById('setting-voice-aktif').value,
             voice_teks: document.getElementById('setting-voice-teks').value,
             tata_tertib: document.getElementById('setting-tata-tertib').value,
             izin_judul: document.getElementById('setting-izin-judul').value,
@@ -3393,6 +3861,129 @@
         renderTabelSantri();
         renderTabelDaftarKelas();
         renderTabelKeuanganDenda();
+    }
+let scannerTabungan = null;
+
+function startScannerTabungan() {
+    if (typeof Html5Qrcode === 'undefined') return alert("Library Scanner belum siap.");
+    document.getElementById('qr-reader-tabungan').style.display = 'block';
+    document.getElementById('btn-stop-scanner-tabungan').style.display = 'flex';
+    document.getElementById('area-input-tabungan').classList.add('hidden');
+    
+    if (!scannerTabungan) {
+        scannerTabungan = new Html5Qrcode("qr-reader-tabungan");
+        scannerTabungan.start({ facingMode: "environment" }, { fps: 15, qrbox: { width: 250, height: 250 } }, (rawScan) => {
+            let nisScan = rawScan; 
+            try { let parsed = JSON.parse(rawScan); if (parsed.n) nisScan = parsed.n; } catch(e) {}
+            
+            const santri = getDB('pondok_santri', []).find(s => s.nis === nisScan);
+            if(santri) {
+                document.getElementById('tabungan-nama-santri').innerText = santri.nama;
+                document.getElementById('tabungan-nis-santri').innerText = santri.nis;
+                document.getElementById('tabungan-nis-hidden').value = santri.nis;
+                document.getElementById('area-input-tabungan').classList.remove('hidden');
+                
+                // Reset Checkbox
+                document.querySelectorAll('.cb-nominal').forEach(cb => cb.checked = false);
+                kalkulasiTabungan();
+                
+                stopScannerTabungan();
+            } else {
+                alert("Santri tidak ditemukan!");
+            }
+        }).catch(() => { alert("Gagal membuka kamera."); stopScannerTabungan(); });
+    }
+}
+
+function stopScannerTabungan() {
+    if (scannerTabungan) {
+        scannerTabungan.stop().then(() => {
+            document.getElementById('qr-reader-tabungan').style.display = 'none';
+            document.getElementById('btn-stop-scanner-tabungan').style.display = 'none';
+            scannerTabungan = null;
+        });
+    }
+}
+
+function kalkulasiTabungan() {
+    let total = 0;
+    document.querySelectorAll('.cb-nominal:checked').forEach(cb => {
+        total += parseInt(cb.value);
+    });
+    document.getElementById('total-tabungan-ui').innerText = total.toLocaleString('id-ID');
+    return total;
+}
+
+function simpanTabungan() {
+    const nis = document.getElementById('tabungan-nis-hidden').value;
+    const total = kalkulasiTabungan();
+    
+    if(total === 0) return alert("Pilih nominal tabungan terlebih dahulu!");
+    
+    let dbTabungan = getDB('pondok_tabungan', []);
+    dbTabungan.push({
+        id: Date.now(),
+        nis: nis,
+        nominal: total,
+        tanggal: new Date().toISOString()
+    });
+    localStorage.setItem('pondok_tabungan', JSON.stringify(dbTabungan));
+    
+    alert(`Berhasil menyimpan tabungan sebesar Rp ${total.toLocaleString('id-ID')}!`);
+    document.getElementById('area-input-tabungan').classList.add('hidden');
+}
+    // ==========================================
+    // FUNGSI UNTUK TOMBOL VALIDASI & CETAK PDF
+    // ==========================================
+
+    function validasiDanNotifManual(idMapel) {
+        // 1. Cari data mata pelajaran berdasarkan ID yang diklik
+        const m = getDB('pondok_master_mapel', []).find(x => x.id == idMapel);
+        if (!m) return;
+        
+        // 2. Ambil format teks notifikasi dari pengaturan Yayasan
+        const yayasan = getDB('pondok_yayasan', {});
+        let formatTeks = yayasan.pwa_notif_teks || "Waktunya mengajar mata pelajaran {mapel} di kelas {kelas}.";
+        
+        // 3. Ubah kata {mapel} menjadi nama pelajaran aslinya
+        let teksSuara = formatTeks.replace(/{mapel}/g, m.nama_mapel).replace(/{kelas}/g, "Sesuai Jadwal");
+
+        // 4. Picu sistem notifikasi dan suara bawaan aplikasi
+        kirimNotifikasiLokal("Jadwal Tervalidasi!", teksSuara);
+        alert(`Sukses! Notifikasi manual dan pengumuman untuk jadwal pelajaran ${m.nama_mapel} berhasil dipicu.`);
+    }
+
+    function cetakJadwalMapelPDF(idMapel) {
+        // 1. Ambil data mapel dan kelas
+        const m = getDB('pondok_master_mapel', []).find(x => x.id == idMapel);
+        const dbKelas = getDB('pondok_kelas', []);
+        if (!m) return;
+
+        // 2. Cari tahu kelas mana saja yang ikut mapel ini
+        let namaKelasTerpilih = [];
+        (m.kelas_ids || []).forEach(kId => {
+            const kObj = dbKelas.find(k => k.id == kId);
+            if (kObj) namaKelasTerpilih.push(kObj.nama);
+        });
+
+        // 3. Buat Kerangka Kertas PDF-nya (memakai kop surat yang sudah ada di sistem)
+        let htmlPrint = generateStandardKopSuratHTML(); 
+        htmlPrint += `
+            <div style="text-align:center; margin-bottom: 20px;">
+                <h3 style="margin:0; text-transform:uppercase;">BUKTI VALIDASI JADWAL PELAJARAN</h3>
+            </div>
+            <table style="width:100%; border-collapse: collapse; margin-bottom: 20px;">
+                <tr><td style="padding:8px; border:1px solid #000; width:30%; font-weight:bold;">Mata Pelajaran</td><td style="padding:8px; border:1px solid #000;">${m.nama_mapel}</td></tr>
+                <tr><td style="padding:8px; border:1px solid #000; font-weight:bold;">Pengajar (Ustadz)</td><td style="padding:8px; border:1px solid #000;">${m.ustadz_nama}</td></tr>
+                <tr><td style="padding:8px; border:1px solid #000; font-weight:bold;">Kelas Terlibat</td><td style="padding:8px; border:1px solid #000;">${namaKelasTerpilih.join(', ')}</td></tr>
+                <tr><td style="padding:8px; border:1px solid #000; font-weight:bold;">Jadwal / Waktu</td><td style="padding:8px; border:1px solid #000;">${m.hari ? `${m.hari}, ${m.jam_mulai} - ${m.jam_selesai}` : 'Waktu Fleksibel (Menunggu Arahan / Tanpa Hari Tetap)'}</td></tr>
+                <tr><td style="padding:8px; border:1px solid #000; font-weight:bold;">Status Sistem</td><td style="padding:8px; border:1px solid #000; color:green; font-weight:bold;">TERVALIDASI / SIAP MULAI</td></tr>
+            </table>
+            <p style="font-size:11px; text-align:center; margin-top:30px; font-style:italic;">Dokumen ini dicetak otomatis dari Sistem Manajemen Instansi.</p>
+        `;
+        
+        // 4. Perintahkan sistem untuk merender HTML di atas menjadi PDF/Print
+        cetakElemenHTML(htmlPrint, 'portrait');
     }
 
     window.onload = initApp;
