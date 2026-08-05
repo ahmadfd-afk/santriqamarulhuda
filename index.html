@@ -119,202 +119,139 @@
 
         #id-card-modal, #modal-scanner-login, #modal-show-qr, #modal-input-izin, #modal-sertifikat, #modal-plotting-kelas, #modal-reset-opsi, #modal-edit-profil-self { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px); z-index: 9999; display: flex; align-items: center; justify-content: center; flex-direction: column; padding: 15px; }
                 /* ========================================= */
+                /* ========================================= */
         /* CSS PERBAIKAN TATA LETAK ID CARD PREVIEW  */
         /* ========================================= */
         .id-card-wrapper { 
             width: 324px; 
             height: 204px; 
-            background-color: white; 
-            background-size: cover; 
-            background-position: center; 
+            /* Efek Liquid Glass */
+            background: rgba(255, 255, 255, 0.35); 
+            backdrop-filter: blur(12px); 
+            -webkit-backdrop-filter: blur(12px); 
+            border: 1px solid rgba(255, 255, 255, 0.6); 
             border-radius: 14px; 
             overflow: hidden; 
             position: relative; 
-            box-shadow: 0 15px 35px rgba(0,0,0,0.35); 
+            box-shadow: 0 15px 35px rgba(0,0,0,0.2); 
             display: flex; 
             flex-direction: column; 
             margin: 0 auto; 
-            border: 1px solid #ccc;
         }
         .id-card-wrapper.portrait { 
             width: 204px; 
             height: 324px; 
         }
 
-        /* Wajib agar div depan/belakang merentang penuh */
-        #sisi-depan-kartu, #sisi-belakang-kartu {
-            width: 100%;
-            height: 100%;
-            display: flex;
-            flex-direction: column;
+        /* Ornamen Geometris ala Referensi (Background Atas) */
+        .id-card-wrapper::before {
+            content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 50%;
+            background: linear-gradient(135deg, var(--primary), var(--primary-light));
+            clip-path: polygon(0 0, 100% 0, 100% 45%, 0% 100%); z-index: -2;
+        }
+        .id-card-wrapper.portrait::before {
+            height: 42%; clip-path: polygon(0 0, 100% 0, 100% 65%, 0% 100%);
         }
 
-        /* 1. STYLING BAGIAN DEPAN KARTU */
+        /* Aksen Garis Emas Geometris */
+        .id-card-wrapper::after {
+            content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 50%;
+            background: var(--accent);
+            clip-path: polygon(0 0, 100% 0, 100% 50%, 0% 105%); z-index: -3;
+        }
+        .id-card-wrapper.portrait::after {
+            height: 42%; clip-path: polygon(0 0, 100% 0, 100% 70%, 0% 105%);
+        }
+
+        #sisi-depan-kartu, #sisi-belakang-kartu {
+            width: 100%; height: 100%; display: flex; flex-direction: column; z-index: 1;
+        }
+
+                /* 1. STYLING BAGIAN DEPAN KARTU */
         .id-header {
-            background: var(--primary);
-            color: white;
-            padding: 8px 10px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 10px;
-            border-bottom: 3px solid var(--accent);
+            background: transparent !important; color: white; border: none;
+            /* Jarak bawah ditambah agar tidak mepet dengan foto */
+            padding: 12px 14px 8px 14px; display: flex; align-items: center; justify-content: flex-start; gap: 10px;
         }
         .id-header img {
-            width: 32px;
-            height: 32px;
-            border-radius: 50%;
-            background: white;
-            padding: 2px;
-            object-fit: contain;
+            width: 32px; height: 32px; border-radius: 50%; background: rgba(255,255,255,0.95);
+            padding: 3px; object-fit: contain; box-shadow: 0 4px 10px rgba(0,0,0,0.15);
         }
-        .id-header h4 { font-size: 0.85rem; margin: 0; line-height: 1.1; }
-        .id-header p { font-size: 0.55rem; color: var(--accent-light); margin: 0; }
+        .id-header h4 { font-size: 0.85rem; margin: 0; line-height: 1.1; text-shadow: 1px 1px 3px rgba(0,0,0,0.4); }
+        .id-header p { font-size: 0.55rem; color: #F4E29F; margin: 0; text-shadow: 1px 1px 2px rgba(0,0,0,0.4); }
 
         .id-body {
-            display: flex;
-            flex-direction: row; /* Berjajar ke samping untuk Landscape */
-            padding: 10px 12px;
-            gap: 12px;
-            flex: 1; 
-            align-items: center;
-            background: rgba(255, 255, 255, 0.85); /* Agar teks terbaca jelas */
+            display: flex; flex-direction: row; padding: 6px 14px 12px 14px; gap: 12px; flex: 1; align-items: center;
+            background: transparent !important;
         }
         .id-photo {
-            width: 75px;
-            height: 95px;
-            object-fit: cover;
-            border: 2px solid var(--primary);
-            border-radius: 6px;
-            background: #eee;
-            flex-shrink: 0;
+            /* FOTO DIKECILKAN (Dari 75px ke 65px) */
+            width: 65px; height: 85px; object-fit: cover; border-radius: 10px;
+            border: 2px solid rgba(255,255,255,0.9); background: #eee; flex-shrink: 0;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.15);
         }
         .id-details {
-            flex: 1;
-            text-align: left;
-            font-size: 0.65rem;
-            line-height: 1.4;
-            color: #111;
+            flex: 1; text-align: left; font-size: 0.65rem; line-height: 1.4; color: #111; font-weight: bold;
+            /* BOX BACKGROUND DIBUANG AGAR LEGA & BARCODE TIDAK KETUTUP */
+            background: transparent !important; backdrop-filter: none; -webkit-backdrop-filter: none;
+            padding: 0 2px; border-radius: 0; border: none;
+            box-shadow: none;
         }
         .id-details strong {
-            font-size: 0.85rem;
-            color: var(--primary);
-            display: block;
-            margin-bottom: 4px;
-            border-bottom: 1px solid #ccc;
-            padding-bottom: 2px;
-            text-transform: uppercase;
+            font-size: 0.85rem; color: var(--primary); display: block; margin-bottom: 2px;
+            border-bottom: none; /* Garis bawah dibuang agar rapi */ 
+            padding-bottom: 0; text-transform: uppercase;
         }
         .id-footer-custom {
-            background: var(--primary);
-            color: white;
-            text-align: center;
-            font-size: 0.6rem;
-            padding: 4px;
-            font-weight: bold;
-            border-top: 2px solid var(--accent);
-        }
+    background: rgba(4, 67, 42, 0.85); 
+    backdrop-filter: blur(5px); 
+    color: white; 
+    text-align: center;
+    font-size: 0.6rem; 
+    padding: 4px; 
+    font-weight: bold; 
+    border-top: 1px solid rgba(255,255,255,0.3);
+    /* TAMBAHAN KODE: Memaksa footer menempel paten di bawah */
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    z-index: 10;
+}
 
-        /* 2. STYLING BAGIAN BELAKANG KARTU */
-        .id-back-content {
-            display: flex;
-            flex-direction: row; /* Berjajar ke samping untuk Landscape */
-            padding: 10px;
-            gap: 10px;
-            flex: 1;
-            background: rgba(255, 255, 255, 0.9);
-            align-items: center;
+
+        .id-qr-depan { 
+            width: 60px; height: 60px; min-width: 60px; border: 2px solid white; padding: 3px; 
+            background: white; border-radius: 8px; display: flex; align-items: center; justify-content: center; 
+            margin-left: auto; box-shadow: 0 4px 12px rgba(0,0,0,0.15);
         }
-        .id-back-left {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-            height: 100%;
-            text-align: left;
-            overflow: hidden;
-        }
-        .id-back-title {
-            font-size: 0.75rem;
-            font-weight: bold;
-            color: var(--primary);
-            border-bottom: 1px solid #ccc;
-            padding-bottom: 4px;
-            margin-bottom: 4px;
-        }
-        .id-back-rules {
-            font-size: 0.55rem;
-            line-height: 1.4;
-            color: #222;
-            white-space: pre-line;
-        }
-        .id-back-ttd {
-            text-align: center;
-            font-size: 0.6rem;
-            font-weight: bold;
-            color: var(--primary);
-            margin-top: auto;
-        }
-        .id-back-ttd img {
-            max-height: 35px;
-            display: block;
-            margin: 2px auto;
-        }
-        .id-back-right {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            padding-left: 10px;
-            border-left: 1px dashed #999;
-        }
-        .id-qr-back {
-            width: 85px;
-            height: 85px;
-            border: 2px solid var(--primary);
-            padding: 3px;
-            background: white;
-            border-radius: 8px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-.id-qr-depan { width: 55px; height: 55px; min-width: 55px; border: 1.5px solid var(--primary); padding: 2px; background: white; border-radius: 6px; display: flex; align-items: center; justify-content: center; margin-left: auto; }
 
         /* 3. PERILAKU KHUSUS UNTUK MODE PORTRAIT */
-        .id-card-wrapper.portrait .id-header {
-            flex-direction: column; /* Tumpuk atas bawah */
-            padding: 8px 5px;
-            gap: 4px;
-            text-align: center;
-        }
-        .id-card-wrapper.portrait .id-body {
-            flex-direction: column; /* Foto di atas, teks di bawah */
-            justify-content: flex-start;
-            text-align: center;
-            gap: 8px;
-            padding: 12px 10px;
-        }
-        .id-card-wrapper.portrait .id-details {
-            text-align: center;
-        }
-        .id-card-wrapper.portrait .id-back-content {
-            flex-direction: column; /* Tata tertib di atas, QR di bawah */
-            text-align: center;
-        }
-        .id-card-wrapper.portrait .id-back-left {
-            text-align: center;
-            align-items: center;
-        }
-        .id-card-wrapper.portrait .id-back-right {
-            border-left: none;
-            border-top: 1px dashed #999;
-            padding-left: 0;
-            padding-top: 8px;
-            width: 100%;
-            margin-top: auto;
-        }
-        
+/* Padding dan jarak dikecilkan agar sisa ruang cukup untuk footer */
+.id-card-wrapper.portrait .id-header { flex-direction: column; padding: 12px 10px 4px 10px; gap: 4px; text-align: center; }
+/* Bottom padding dinaikkan menjadi 25px sebagai batas aman agar barcode tidak tertabrak footer */
+.id-card-wrapper.portrait .id-body { flex-direction: column; justify-content: flex-start; text-align: center; gap: 4px; padding: 4px 10px 25px 10px; }
+
+/* Foto mode portrait sedikit dikecilkan untuk menghemat ruang vertikal */
+.id-card-wrapper.portrait .id-photo { width: 60px; height: 75px; margin-top: 0; }
+.id-card-wrapper.portrait .id-details { text-align: center; width: 100%; }
+.id-card-wrapper.portrait .id-qr-depan { margin: 2px auto 0 auto; width: 64px; height: 64px; }
+
+
+
+        /* Sisi belakang dibiarkan statis sebagai opsi fallback, namun kini opsional untuk dicetak */
+        .id-back-content { display: flex; flex-direction: row; padding: 10px; gap: 10px; flex: 1; background: rgba(255, 255, 255, 0.9); align-items: center; }
+        .id-back-left { flex: 1; display: flex; flex-direction: column; justify-content: space-between; height: 100%; text-align: left; overflow: hidden; }
+        .id-back-title { font-size: 0.75rem; font-weight: bold; color: var(--primary); border-bottom: 1px solid #ccc; padding-bottom: 4px; margin-bottom: 4px; }
+        .id-back-rules { font-size: 0.55rem; line-height: 1.4; color: #222; white-space: pre-line; }
+        .id-back-ttd { text-align: center; font-size: 0.6rem; font-weight: bold; color: var(--primary); margin-top: auto; }
+        .id-back-ttd img { max-height: 35px; display: block; margin: 2px auto; }
+        .id-back-right { display: flex; flex-direction: column; align-items: center; justify-content: center; padding-left: 10px; border-left: 1px dashed #999; }
+        .id-qr-back { width: 85px; height: 85px; border: 2px solid var(--primary); padding: 3px; background: white; border-radius: 8px; display: flex; align-items: center; justify-content: center; }
+        .id-card-wrapper.portrait .id-back-content { flex-direction: column; text-align: center; }
+        .id-card-wrapper.portrait .id-back-left { text-align: center; align-items: center; }
+        .id-card-wrapper.portrait .id-back-right { border-left: none; border-top: 1px dashed #999; padding-left: 0; padding-top: 8px; width: 100%; margin-top: auto; }
+
         .surat-izin-box { border: 2px solid var(--primary); padding: 22px 18px; border-radius: 12px; background: #fff; color: #111; font-size: 0.82rem; line-height: 1.55; width: 100%; }
         .surat-header { text-align: center; border-bottom: 3px double var(--primary); padding-bottom: 12px; margin-bottom: 15px; display: flex; align-items: center; justify-content: center; gap: 12px; }
         .surat-header img { width: 45px; height: 45px; object-fit: contain; }
@@ -765,6 +702,14 @@
                 <div class="card card-premium" style="border-left-color: var(--info);">
                     <h3 style="margin-bottom: 14px; color: var(--info);">Kustomisasi Layout ID Card & Sertifikat</h3>
 <label>Teks Footer Kartu Depan</label><input type="text" id="setting-footer-text" placeholder="Cth: KARTU IDENTITAS AKTIF">
+
+<!-- TAMBAHAN KONTROL DINAMIS -->
+<label style="color: var(--primary);"><i class="fa-solid fa-text-height"></i> Ukuran Font Nama (px)</label>
+<input type="number" id="setting-font-nama" placeholder="Rekomendasi: 12 - 14">
+
+<label style="color: var(--primary);"><i class="fa-solid fa-qrcode"></i> Ukuran Barcode / QR (px)</label>
+<input type="number" id="setting-ukuran-qr" placeholder="Rekomendasi: 55 - 65">
+
 <label>Teks Keputusan Kelulusan Sertifikat</label><input type="text" id="setting-teks-lulus" placeholder="Telah mengikuti proses belajar dan dinyatakan:">
 <!-- TAMBAHAN PILIHAN KERTAS -->
 <label style="color: var(--danger);"><i class="fa-solid fa-scroll"></i> Ukuran Kertas Cetak Sertifikat</label>
@@ -1119,27 +1064,33 @@
         </div>
 
         <div class="id-card-wrapper" id="area-cetak-kartu">
-            <div id="sisi-depan-kartu">
+                        <div id="sisi-depan-kartu">
                 <div class="id-header">
                     <img src="" id="card-logo">
                     <div><h4 id="card-pondok">Nama Instansi</h4><p id="card-yayasan">Nama Yayasan</p></div>
                 </div>
-                                <div class="id-body" id="card-body-container">
+                <div class="id-body" id="card-body-container">
                     <img src="" id="card-foto" class="id-photo">
                     <div class="id-details">
                         <strong id="card-nama" style="text-transform: uppercase;">NAMA LENGKAP</strong>
                         <div style="margin-top: 5px;">
-                            <span id="label-nomor">NIS:</span> <span id="card-nis" style="font-weight: bold;"></span><br>
-                            <span id="label-asrama">Asrama:</span> <span id="card-asrama"></span><br>
-                            <span id="label-kamar">Kamar:</span> <span id="card-kamar"></span><br>
-                            <span id="label-alamat">Alamat:</span> <span id="card-alamat" style="display:block; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width: 120px;"></span>
+                            <span style="display:inline-block; width: 38px;">NIS</span>: <span id="card-nis" style="font-weight: bold; color: var(--primary);"></span><br>
+                            <span style="display:inline-block; width: 38px;">Alamat</span>: <span id="card-alamat" style="display:inline-block; vertical-align:top; max-width: 105px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;"></span>
+                            
+                            <!-- Elemen disembunyikan agar JS Render Data Tidak Error -->
+                            <div style="display: none;">
+                                <span id="label-nomor"></span>
+                                <span id="label-asrama"></span> <span id="card-asrama"></span>
+                                <span id="label-kamar"></span> <span id="card-kamar"></span>
+                            </div>
                         </div>
                     </div>
+                    <!-- Barcode/QR Dipindah Ke Depan -->
                     <div class="id-qr-depan" id="card-qr"></div>
                 </div>
-
                 <div class="id-footer-custom hidden" id="card-footer-custom"></div>
             </div>
+
 
             <div id="sisi-belakang-kartu" class="hidden" style="height:100%; display:flex; flex-direction:column;">
                 <div class="id-header" style="padding:6px;"><h4 style="font-size:0.78rem; margin:0;">S</h4></div>
@@ -1390,197 +1341,57 @@
             display: block;
         }
 
-                /* CSS ID CARD & LAINNYA */
+                        /* CSS ID CARD & LAINNYA */
         .id-card-wrapper {
-            width: 324px;
-            height: 204px;
-            max-height: 204px;
-            background-color: white;
-            background-size: cover;
-            background-position: center;
-            border-radius: 12px;
-            overflow: hidden;
-            position: relative;
-            border: 1px solid #bbb;
-            display: flex;
-            flex-direction: column;
-            page-break-inside: avoid;
+            width: 324px; height: 204px; max-height: 204px;
+            background-color: #fcfcfc; border-radius: 12px; overflow: hidden; position: relative;
+            border: 1px solid #ccc; display: flex; flex-direction: column; page-break-inside: avoid;
         }
-        .id-card-wrapper.portrait {
-            width: 204px;
-            height: 324px;
-            max-height: 324px;
-        }
-        .id-header {
+        .id-card-wrapper.portrait { width: 204px; height: 324px; max-height: 324px; }
+        
+        .id-card-wrapper::before {
+            content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 50%;
             background: #04432A !important;
-            color: white !important;
-            padding: 8px;
-            text-align: center;
-            border-bottom: 2px solid #D4AF37;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
+            clip-path: polygon(0 0, 100% 0, 100% 45%, 0% 100%); z-index: 0;
         }
-        .id-card-wrapper.portrait .id-header {
-            flex-direction: column;
-            padding: 6px;
-            gap: 2px;
+        .id-card-wrapper.portrait::before { height: 42%; clip-path: polygon(0 0, 100% 0, 100% 65%, 0% 100%); }
+        .id-card-wrapper::after {
+            content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 50%;
+            background: #D4AF37 !important;
+            clip-path: polygon(0 0, 100% 0, 100% 50%, 0% 105%); z-index: -1;
         }
-        .id-header img {
-            width: 28px;
-            height: 28px;
-            border-radius: 50%;
-            background: white;
-            padding: 2px;
-        }
-        .id-header h4 { 
-            font-size: 0.8rem; 
-            margin: 0; 
-            white-space: nowrap; 
-            overflow: hidden; 
-            text-overflow: ellipsis; 
-            max-width: 220px; 
-        }
-        .id-header p { font-size: 0.5rem; color: #F4E29F; margin: 0; }
-        .id-body {
-            padding: 10px;
-            display: flex;
-            gap: 10px;
-            background: rgba(255, 255, 255, 0.92) !important;
-            flex: 1;
-            position: relative;
-            align-items: center;
-            overflow: hidden;
-        }
-        .id-card-wrapper.portrait .id-body {
-            flex-direction: column;
-            align-items: center;
-            justify-content: flex-start;
-            gap: 6px;
-        }
-        .id-photo {
-            width: 70px;
-            height: 90px;
-            object-fit: cover;
-            border: 2px solid #04432A;
-            border-radius: 6px;
-            background: #eee;
-            flex-shrink: 0;
-        }
-        .id-details {
-            flex: 1;
-            font-size: 0.65rem;
-            line-height: 1.4;
-            color: #111;
-            font-weight: 600;
-            text-align: left;
-            overflow: hidden;
-        }
-        .id-card-wrapper.portrait .id-details {
-            text-align: center;
-            width: 100%;
-            font-size: 0.6rem;
-        }
-        .id-details strong {
-            color: #04432A;
-            font-size: 0.75rem;
-            display: block;
-            margin-bottom: 3px;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
+        .id-card-wrapper.portrait::after { height: 42%; clip-path: polygon(0 0, 100% 0, 100% 70%, 0% 105%); }
 
-        .id-footer-custom {
-            background: #04432A !important;
-            color: white !important;
-            text-align: center;
-            font-size: 0.58rem;
-            padding: 5px;
-            font-weight: bold;
-            border-top: 1px solid #D4AF37;
-            width: 100%;
+        .id-header {
+            background: transparent !important; color: white !important; border: none !important;
+            padding: 12px 14px 4px 14px; text-align: left; display: flex; align-items: center; justify-content: flex-start; gap: 10px; z-index: 1; position: relative;
         }
-        .id-back-content {
-            padding: 10px;
-            background: rgba(255, 255, 255, 0.95);
-            flex: 1;
-            display: flex;
-            flex-direction: row;
-            gap: 10px;
-            align-items: center;
-            justify-content: space-between;
+        .id-card-wrapper.portrait .id-header { flex-direction: column; padding: 12px 10px 4px 10px; gap: 4px; text-align: center; }
+        .id-header img { width: 32px; height: 32px; border-radius: 50%; background: white !important; padding: 3px; }
+        .id-header h4 { font-size: 0.85rem; margin: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 220px; }
+        .id-header p { font-size: 0.55rem; color: #F4E29F !important; margin: 0; }
+
+                .id-body {
+            padding: 6px 14px 12px 14px; display: flex; gap: 12px; background: transparent !important;
+            flex: 1; position: relative; align-items: center; overflow: hidden; z-index: 1;
         }
-        .id-back-left {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-            height: 100%;
+        .id-card-wrapper.portrait .id-body { flex-direction: column; align-items: center; justify-content: flex-start; gap: 10px; padding: 8px 10px 10px 10px; }
+        
+        /* Foto Cetak Dikecilkan */
+        .id-photo { width: 65px; height: 85px; object-fit: cover; border: 3px solid white; border-radius: 10px; background: #eee; flex-shrink: 0; }
+        .id-card-wrapper.portrait .id-photo { width: 70px; height: 90px; margin-top: 0; }
+
+        /* Box Teks Cetak Dibuang */
+        .id-details {
+            flex: 1; font-size: 0.65rem; line-height: 1.4; color: #111; font-weight: 600; text-align: left; overflow: hidden;
+            background: transparent !important; padding: 0 4px; border: none; border-radius: 0;
         }
-        .id-back-title {
-            font-size: 0.72rem;
-            font-weight: bold;
-            color: #04432A;
-            text-align: left;
-            border-bottom: 1px solid #ddd;
-            padding-bottom: 4px;
-            margin-bottom: 4px;
-        }
-        .id-back-rules {
-            font-size: 0.56rem;
-            line-height: 1.35;
-            color: #111;
-            white-space: pre-line;
-            flex: 1;
-        }
-        .id-back-ttd {
-            text-align: center !important;
-            font-size: 0.58rem;
-            font-weight: bold;
-            color: #04432A;
-            margin-top: auto;
-        }
-        .id-back-ttd img {
-            max-height: 26px;
-            display: block;
-            margin: 2px auto;
-        }
-        .id-back-right {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            padding-left: 6px;
-            border-left: 1px dashed #ccc;
-        }
-        .id-qr-back {
-            width: 85px !important;
-            height: 85px !important;
-            border: 2px solid #04432A;
-            padding: 3px;
-            background: white !important;
-            border-radius: 8px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-        .id-qr-depan { width: 55px !important; height: 55px !important; min-width: 55px; border: 1.5px solid #04432A; padding: 2px; background: white !important; border-radius: 6px; display: flex; align-items: center; justify-content: center; margin-left: auto; }
-        .id-card-wrapper.portrait .id-back-content {
-            flex-direction: column;
-            text-align: center;
-            gap: 8px;
-        }
-        .id-card-wrapper.portrait .id-back-left { text-align: center; }
-        .id-card-wrapper.portrait .id-back-title { text-align: center; }
-        .id-card-wrapper.portrait .id-back-right {
-            border-left: none;
-            border-top: 1px dashed #ccc;
-            padding-left: 0;
-            padding-top: 8px;
-            width: 100%;
-        }
+        .id-card-wrapper.portrait .id-details { text-align: center; width: 100%; }
+        .id-details strong { color: #04432A !important; font-size: 0.85rem; display: block; margin-bottom: 2px; border-bottom: none; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+        .id-footer-custom { background: #04432A !important; color: white !important; text-align: center; font-size: 0.58rem; padding: 5px; font-weight: bold; width: 100%; z-index: 1; position: relative; }
+        .id-qr-depan { width: 60px !important; height: 60px !important; min-width: 60px; border: 2px solid white; padding: 3px; background: white !important; border-radius: 8px; display: flex; align-items: center; justify-content: center; margin-left: auto; }
+        .id-card-wrapper.portrait .id-qr-depan { margin: 4px auto 0 auto; width: 68px !important; height: 68px !important; }        
         
         .kolektif-grid-gabung {
             display: grid;
@@ -1707,67 +1518,80 @@
     // Deteksi jika user memilih portrait, tambahkan class 'portrait'
     let classTambahan = orientasi === 'portrait' ? ' portrait' : '';
 
-    databaseSantri.forEach((santri) => {
+        databaseSantri.forEach((santri) => {
         let qrPayload = JSON.stringify({ n: santri.nis, u: supabaseConfig.url || "", k: supabaseConfig.key || "" });
-        let ttdImg = dataYayasan.ttd_mudir ? `<img src="${dataYayasan.ttd_mudir}" style="max-height:26px; display:block; margin:2px auto;">` : '';
 
         htmlKartuKolektif += `<div class="kolektif-grid-gabung">`;
         
-        // SISI DEPAN (Sisipkan classTambahan di id-card-wrapper)
+        // HANYA MENCETAK SISI DEPAN KARENA SEMUA DETAIL & QR SUDAH TERCOVER
         htmlKartuKolektif += `
             <div class="id-card-wrapper${classTambahan}" style="${bgCardStyle}">
                 <div class="id-header">
                     <img src="${dataYayasan.logo || 'https://cdn-icons-png.flaticon.com/512/3592/3592078.png'}">
                     <div><h4 style="margin: 0;">${dataYayasan.pondok || 'Nama Instansi'}</h4><p style="margin: 0;">${dataYayasan.yayasan || 'Sistem Manajemen'}</p></div>
                 </div>
-                                    <div class="id-body">
-                        <img src="${santri.foto}" class="id-photo">
-                        <div class="id-details">
-                            <strong style="text-transform: uppercase;">${santri.nama}</strong>
-                            <div style="margin-top: 5px;">NIS: <span style="font-weight: bold;">${santri.nis}</span><br>${getTerm('asrama')}: <span>${santri.asrama}</span><br>${getTerm('kamar')}: <span>${santri.kamar}</span><br>Alamat: <span style="display:block; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width: 100px;">${(santri.alamat || '-')}</span></div>
+                <div class="id-body">
+                    <img src="${santri.foto}" class="id-photo">
+                    <div class="id-details">
+                        <strong style="text-transform: uppercase;">${santri.nama}</strong>
+                        <div style="margin-top: 5px;">
+                            <span style="display:inline-block; width: 38px;">NIS</span>: <b style="color:var(--primary);">${santri.nis}</b><br>
+                            <span style="display:inline-block; width: 38px;">Alamat</span>: <b style="display:inline-block; vertical-align:top; max-width: 105px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${(santri.alamat || '-')}</b>
                         </div>
-                        <div class="id-qr-depan" id="qr-gabung-${santri.nis}" data-payload='${qrPayload}'></div>
                     </div>
+                    <div class="id-qr-depan" id="qr-gabung-${santri.nis}" data-payload='${qrPayload}'></div>
+                </div>
                 ${footerHTML}
             </div>
         `;
         
-        // SISI BELAKANG (Sisipkan classTambahan di id-card-wrapper)
-        htmlKartuKolektif += `
-            <div class="id-card-wrapper${classTambahan}" style="${bgCardStyle}">
-                <div class="id-header" style="padding:6px;"><h4 style="font-size:0.78rem; margin:0;">KARTU SALAM PESANTREN</h4></div>
-                <div class="id-back-content">
-                    <div class="id-back-left">
-                        <div>
-                            <div class="id-back-title">${dataYayasan.pondok || 'INSTANSI PENDIDIKAN'}</div>
-                            <div class="id-back-rules">${dataYayasan.tata_tertib || '1. Wajib menjaga tata tertib...\n2. Kartu wajib dibawa setiap saat.'}</div>
-                        </div>
-                        <div class="id-back-ttd">
-                            <div>Mengetahui, Pimpinan</div>
-                            ${ttdImg}
-                            <div>${dataYayasan.mudir || 'Pimpinan'}</div>
-                        </div>
-                    </div>
-                                            <div class="id-back-right">
-                            <span style="font-size:0.7rem; font-weight:bold; color:var(--primary); margin-top:4px; text-align:center;">KARTU<br>DIGITAL</span>
-                        </div>
-                </div>
-            </div>
-        `;
         htmlKartuKolektif += `</div>`;
     });
+
 
     const containerTemp = document.createElement('div'); 
     containerTemp.style.position = 'fixed'; containerTemp.style.right = '200vw'; 
     document.body.appendChild(containerTemp); 
     containerTemp.innerHTML = htmlKartuKolektif;
     
+        const sizeQRPrint = parseInt(dataYayasan.ukuran_qr) || 60;
+    const sizeFontPrint = parseInt(dataYayasan.font_nama) || 13;
+
+    // Terapkan ukuran font nama ke semua kartu yang sedang akan dicetak
+    containerTemp.querySelectorAll('.id-details strong').forEach(namaEl => {
+        namaEl.style.fontSize = sizeFontPrint + 'px';
+    });
+
     databaseSantri.forEach(santri => {
         const wadahQR = containerTemp.querySelector(`#qr-gabung-${santri.nis}`);
         if (wadahQR && typeof QRCode !== 'undefined') {
-            new QRCode(wadahQR, { text: wadahQR.getAttribute('data-payload'), width: 85, height: 85, correctLevel: QRCode.CorrectLevel.L });
+            // Terapkan ukuran div QR sebelum di-render
+            wadahQR.style.width = sizeQRPrint + 'px';
+            wadahQR.style.height = sizeQRPrint + 'px';
+            wadahQR.style.minWidth = sizeQRPrint + 'px';
+
+            new QRCode(wadahQR, { 
+                text: wadahQR.getAttribute('data-payload'), 
+                width: sizeQRPrint, 
+                height: sizeQRPrint, 
+                correctLevel: QRCode.CorrectLevel.L 
+            });
         }
     });
+
+    // Sesuaikan perbaikan ukuran canvas agar gambar tidak pecah / meluber saat di print
+    setTimeout(() => { 
+        const canvases = containerTemp.querySelectorAll('canvas');
+        canvases.forEach(canvas => {
+            const img = document.createElement('img'); img.src = canvas.toDataURL('image/png'); 
+            img.style.width = sizeQRPrint + 'px'; img.style.height = sizeQRPrint + 'px';
+            const siblingImg = canvas.nextElementSibling; if(siblingImg && siblingImg.tagName === 'IMG') siblingImg.remove();
+            canvas.parentNode.replaceChild(img, canvas);
+        });
+        cetakElemenHTML(containerTemp.innerHTML, 'portrait'); 
+        containerTemp.remove();
+    }, 600);
+
 
     setTimeout(() => { 
         const canvases = containerTemp.querySelectorAll('canvas');
@@ -2453,7 +2277,10 @@
                 document.getElementById('setting-teks-lulus').value = data.teks_lulus || ""; 
                 
 document.getElementById('setting-kertas-sertifikat').value = data.kertas_sertifikat || "A4";
-                document.getElementById('setting-voice-aktif').value = data.voice_aktif || "1"; 
+               
+               document.getElementById('setting-font-nama').value = data.font_nama || "13";
+                document.getElementById('setting-ukuran-qr').value = data.ukuran_qr || "60";
+                 document.getElementById('setting-voice-aktif').value = data.voice_aktif || "1"; 
                 document.getElementById('setting-voice-teks').value = data.voice_teks || ""; 
                 document.getElementById('setting-tata-tertib').value = data.tata_tertib || ""; 
                 document.getElementById('setting-izin-judul').value = data.izin_judul || ""; 
@@ -2951,7 +2778,41 @@ function bukaModalSertifikat(nis) {
         document.getElementById('id-card-modal').classList.remove('hidden'); 
     }
 
-    function terapkanKustomisasiLayoutIDCard(teksFooter, qrText) { const wadahQR = document.getElementById("card-qr"); wadahQR.innerHTML = ''; const footerEl = document.getElementById('card-footer-custom'); if(teksFooter && teksFooter.trim() !== "") { footerEl.innerText = teksFooter; footerEl.classList.remove('hidden'); } else { footerEl.classList.add('hidden'); } if (typeof QRCode !== 'undefined') { new QRCode(wadahQR, { text: qrText, width: 85, height: 85, colorDark: "#000000", colorLight: "#ffffff", correctLevel: QRCode.CorrectLevel.L }); } }
+        function terapkanKustomisasiLayoutIDCard(teksFooter, qrText) { 
+        const wadahQR = document.getElementById("card-qr"); 
+        wadahQR.innerHTML = ''; 
+        
+        const footerEl = document.getElementById('card-footer-custom'); 
+        if(teksFooter && teksFooter.trim() !== "") { 
+            footerEl.innerText = teksFooter; 
+            footerEl.classList.remove('hidden'); 
+        } else { 
+            footerEl.classList.add('hidden'); 
+        } 
+        
+        // Ambil ukuran dari pengaturan (default 60 jika kosong)
+        const yayasan = getDB('pondok_yayasan', {});
+        const sizeQR = parseInt(yayasan.ukuran_qr) || 60;
+        const sizeFont = parseInt(yayasan.font_nama) || 13;
+
+        // Terapkan ukuran dinamis ke tampilan
+        wadahQR.style.width = sizeQR + 'px';
+        wadahQR.style.height = sizeQR + 'px';
+        wadahQR.style.minWidth = sizeQR + 'px';
+        document.getElementById('card-nama').style.fontSize = sizeFont + 'px';
+
+        // Render QR dengan ukuran presisi
+        if (typeof QRCode !== 'undefined') { 
+            new QRCode(wadahQR, { 
+                text: qrText, 
+                width: sizeQR, 
+                height: sizeQR, 
+                colorDark: "#000000", 
+                colorLight: "#ffffff", 
+                correctLevel: QRCode.CorrectLevel.L 
+            }); 
+        } 
+    }
 
     function getStatistikIzin(nisSantri) { const histDB = getDB('pondok_history_izin', []); const riwayatSantri = histDB.filter(x => x.nis === nisSantri); let totalHari = 0; riwayatSantri.forEach(item => { totalHari += (parseInt(item.durasi_hari) || 1); }); return { total_kali: riwayatSantri.length, total_hari: totalHari }; }
 
@@ -3615,6 +3476,8 @@ function bukaModalSertifikat(nis) {
             teks_footer: document.getElementById('setting-footer-text').value,
             teks_lulus: document.getElementById('setting-teks-lulus').value,
             kertas_sertifikat: document.getElementById('setting-kertas-sertifikat').value,
+            font_nama: document.getElementById('setting-font-nama').value,
+            ukuran_qr: document.getElementById('setting-ukuran-qr').value,
             voice_aktif:             document.getElementById('setting-voice-aktif').value,
             voice_teks: document.getElementById('setting-voice-teks').value,
             tata_tertib: document.getElementById('setting-tata-tertib').value,
