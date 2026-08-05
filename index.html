@@ -279,6 +279,7 @@
             align-items: center;
             justify-content: center;
         }
+.id-qr-depan { width: 55px; height: 55px; min-width: 55px; border: 1.5px solid var(--primary); padding: 2px; background: white; border-radius: 6px; display: flex; align-items: center; justify-content: center; margin-left: auto; }
 
         /* 3. PERILAKU KHUSUS UNTUK MODE PORTRAIT */
         .id-card-wrapper.portrait .id-header {
@@ -831,10 +832,11 @@
                     <label>Username</label><input type="text" id="reg-username" placeholder="Username untuk login...">
                     <label>Password</label><input type="password" id="reg-password" placeholder="Password akun...">
                     <label>Role</label>
-                    <select id="reg-role">
+                                        <select id="reg-role">
                         <option value="admin">Admin Tata Usaha</option>
                         <option value="ustadz">Ustadz / Pengajar</option>
                         <option value="accounting">Bagian Keuangan</option>
+                        <option value="paguyuban">Paguyuban / Pedagang</option>
                         <option value="superadmin">Super Admin</option>
                     </select>
                     <button class="btn-primary" id="btn-simpan-pengguna" onclick="simpanPengguna()">SIMPAN AKUN</button>
@@ -917,6 +919,32 @@
         </div>
     </div>
 </div>
+            <div id="view-paguyuban" class="hidden page-view">
+                <div class="back-nav" onclick="closeSubMenu()"><i class="fa-solid fa-arrow-left"></i> Kembali ke Dashboard</div>
+                <div class="card card-premium" style="border-left-color: #E67E22;">
+                    <h3 style="margin-bottom: 14px; color: #E67E22;"><i class="fa-solid fa-store"></i> Kasir Paguyuban</h3>
+                    
+                    <div style="display: flex; gap: 8px; margin-bottom: 14px;">
+                        <button class="btn-primary" onclick="startScannerPaguyuban()" style="flex:1;"><i class="fa-solid fa-qrcode"></i> Scan Kartu Santri</button>
+                        <button class="btn-outline" onclick="stopScannerPaguyuban()" id="btn-stop-scanner-paguyuban" style="flex:1; display:none;"><i class="fa-solid fa-stop"></i> Tutup Kamera</button>
+                    </div>
+                    <div id="qr-reader-paguyuban" style="width:100%; display:none; margin-bottom:14px;"></div>
+                    
+                    <div id="area-input-paguyuban" class="hidden">
+                        <div style="background:rgba(230, 126, 34, 0.1); padding:12px; border-radius:12px; margin-bottom:12px;">
+                            <strong>Santri:</strong> <span id="paguyuban-nama-santri" style="color:var(--primary);"></span><br>
+                            <strong>Saldo Tabungan:</strong> Rp <span id="paguyuban-saldo-santri" style="font-weight:bold; color:var(--success);">0</span>
+                            <input type="hidden" id="paguyuban-nis-hidden">
+                            <input type="hidden" id="paguyuban-saldo-hidden">
+                        </div>
+
+                        <label>Masukkan Nominal Belanja (Rp)</label>
+                        <input type="number" id="input-nominal-belanja" placeholder="Contoh: 5000">
+
+                        <button class="btn-warning" onclick="prosesBelanjaPaguyuban()" style="width: 100%; padding: 12px; margin-top: 14px;"><i class="fa-solid fa-cash-register"></i> PROSES PEMBAYARAN</button>
+                    </div>
+                </div>
+            </div>
 
         </div> 
     </main>
@@ -1096,7 +1124,7 @@
                     <img src="" id="card-logo">
                     <div><h4 id="card-pondok">Nama Instansi</h4><p id="card-yayasan">Nama Yayasan</p></div>
                 </div>
-                <div class="id-body" id="card-body-container">
+                                <div class="id-body" id="card-body-container">
                     <img src="" id="card-foto" class="id-photo">
                     <div class="id-details">
                         <strong id="card-nama" style="text-transform: uppercase;">NAMA LENGKAP</strong>
@@ -1104,15 +1132,17 @@
                             <span id="label-nomor">NIS:</span> <span id="card-nis" style="font-weight: bold;"></span><br>
                             <span id="label-asrama">Asrama:</span> <span id="card-asrama"></span><br>
                             <span id="label-kamar">Kamar:</span> <span id="card-kamar"></span><br>
-                            <span id="label-alamat">Alamat:</span> <span id="card-alamat"></span>
+                            <span id="label-alamat">Alamat:</span> <span id="card-alamat" style="display:block; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width: 120px;"></span>
                         </div>
                     </div>
+                    <div class="id-qr-depan" id="card-qr"></div>
                 </div>
+
                 <div class="id-footer-custom hidden" id="card-footer-custom"></div>
             </div>
 
             <div id="sisi-belakang-kartu" class="hidden" style="height:100%; display:flex; flex-direction:column;">
-                <div class="id-header" style="padding:6px;"><h4 style="font-size:0.78rem; margin:0;">QR DIGITAL CARD</h4></div>
+                <div class="id-header" style="padding:6px;"><h4 style="font-size:0.78rem; margin:0;">S</h4></div>
                 <div class="id-back-content">
                     <div class="id-back-left">
                         <div>
@@ -1125,9 +1155,8 @@
                             <div id="back-mudir-nama">Mudir Instansi</div>
                         </div>
                     </div>
-                    <div class="id-back-right">
-                        <div class="id-qr-back" id="card-qr"></div>
-                        <span style="font-size:0.5rem; font-weight:bold; color:var(--primary); margin-top:4px;">SCAN E-SAN</span>
+                                        <div class="id-back-right">
+                        <span style="font-size:0.7rem; font-weight:bold; color:var(--primary); margin-top:4px; text-align:center;">KARTU<br>DIGITAL</span>
                     </div>
                 </div>
             </div>
@@ -1169,14 +1198,16 @@
     let base64TempImages = { logo: '', bg_login: '', bg_idcard: '', ttd_mudir: '' }, tempFotoSantriBase64 = ''; 
     let tempFotoPegawaiBase64 = '', tempSelfFotoBase64 = '';
     
-    const defaultAkses = { 
-    superadmin: ['view-santri', 'view-evaluasi', 'view-izin', 'view-rekap', 'view-kelas', 'view-absen', 'view-keuangan', 'view-tabungan', 'view-yayasan', 'view-lokasi', 'view-hak-akses', 'view-pengguna', 'view-database'], 
-    admin: ['view-santri', 'view-evaluasi', 'view-izin', 'view-rekap', 'view-kelas', 'view-database', 'view-tabungan'], 
-    ustadz: ['view-absen', 'view-evaluasi', 'view-database'], 
-    accounting: ['view-keuangan', 'view-tabungan', 'view-database'] 
-};
+        const defaultAkses = { 
+        superadmin: ['view-santri', 'view-evaluasi', 'view-izin', 'view-rekap', 'view-kelas', 'view-absen', 'view-keuangan', 'view-tabungan', 'view-paguyuban', 'view-yayasan', 'view-lokasi', 'view-hak-akses', 'view-pengguna', 'view-database'], 
+        admin: ['view-santri', 'view-evaluasi', 'view-izin', 'view-rekap', 'view-kelas', 'view-database', 'view-tabungan'], 
+        ustadz: ['view-absen', 'view-evaluasi', 'view-database'], 
+        accounting: ['view-keuangan', 'view-tabungan', 'view-database'],
+        paguyuban: ['view-paguyuban']
+    };
 
-const menuMaster = [ 
+    const menuMaster = [ 
+        { id: 'view-paguyuban', nama: 'Kasir Paguyuban (Belanja)', icon: 'fa-store' },
     { id: 'view-santri', icon: 'fa-id-card' }, 
     { id: 'view-evaluasi', nama: 'Evaluasi & Kelulusan', icon: 'fa-star' }, 
     { id: 'view-izin', nama: 'Surat Izin Santri & Validasi Balik', icon: 'fa-file-signature' }, 
@@ -1535,6 +1566,7 @@ const menuMaster = [
             align-items: center;
             justify-content: center;
         }
+        .id-qr-depan { width: 55px !important; height: 55px !important; min-width: 55px; border: 1.5px solid #04432A; padding: 2px; background: white !important; border-radius: 6px; display: flex; align-items: center; justify-content: center; margin-left: auto; }
         .id-card-wrapper.portrait .id-back-content {
             flex-direction: column;
             text-align: center;
@@ -1688,13 +1720,14 @@ const menuMaster = [
                     <img src="${dataYayasan.logo || 'https://cdn-icons-png.flaticon.com/512/3592/3592078.png'}">
                     <div><h4 style="margin: 0;">${dataYayasan.pondok || 'Nama Instansi'}</h4><p style="margin: 0;">${dataYayasan.yayasan || 'Sistem Manajemen'}</p></div>
                 </div>
-                <div class="id-body">
-                    <img src="${santri.foto}" class="id-photo">
-                    <div class="id-details">
-                        <strong style="text-transform: uppercase;">${santri.nama}</strong>
-                        <div style="margin-top: 5px;">NIS: <span style="font-weight: bold;">${santri.nis}</span><br>${getTerm('asrama')}: <span>${santri.asrama}</span><br>${getTerm('kamar')}: <span>${santri.kamar}</span><br>Alamat: <span>${(santri.alamat || '-').substring(0, 32)}</span></div>
+                                    <div class="id-body">
+                        <img src="${santri.foto}" class="id-photo">
+                        <div class="id-details">
+                            <strong style="text-transform: uppercase;">${santri.nama}</strong>
+                            <div style="margin-top: 5px;">NIS: <span style="font-weight: bold;">${santri.nis}</span><br>${getTerm('asrama')}: <span>${santri.asrama}</span><br>${getTerm('kamar')}: <span>${santri.kamar}</span><br>Alamat: <span style="display:block; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width: 100px;">${(santri.alamat || '-')}</span></div>
+                        </div>
+                        <div class="id-qr-depan" id="qr-gabung-${santri.nis}" data-payload='${qrPayload}'></div>
                     </div>
-                </div>
                 ${footerHTML}
             </div>
         `;
@@ -1702,7 +1735,7 @@ const menuMaster = [
         // SISI BELAKANG (Sisipkan classTambahan di id-card-wrapper)
         htmlKartuKolektif += `
             <div class="id-card-wrapper${classTambahan}" style="${bgCardStyle}">
-                <div class="id-header" style="padding:6px;"><h4 style="font-size:0.78rem; margin:0;">QR Digital Card</h4></div>
+                <div class="id-header" style="padding:6px;"><h4 style="font-size:0.78rem; margin:0;">KARTU SALAM PESANTREN</h4></div>
                 <div class="id-back-content">
                     <div class="id-back-left">
                         <div>
@@ -1715,10 +1748,9 @@ const menuMaster = [
                             <div>${dataYayasan.mudir || 'Pimpinan'}</div>
                         </div>
                     </div>
-                    <div class="id-back-right">
-                        <div class="id-qr-back" id="qr-gabung-${santri.nis}" data-payload='${qrPayload}'></div>
-                        <span style="font-size:0.5rem; font-weight:bold; color:var(--primary); margin-top:4px;">SCAN E-SAN</span>
-                    </div>
+                                            <div class="id-back-right">
+                            <span style="font-size:0.7rem; font-weight:bold; color:var(--primary); margin-top:4px; text-align:center;">KARTU<br>DIGITAL</span>
+                        </div>
                 </div>
             </div>
         `;
@@ -2381,8 +2413,9 @@ const menuMaster = [
         if(lastTab === 'view-evaluasi') renderDropdownKelasEvaluasi();
         if(lastTab === 'view-izin') renderTabelIzinAktif();
         if(lastTab === 'view-kelas') { renderMasterMapel(); renderTabelDaftarKelas(); }
-        if(lastTab === 'view-absen') startAnalisisGPSUstadz(); 
-        if(lastTab === 'view-keuangan') renderDataKeuanganPanel(); 
+               if (lastTab === 'view-absen') startAnalisisGPSUstadz(); 
+        if (lastTab === 'view-keuangan') renderDataKeuanganPanel();
+        if (lastTab === 'view-paguyuban') { document.getElementById('area-input-paguyuban').classList.add('hidden'); } 
         if(lastTab === 'view-hak-akses') renderCheckboxHakAkses(); 
         if(lastTab === 'view-lokasi') renderFormGeofencing(); 
         if(lastTab === 'view-pengguna') renderTabelPegawai(); 
@@ -4182,8 +4215,159 @@ function simpanTabungan() {
         // 4. Perintahkan sistem untuk merender HTML di atas menjadi PDF/Print
         cetakElemenHTML(htmlPrint, 'portrait');
     }
+    let scannerPaguyuban = null;
+
+    function hitungSaldo(nis) {
+        let dbTabungan = getDB('pondok_tabungan', []);
+        let saldo = 0;
+        dbTabungan.forEach(t => {
+            if (t.nis === nis) {
+                saldo += parseInt(t.nominal);
+            }
+        });
+        return saldo;
+    }
+
+    function startScannerPaguyuban() {
+        if (typeof Html5Qrcode === 'undefined') return alert("Library Scanner belum siap.");
+        document.getElementById('qr-reader-paguyuban').style.display = 'block';
+        document.getElementById('btn-stop-scanner-paguyuban').style.display = 'flex';
+        document.getElementById('area-input-paguyuban').classList.add('hidden');
+        
+        if (!scannerPaguyuban) {
+            scannerPaguyuban = new Html5Qrcode("qr-reader-paguyuban");
+            scannerPaguyuban.start({ facingMode: "environment" }, { fps: 15, qrbox: { width: 250, height: 250 } }, (rawScan) => {
+                prosesQRPaguyuban(rawScan);
+                stopScannerPaguyuban();
+            }).catch(() => { alert("Gagal membuka kamera."); stopScannerPaguyuban(); });
+        }
+    }
+
+    function prosesQRPaguyuban(rawScan) {
+        let nisScan = rawScan; 
+        try { let parsed = JSON.parse(rawScan); if (parsed.n) nisScan = parsed.n; } catch(e) {}
+        
+        const santri = getDB('pondok_santri', []).find(s => s.nis === nisScan);
+        if (santri) {
+            let saldoAktif = hitungSaldo(santri.nis);
+            document.getElementById('paguyuban-nama-santri').innerText = santri.nama;
+            document.getElementById('paguyuban-saldo-santri').innerText = saldoAktif.toLocaleString('id-ID');
+            document.getElementById('paguyuban-nis-hidden').value = santri.nis;
+            document.getElementById('paguyuban-saldo-hidden').value = saldoAktif;
+            document.getElementById('input-nominal-belanja').value = '';
+            document.getElementById('area-input-paguyuban').classList.remove('hidden');
+        } else {
+            alert("Kartu Santri tidak dikenali!");
+        }
+    }
+
+    function stopScannerPaguyuban() {
+        if (scannerPaguyuban) {
+            scannerPaguyuban.stop().then(() => {
+                document.getElementById('qr-reader-paguyuban').style.display = 'none';
+                document.getElementById('btn-stop-scanner-paguyuban').style.display = 'none';
+                scannerPaguyuban = null;
+            });
+        }
+    }
+
+    function prosesBelanjaPaguyuban() {
+        const nis = document.getElementById('paguyuban-nis-hidden').value;
+        const saldo = parseInt(document.getElementById('paguyuban-saldo-hidden').value);
+        const belanja = parseInt(document.getElementById('input-nominal-belanja').value);
+
+        if (!belanja || belanja <= 0) return alert("Masukkan nominal belanja yang valid!");
+        if (belanja > saldo) return alert("Saldo santri tidak mencukupi!");
+
+        let dbTabungan = getDB('pondok_tabungan', []);
+        dbTabungan.push({
+            id: Date.now(),
+            nis: nis,
+            nominal: -Math.abs(belanja), 
+            pedagang: currentUser.nama, 
+            tanggal: new Date().toISOString()
+        });
+        localStorage.setItem('pondok_tabungan', JSON.stringify(dbTabungan));
+        
+        alert(`Pembayaran sukses!\nSaldo terpotong: Rp ${belanja.toLocaleString('id-ID')}`);
+        document.getElementById('area-input-paguyuban').classList.add('hidden');
+    }
+    // ==========================================
+    // LOGIKA SCANNER USB / WIRELESS (KEYBOARD WEDGE)
+    // ==========================================
+    let usbBarcodeBuffer = '';
+    let usbLastKeystrokeTime = 0;
+    let isUsbScannerActive = true; 
+
+    document.addEventListener('keydown', function(e) {
+        if (!isUsbScannerActive) return;
+        
+        // ABAIKAN jika fokus ada di form input
+        if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+
+        const currentTime = Date.now();
+        if (currentTime - usbLastKeystrokeTime > 50) {
+            usbBarcodeBuffer = '';
+        }
+
+        if (e.key === 'Enter') {
+            if (usbBarcodeBuffer.length > 3) {
+                e.preventDefault();
+                prosesHasilScanUSB(usbBarcodeBuffer);
+            }
+            usbBarcodeBuffer = '';
+        } else if (e.key.length === 1) { 
+            usbBarcodeBuffer += e.key;
+        }
+        
+        usbLastKeystrokeTime = currentTime;
+    });
+
+    function prosesHasilScanUSB(hasilScan) {
+        const activeTab = localStorage.getItem('pondok_active_tab');
+        
+        if (activeTab === 'view-paguyuban') {
+            prosesQRPaguyuban(hasilScan);
+        } 
+        else if (activeTab === 'view-tabungan') {
+            let nisScan = hasilScan; 
+            try { let p = JSON.parse(hasilScan); if (p.n) nisScan = p.n; } catch(e) {}
+            const santri = getDB('pondok_santri', []).find(s => s.nis === nisScan);
+            if (santri) {
+                document.getElementById('tabungan-nama-santri').innerText = santri.nama;
+                document.getElementById('tabungan-nis-santri').innerText = santri.nis;
+                document.getElementById('tabungan-nis-hidden').value = santri.nis;
+                document.getElementById('area-input-tabungan').classList.remove('hidden');
+                kalkulasiTabungan();
+            } else { alert("Data santri tidak ditemukan via USB"); }
+        }
+        else if (activeTab === 'view-absen') {
+            let nisScan = hasilScan; 
+            try { let p = JSON.parse(hasilScan); if (p.n) nisScan = p.n; } catch(e) {}
+            const baris = document.getElementById(`baris_santri_${nisScan}`);
+            if (baris) {
+                const radioHadir = baris.querySelector('input[value="Hadir"]');
+                if (radioHadir) {
+                    radioHadir.checked = true;
+                    radioHadir.dispatchEvent(new Event('change'));
+                    document.getElementById('scan-result').innerHTML = `<span style="color:var(--success);"><i class="fa-solid fa-circle-check"></i> Hadir via USB: ${nisScan}</span>`;
+                }
+            }
+        }
+        else if (activeTab === 'view-izin') {
+            let nisScan = hasilScan; 
+            try { let p = JSON.parse(hasilScan); if (p.n) nisScan = p.n; } catch(e) {}
+            
+            if (modeScannerIzinAktif === 'keluar') {
+                bukaModalInputIzin(nisScan);
+            } else {
+                validasiSantriBalikIzin(nisScan);
+            }
+        }
+    }
 
     window.onload = initApp;
 </script>
 </body>
+</html>
 </html>
