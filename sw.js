@@ -1,5 +1,5 @@
 // SMS PWA Service Worker v2.0
-const CACHE = 'sms-v2';
+const CACHE = 'sms-v3';
 const ASSETS = [
   './', './index.html', './manifest.json',
   './icon-192.png', './icon-512.png', './icon-180.png',
