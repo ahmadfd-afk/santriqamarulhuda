@@ -4193,18 +4193,21 @@ function simpanTabungan() {
     // ==========================================
     // LOGIKA SCANNER USB / WIRELESS (KEYBOARD WEDGE)
     // ==========================================
-    let usbBarcodeBuffer = '';
+        let usbBarcodeBuffer = '';
     let usbLastKeystrokeTime = 0;
     let isUsbScannerActive = true; 
 
     document.addEventListener('keydown', function(e) {
         if (!isUsbScannerActive) return;
         
-        // ABAIKAN jika fokus ada di form input
+        // ABAIKAN jika fokus ada di form input agar tidak bentrok saat mengetik manual
         if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
 
         const currentTime = Date.now();
-        if (currentTime - usbLastKeystrokeTime > 50) {
+        
+        // PERBAIKAN: Ubah toleransi jeda dari 50ms menjadi 200ms
+        // Ini memberi waktu bagi scanner wireless mentransfer data JSON yang panjang
+        if (currentTime - usbLastKeystrokeTime > 200) {
             usbBarcodeBuffer = '';
         }
 
@@ -4220,6 +4223,7 @@ function simpanTabungan() {
         
         usbLastKeystrokeTime = currentTime;
     });
+
 
     function prosesHasilScanUSB(hasilScan) {
         const activeTab = localStorage.getItem('pondok_active_tab');
