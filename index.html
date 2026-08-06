@@ -3221,16 +3221,63 @@ document.getElementById('card-alamat').style.fontSize = sizeFontAlamat + 'px';
         }, { enableHighAccuracy: true, timeout: 10000 });
     }
 
-    function loadSemuaMapelAbsenForPilihan() { 
+        function loadSemuaMapelAbsenForPilihan() { 
         const dropdown = document.getElementById('pilih-mapel-absen'); 
         if (!dropdown) return;
-        dropdown.innerHTML = '<option value="">-- Pilih Mata Pelajaran (Lintas Kelas) --</option>'; 
+        
+        // Reset isi dropdown
+        dropdown.innerHTML = '<option value="">-- Pilih Mata Pelajaran Saat Ini --</option>'; 
         
         const masterMapel = getDB('pondok_master_mapel', []);
+        
+        // Dapatkan Hari dan Waktu Sekarang secara Real-Time
+        const namaHariIni = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'][new Date().getDay()];
+        const sekarang = new Date();
+        const jamSekarang = String(sekarang.getHours()).padStart(2, '0') + ':' + String(sekarang.getMinutes()).padStart(2, '0');
+
+        let htmlJadwalSaya = '';
+        let htmlJadwalLain = '';
+
         masterMapel.forEach(m => {
-            dropdown.innerHTML += `<option value="${m.id}">${m.nama_mapel} (${m.ustadz_nama}) - ${(m.kelas_ids || []).length} Kelas</option>`;
+            let tampilkan = false;
+
+            // 1. Filter HANYA berdasarkan Hari dan Jam
+            if (m.jadwal_aktif) {
+                if (m.hari === namaHariIni && jamSekarang >= (m.jam_mulai || "00:00") && jamSekarang <= (m.jam_selesai || "23:59")) {
+                    tampilkan = true;
+                }
+            } else {
+                // Jadwal fleksibel
+                tampilkan = true;
+            }
+
+            // 2. Jika waktunya cocok, pisahkan antara jadwal sendiri dan jadwal orang lain
+            if (tampilkan) {
+                const isMilikSendiri = (m.ustadz_ids || []).includes(currentUser.username) || (m.ustadz_id === currentUser.username) || currentUser.role === 'superadmin';
+                
+                if (isMilikSendiri) {
+                    htmlJadwalSaya += `<option value="${m.id}">${m.nama_mapel} - ${(m.kelas_ids || []).length} Kelas</option>`;
+                } else {
+                    htmlJadwalLain += `<option value="${m.id}">${m.nama_mapel} - ${(m.kelas_ids || []).length} Kelas (Ustadz: ${m.ustadz_nama})</option>`;
+                }
+            }
         });
+
+        // 3. Masukkan ke dalam dropdown dengan pengelompokan yang rapi
+        if (htmlJadwalSaya !== '') {
+            dropdown.innerHTML += `<optgroup label="📌 JADWAL SAYA JAM INI">${htmlJadwalSaya}</optgroup>`;
+        }
+        
+        if (htmlJadwalLain !== '') {
+            dropdown.innerHTML += `<optgroup label="🔄 JADWAL USTADZ LAIN (Untuk Pengganti)">${htmlJadwalLain}</optgroup>`;
+        }
+
+        // 4. Feedback jika benar-benar kosong
+        if (htmlJadwalSaya === '' && htmlJadwalLain === '') {
+            dropdown.innerHTML = '<option value="">-- Tidak ada jadwal pelajaran di jam ini --</option>';
+        }
     }
+
 
     function renderAbsenSantriByMapel() { 
         const idMapel = document.getElementById('pilih-mapel-absen').value; 
@@ -4323,4 +4370,5 @@ function startScannerPaguyuban() {
     window.onload = initApp;
 </script>
 </body>
+</html>
 </html>
