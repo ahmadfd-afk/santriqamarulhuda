@@ -1645,283 +1645,219 @@
         cetakElemenHTML(htmlPrint, 'portrait');
     }
 
-        function cetakLaporanPDF() {
-        const filterBulan = document.getElementById('filter-bulan-rekap').value; 
-        const filterKelasId = document.getElementById('filter-kelas-rekap').value;
-        const santriDB = getDB('pondok_santri', []); 
-        const absensiDB = getDB('pondok_absensi', []); 
-        const dendaDB = getDB('pondok_tagihan_denda', []); 
-        const settingUang = getDB('pondok_setting_keuangan', { limit_alpa: 3, sanksi_ekstra: "Panggilan Orang Tua" });
-        
-        if(santriDB.length === 0) return alert("Belum ada data terdaftar.");
-        
-        let dataRekap = {}; 
+       /* ========================================================================== */
+/* === AWAL PERBAIKAN BLOK 4: LAPORAN REKAP PDF DENGAN WARNA LINTAS KELAS === */
+/* ========================================================================== */
+function cetakLaporanPDF() {
+    const filterBulan = document.getElementById('filter-bulan-rekap').value; 
+    const filterKelasId = document.getElementById('filter-kelas-rekap').value;
+    const santriDB = getDB('pondok_santri', []); 
+    const absensiDB = getDB('pondok_absensi', []); 
+    const dendaDB = getDB('pondok_tagihan_denda', []); 
+    const settingUang = getDB('pondok_setting_keuangan', { limit_alpa: 3, sanksi_ekstra: "Panggilan Orang Tua" });
+    
+    if(santriDB.length === 0) return alert("Belum ada data terdaftar.");
+    
+    let dataRekap = {}; 
 
-        // PERBAIKAN 1: Filter santri sesuai dengan ID kelas yang dipilih di dropdown
-        let santriTerfilter = santriDB.filter(s => !s.is_alumni);
-        if (filterKelasId !== 'all') {
-            const klsObj = getDB('pondok_kelas', []).find(k => k.id == filterKelasId);
-            if (klsObj) {
-                santriTerfilter = santriDB.filter(s => (klsObj.santri_ids || []).includes(s.id));
-            }
+    let santriTerfilter = santriDB.filter(s => !s.is_alumni);
+    if (filterKelasId !== 'all') {
+        const klsObj = getDB('pondok_kelas', []).find(k => k.id == filterKelasId);
+        if (klsObj) {
+            santriTerfilter = santriDB.filter(s => (klsObj.santri_ids || []).includes(s.id));
         }
-        
-        if(santriTerfilter.length === 0) return alert("Tidak ada santri di kelas ini.");
+    }
+    
+    if(santriTerfilter.length === 0) return alert("Tidak ada santri di kelas ini.");
 
-        // PERBAIKAN 2: Hanya masukkan santri yang sudah terfilter ke kerangka laporan
-        santriTerfilter.forEach(s => { 
-            dataRekap[s.nis] = { 
-                nama: s.nama, 
-                kamar: s.kamar, 
-                hadir: 0, izin: 0, sakit: 0, alpa: 0, denda: 0,
-                perMapel: {}
-            }; 
-        });
+    santriTerfilter.forEach(s => { 
+        dataRekap[s.nis] = { 
+            nama: s.nama, 
+            kamar: s.kamar, 
+            hadir: 0, izin: 0, sakit: 0, alpa: 0, denda: 0,
+            perMapel: {},
+            is_tamu_global: false,
+            kelas_asal: ''
+        }; 
+    });
 
-        // PERBAIKAN 3: Filter sesi absensi (gunakan String.includes karena kelas gabungan)
-        let absensiTerfilter = absensiDB.filter(sesi => { 
-            let stringBulan = sesi.tanggal_iso ? sesi.tanggal_iso.substring(0,7) : ''; 
-            let cocokBulan = filterBulan ? (stringBulan === filterBulan) : true;
-            let cocokKelas = filterKelasId === 'all' ? true : String(sesi.id_kelas).includes(String(filterKelasId));
-            return cocokBulan && cocokKelas; 
-        });
+    let absensiTerfilter = absensiDB.filter(sesi => { 
+        let stringBulan = sesi.tanggal_iso ? sesi.tanggal_iso.substring(0,7) : ''; 
+        let cocokBulan = filterBulan ? (stringBulan === filterBulan) : true;
+        let cocokKelas = filterKelasId === 'all' ? true : String(sesi.id_kelas).includes(String(filterKelasId));
+        return cocokBulan && cocokKelas; 
+    });
 
-        absensiTerfilter.forEach(sesi => { 
-            const namaMapel = sesi.mapel || "Kegiatan Umum";
-            sesi.detail.forEach(absenSiswa => { 
-                let rec = dataRekap[absenSiswa.nis];
-                if(rec) { 
-                    if(!rec.perMapel[namaMapel]) {
-                        rec.perMapel[namaMapel] = { hadir: 0, izin: 0, sakit: 0, alpa: 0 };
-                    }
-                    if(absenSiswa.status === 'Hadir') { rec.hadir++; rec.perMapel[namaMapel].hadir++; }
-                    else if(absenSiswa.status === 'Izin') { rec.izin++; rec.perMapel[namaMapel].izin++; }
-                    else if(absenSiswa.status === 'Sakit') { rec.sakit++; rec.perMapel[namaMapel].sakit++; }
-                    else if(absenSiswa.status === 'Alpa') { rec.alpa++; rec.perMapel[namaMapel].alpa++; }
-                } 
-            }); 
-        });
-
-        dendaDB.forEach(denda => { 
-            if(dataRekap[denda.nis]) dataRekap[denda.nis].denda += parseInt(denda.nominal); 
-        });
-
-        let labelFilterText = `Periode: ${filterBulan ? filterBulan : 'Semua Waktu'} | Kelas: ${filterKelasId === 'all' ? 'Semua Kelas' : document.getElementById('filter-kelas-rekap').options[document.getElementById('filter-kelas-rekap').selectedIndex].text}`;
-        
-        let htmlPrint = generateStandardKopSuratHTML();
-        htmlPrint += `
-            <div style="text-align:center; margin-bottom: 20px;">
-                <h3 style="margin:0; text-transform:uppercase;">LAPORAN REKAPITULASI ABSENSI & KEUANGAN</h3>
-                <p style="margin:2px 0; font-size:11px;">${labelFilterText}</p>
-            </div>
-            <h4 style="margin-bottom:8px;">A. MATRIKS KEHADIRAN & RINCIAN MATA PELAJARAN</h4>
-            <table style="margin-bottom: 25px;">
-                <thead>
-                    <tr>
-                        <th>NIS</th>
-                        <th>Nama Santri & Mapel / Kegiatan</th>
-                        <th>Asrama / Kamar</th>
-                        <th style="text-align:center;">Hadir</th>
-                        <th style="text-align:center;">Izin</th>
-                        <th style="text-align:center;">Sakit</th>
-                        <th style="text-align:center;">Alpa</th>
-                        <th style="text-align:right;">Total Denda (Rp)</th>
-                        <th>Keterangan / Status Sanksi</th>
-                    </tr>
-                </thead>
-                <tbody>`;
-
-        let totalSeluruhDenda = 0;
-        
-        for (const [nis, data] of Object.entries(dataRekap)) {
-            totalSeluruhDenda += data.denda; 
-            let listMapelAlpa = [];
-            for (const [mp, stat] of Object.entries(data.perMapel)) {
-                if (stat.alpa > 0) listMapelAlpa.push(`${mp} (${stat.alpa}x)`);
-            }
-            
-            let infoAlpaText = listMapelAlpa.length > 0 ? `<br><small style="color:#d35400;">• Alpa di: ${listMapelAlpa.join(', ')}</small>` : '';
-            let statusSanksi = (data.alpa >= parseInt(settingUang.limit_alpa)) 
-                ? `<span style="color:red; font-weight:bold;">${settingUang.sanksi_ekstra}</span>` 
-                : '<span style="color:#27ae60; font-weight:bold;">Aman</span>';
-
-            htmlPrint += `
-                <tr style="background-color: #f2f2f2; font-weight: bold;">
-                    <td style="border-top: 2px solid #555;">${nis}</td>
-                    <td style="border-top: 2px solid #555;">${data.nama.toUpperCase()} (TOTAL)</td>
-                    <td style="border-top: 2px solid #555;">${data.kamar}</td>
-                    <td style="text-align:center; border-top: 2px solid #555;">${data.hadir}</td>
-                    <td style="text-align:center; border-top: 2px solid #555;">${data.izin}</td>
-                    <td style="text-align:center; border-top: 2px solid #555;">${data.sakit}</td>
-                    <td style="text-align:center; color:red; border-top: 2px solid #555;">${data.alpa}</td>
-                    <td style="text-align:right; border-top: 2px solid #555;">${data.denda.toLocaleString('id-ID')}</td>
-                    <td style="border-top: 2px solid #555;">${statusSanksi} ${infoAlpaText}</td>
-                </tr>`;
-
-            const mapelKeys = Object.keys(data.perMapel);
-            if (mapelKeys.length === 0) {
-                htmlPrint += `<tr><td></td><td colspan="8" style="font-size:10px; font-style:italic; color:#777;">&nbsp;&nbsp;&nbsp;&nbsp;↳ Belum ada rekam kegiatan pada periode ini</td></tr>`;
-            } else {
-                for (const [mp, stat] of Object.entries(data.perMapel)) {
-                    let ketMapel = stat.alpa > 0 ? `<span style="color:red; font-style:italic;">Alpa ${stat.alpa} kali</span>` : 'Hadir Penuh / Aman';
-                    htmlPrint += `
-                        <tr style="font-size: 11px; color: #333;">
-                            <td></td>
-                            <td style="padding-left: 20px;">↳ <i>${mp}</i></td>
-                            <td style="text-align:center; color:#888;">-</td>
-                            <td style="text-align:center;">${stat.hadir}</td>
-                            <td style="text-align:center;">${stat.izin}</td>
-                            <td style="text-align:center;">${stat.sakit}</td>
-                            <td style="text-align:center; font-weight:bold; color:${stat.alpa > 0 ? 'red' : '#333'};">${stat.alpa}</td>
-                            <td style="text-align:right; color:#888;">-</td>
-                            <td>${ketMapel}</td>
-                        </tr>`;
+    // PERBAIKAN: Masukkan juga santri tamu lintas kelas jika mereka hadir pada sesi yang difilter ini
+    absensiTerfilter.forEach(sesi => {
+        sesi.detail.forEach(absenSiswa => {
+            if (!dataRekap[absenSiswa.nis]) {
+                const santriObj = santriDB.find(s => s.nis === absenSiswa.nis);
+                if (santriObj) {
+                    dataRekap[absenSiswa.nis] = {
+                        nama: santriObj.nama,
+                        kamar: santriObj.kamar,
+                        hadir: 0, izin: 0, sakit: 0, alpa: 0, denda: 0,
+                        perMapel: {},
+                        is_tamu_global: true,
+                        kelas_asal: absenSiswa.nama_kelas_asal || 'Kelas Lain'
+                    };
                 }
             }
+        });
+    });
+
+    absensiTerfilter.forEach(sesi => { 
+        const namaMapel = sesi.mapel || "Kegiatan Umum";
+        sesi.detail.forEach(absenSiswa => { 
+            let rec = dataRekap[absenSiswa.nis];
+            if(rec) { 
+                if(!rec.perMapel[namaMapel]) {
+                    rec.perMapel[namaMapel] = { hadir: 0, izin: 0, sakit: 0, alpa: 0, is_tamu: false, kelas_asal: '' };
+                }
+                if (absenSiswa.is_tamu) {
+                    rec.perMapel[namaMapel].is_tamu = true;
+                    rec.perMapel[namaMapel].kelas_asal = absenSiswa.nama_kelas_asal || 'Kelas Lain';
+                }
+                if(absenSiswa.status === 'Hadir') { rec.hadir++; rec.perMapel[namaMapel].hadir++; }
+                else if(absenSiswa.status === 'Izin') { rec.izin++; rec.perMapel[namaMapel].izin++; }
+                else if(absenSiswa.status === 'Sakit') { rec.sakit++; rec.perMapel[namaMapel].sakit++; }
+                else if(absenSiswa.status === 'Alpa') { rec.alpa++; rec.perMapel[namaMapel].alpa++; }
+            } 
+        }); 
+    });
+
+    dendaDB.forEach(denda => { 
+        if(dataRekap[denda.nis]) dataRekap[denda.nis].denda += parseInt(denda.nominal); 
+    });
+
+    let labelFilterText = `Periode: ${filterBulan ? filterBulan : 'Semua Waktu'} | Kelas: ${filterKelasId === 'all' ? 'Semua Kelas' : document.getElementById('filter-kelas-rekap').options[document.getElementById('filter-kelas-rekap').selectedIndex].text}`;
+    
+    let htmlPrint = generateStandardKopSuratHTML();
+    htmlPrint += `
+        <div style="text-align:center; margin-bottom: 20px;">
+            <h3 style="margin:0; text-transform:uppercase;">LAPORAN REKAPITULASI ABSENSI & KEUANGAN</h3>
+            <p style="margin:2px 0; font-size:11px;">${labelFilterText}</p>
+        </div>
+        <h4 style="margin-bottom:8px;">A. MATRIKS KEHADIRAN & RINCIAN MATA PELAJARAN</h4>
+        <table style="margin-bottom: 25px;">
+            <thead>
+                <tr>
+                    <th>NIS</th>
+                    <th>Nama Santri & Mapel / Kegiatan</th>
+                    <th>Asrama / Kamar</th>
+                    <th style="text-align:center;">Hadir</th>
+                    <th style="text-align:center;">Izin</th>
+                    <th style="text-align:center;">Sakit</th>
+                    <th style="text-align:center;">Alpa</th>
+                    <th style="text-align:right;">Total Denda (Rp)</th>
+                    <th>Keterangan / Status Sanksi</th>
+                </tr>
+            </thead>
+            <tbody>`;
+
+    let totalSeluruhDenda = 0;
+    
+    for (const [nis, data] of Object.entries(dataRekap)) {
+        totalSeluruhDenda += data.denda; 
+        let listMapelAlpa = [];
+        for (const [mp, stat] of Object.entries(data.perMapel)) {
+            if (stat.alpa > 0) listMapelAlpa.push(`${mp} (${stat.alpa}x)`);
         }
         
+        let infoAlpaText = listMapelAlpa.length > 0 ? `<br><small style="color:#d35400;">• Alpa di: ${listMapelAlpa.join(', ')}</small>` : '';
+        let statusSanksi = (data.alpa >= parseInt(settingUang.limit_alpa)) 
+            ? `<span style="color:red; font-weight:bold;">${settingUang.sanksi_ekstra}</span>` 
+            : '<span style="color:#27ae60; font-weight:bold;">Aman</span>';
+
+        // PERBAIKAN: Tampilkan Badge Warna Ungu Eksklusif jika dia merupakan santri lintas kelas
+        let badgeTamuUtama = data.is_tamu_global ? ` <span style="background:#8E44AD; color:white; font-size:9px; padding:2px 6px; border-radius:4px; font-weight:bold;">[ TAMU DARI: ${data.kelas_asal.toUpperCase()} ]</span>` : '';
+
         htmlPrint += `
-                </tbody>
-                <tfoot>
-                    <tr style="background:#e0e0e0;">
-                        <th colspan="7" style="text-align:right;">TOTAL PIUTANG DENDA:</th>
-                        <th style="text-align:right; color:red; font-size:13px;">Rp ${totalSeluruhDenda.toLocaleString('id-ID')}</th>
-                        <th></th>
-                    </tr>
-                </tfoot>
-            </table>
-            <h4 style="margin-bottom:8px;">B. LOG SESI KELAS & GURU MENGAJAR</h4>`;
-            
-        if(absensiTerfilter.length === 0) { 
-            htmlPrint += `<p style="font-size:12px; font-style:italic;">Tidak ada log pertemuan pada rentang filter ini.</p>`; 
+            <tr style="background-color: ${data.is_tamu_global ? '#f8f0fc' : '#f2f2f2'}; font-weight: bold;">
+                <td style="border-top: 2px solid #555;">${nis}</td>
+                <td style="border-top: 2px solid #555;">${data.nama.toUpperCase()} (TOTAL) ${badgeTamuUtama}</td>
+                <td style="border-top: 2px solid #555;">${data.kamar}</td>
+                <td style="text-align:center; border-top: 2px solid #555;">${data.hadir}</td>
+                <td style="text-align:center; border-top: 2px solid #555;">${data.izin}</td>
+                <td style="text-align:center; border-top: 2px solid #555;">${data.sakit}</td>
+                <td style="text-align:center; color:red; border-top: 2px solid #555;">${data.alpa}</td>
+                <td style="text-align:right; border-top: 2px solid #555;">${data.denda.toLocaleString('id-ID')}</td>
+                <td style="border-top: 2px solid #555;">${statusSanksi} ${infoAlpaText}</td>
+            </tr>`;
+
+        const mapelKeys = Object.keys(data.perMapel);
+        if (mapelKeys.length === 0) {
+            htmlPrint += `<tr><td></td><td colspan="8" style="font-size:10px; font-style:italic; color:#777;">&nbsp;&nbsp;&nbsp;&nbsp;↳ Belum ada rekam kegiatan pada periode ini</td></tr>`;
         } else {
+            for (const [mp, stat] of Object.entries(data.perMapel)) {
+                let ketMapel = stat.alpa > 0 ? `<span style="color:red; font-style:italic;">Alpa ${stat.alpa} kali</span>` : 'Hadir Penuh / Aman';
+                
+                // PERBAIKAN: Penanda warna ungu untuk mapel lintas kelas
+                let badgeTamuMapel = stat.is_tamu ? ` <span style="color:#8E44AD; font-weight:bold; font-size:10px;">[ TAMU / KELAS: ${stat.kelas_asal.toUpperCase()} ]</span>` : '';
+
+                htmlPrint += `
+                    <tr style="font-size: 11px; color: #333; ${stat.is_tamu ? 'background-color:#faf4ff;' : ''}">
+                        <td></td>
+                        <td style="padding-left: 20px;">↳ <i>${mp}</i> ${badgeTamuMapel}</td>
+                        <td style="text-align:center; color:#888;">-</td>
+                        <td style="text-align:center;">${stat.hadir}</td>
+                        <td style="text-align:center;">${stat.izin}</td>
+                        <td style="text-align:center;">${stat.sakit}</td>
+                        <td style="text-align:center; font-weight:bold; color:${stat.alpa > 0 ? 'red' : '#333'};">${stat.alpa}</td>
+                        <td style="text-align:right; color:#888;">-</td>
+                        <td>${ketMapel}</td>
+                    </tr>`;
+            }
+        }
+    }
+    
+    htmlPrint += `
+            </tbody>
+            <tfoot>
+                <tr style="background:#e0e0e0;">
+                    <th colspan="7" style="text-align:right;">TOTAL PIUTANG DENDA:</th>
+                    <th style="text-align:right; color:red; font-size:13px;">Rp ${totalSeluruhDenda.toLocaleString('id-ID')}</th>
+                    <th></th>
+                </tr>
+            </tfoot>
+        </table>
+        <h4 style="margin-bottom:8px;">B. LOG SESI KELAS & GURU MENGAJAR</h4>`;
+        
+    if(absensiTerfilter.length === 0) { 
+        htmlPrint += `<p style="font-size:12px; font-style:italic;">Tidak ada log pertemuan pada rentang filter ini.</p>`; 
+    } else {
+        htmlPrint += `
+        <table>
+            <thead>
+                <tr>
+                    <th>Tgl Pelaksanaan</th>
+                    <th>Jam / Waktu</th>
+                    <th>Kelas / Mapel</th>
+                    <th>Pengajar PJ</th>
+                    <th>Pengajar Aktual</th>
+                </tr>
+            </thead>
+            <tbody>`;
+        absensiTerfilter.forEach(log => { 
             htmlPrint += `
-            <table>
-                <thead>
-                    <tr>
-                        <th>Tgl Pelaksanaan</th>
-                        <th>Jam / Waktu</th>
-                        <th>Kelas / Mapel</th>
-                        <th>Pengajar PJ</th>
-                        <th>Pengajar Aktual</th>
-                    </tr>
-                </thead>
-                <tbody>`;
-            absensiTerfilter.forEach(log => { 
-                htmlPrint += `
-                    <tr>
-                        <td>${log.tanggal}</td>
-                        <td>${log.waktu || '-'}</td>
-                        <td><strong>${log.nama_kelas || 'Kelas Tidak Diketahui'}</strong> - ${log.mapel}</td>
-                        <td>${log.ustadz_pj}</td>
-                        <td><strong>${log.ustadz_aktual}</strong></td>
-                    </tr>`; 
-            });
-            htmlPrint += `</tbody></table>`;
-        }
-        
-        cetakElemenHTML(htmlPrint, 'portrait');
+                <tr>
+                    <td>${log.tanggal}</td>
+                    <td>${log.waktu || '-'}</td>
+                    <td><strong>${log.nama_kelas || 'Kelas Tidak Diketahui'}</strong> - ${log.mapel}</td>
+                    <td>${log.ustadz_pj}</td>
+                    <td><strong>${log.ustadz_aktual}</strong></td>
+                </tr>`; 
+        });
+        htmlPrint += `</tbody></table>`;
     }
+    
+    cetakElemenHTML(htmlPrint, 'portrait');
+}
+/* ========================================================================== */
+/* === AKHIR PERBAIKAN BLOK 4: LAPORAN REKAP PDF DENGAN WARNA LINTAS KELAS == */
+/* ========================================================================== */
 
-
-    // PDF JADWAL PER KELAS BERDURASI HARI & JAM
-    function cetakJadwalPerKelas(idKelas) {
-        const dbKelas = getDB('pondok_kelas', []);
-        const dbMapel = getDB('pondok_master_mapel', []);
-        const dbSantri = getDB('pondok_santri', []);
-        const yayasanDB = getDB('pondok_yayasan', {});
-
-        const kls = dbKelas.find(k => k.id == idKelas);
-        if (!kls) return alert("Kelas tidak ditemukan!");
-
-        const mapelKelasIni = dbMapel.filter(m => 
-            (kls.mapel_ids || []).includes(m.id) || (m.kelas_ids || []).includes(kls.id)
-        );
-
-        const santriKelasIni = dbSantri.filter(s => 
-            (kls.santri_ids || []).includes(s.id) && !s.is_alumni
-        );
-
-        let htmlPrint = generateStandardKopSuratHTML();
-        htmlPrint += `
-            <div style="text-align:center; margin-bottom: 20px;">
-                <h3 style="margin:0; text-transform:uppercase;">JADWAL & REKAPITULASI KELAS</h3>
-                <p style="margin:2px 0; font-size:13px;">Kelas / Forum: <strong style="text-transform:uppercase;">${kls.nama}</strong></p>
-            </div>
-
-            <h4 style="margin-bottom:8px; font-size:12px;">A. DAFTAR MATA PELAJARAN, JADWAL & PENGAJAR</h4>
-            <table style="margin-bottom: 25px;">
-                <thead>
-                    <tr>
-                        <th style="width: 5%; text-align:center;">No</th>
-                        <th style="width: 30%;">Mata Pelajaran</th>
-                        <th style="width: 25%;">Jadwal (Hari & Jam)</th>
-                        <th style="width: 25%;">Ustadz / Guru Pengajar</th>
-                        <th style="width: 15%; text-align:center;">Keterangan</th>
-                    </tr>
-                </thead>
-                <tbody>`;
-
-        if (mapelKelasIni.length === 0) {
-            htmlPrint += `<tr><td colspan="5" align="center" style="font-style:italic; color:#777;">Belum ada mata pelajaran yang diplotting ke kelas ini.</td></tr>`;
-        } else {
-            mapelKelasIni.forEach((m, i) => {
-                let txtJadwalPrint = (m.jadwal_aktif && m.hari) ? `<strong>${m.hari}</strong> (${m.jam_mulai || '08:00'} - ${m.jam_selesai || '10:00'})` : `<em>Fleksibel / Opsional</em>`;
-                htmlPrint += `
-                    <tr>
-                        <td style="text-align:center;">${i + 1}</td>
-                        <td><strong>${m.nama_mapel}</strong></td>
-                        <td>${txtJadwalPrint}</td>
-                        <td>${m.ustadz_nama}</td>
-                        <td style="text-align:center; color:#777;">Aktif</td>
-                    </tr>`;
-            });
-        }
-
-        htmlPrint += `
-                </tbody>
-            </table>
-
-            <h4 style="margin-bottom:8px; font-size:12px;">B. DAFTAR SANTRI PESERTA (${santriKelasIni.length} Orang)</h4>
-            <table>
-                <thead>
-                    <tr>
-                        <th style="width: 5%; text-align:center;">No</th>
-                        <th style="width: 20%; text-align:center;">NIS</th>
-                        <th style="width: 45%;">Nama Lengkap</th>
-                        <th style="width: 30%;">${getTerm('kamar')} / Asrama</th>
-                    </tr>
-                </thead>
-                <tbody>`;
-
-        if (santriKelasIni.length === 0) {
-            htmlPrint += `<tr><td colspan="4" align="center" style="font-style:italic; color:#777;">Belum ada santri aktif yang terdaftar di kelas ini.</td></tr>`;
-        } else {
-            santriKelasIni.forEach((s, i) => {
-                htmlPrint += `
-                    <tr>
-                        <td style="text-align:center;">${i + 1}</td>
-                        <td style="text-align:center; font-weight:bold;">${s.nis}</td>
-                        <td>${s.nama}</td>
-                        <td>${s.asrama} (${s.kamar})</td>
-                    </tr>`;
-            });
-        }
-
-        htmlPrint += `
-                </tbody>
-            </table>
-
-            <div style="margin-top: 40px; display:flex; justify-content:flex-end; text-align:center; font-size:12px;">
-                <div>
-                    <p style="margin-bottom:45px;">Mengetahui Pimpinan,<br><strong>${yayasanDB.pondok || 'Instansi'}</strong></p>
-                    ${yayasanDB.ttd_mudir ? `<img src="${yayasanDB.ttd_mudir}" style="max-height:40px; display:block; margin:-35px auto 5px auto;">` : ''}
-                    <p style="font-weight:bold; text-decoration:underline;">${yayasanDB.mudir || 'Pimpinan / Mudir'}</p>
-                </div>
-            </div>`;
-
-        cetakElemenHTML(htmlPrint, 'portrait');
-    }
 
     function terapkanTemaBerdasarkanRole(role) {
         const root = document.documentElement;
@@ -3406,84 +3342,90 @@ document.getElementById('card-alamat').style.fontSize = sizeFontAlamat + 'px';
         }
     }
 
-        function kirimDataAbsen() {
-        const idMapel = document.getElementById('pilih-mapel-absen').value;
-        if (!idMapel) return alert("Pilih mata pelajaran terlebih dahulu!");
-        const mObj = getDB('pondok_master_mapel', []).find(x => x.id == idMapel);
-        if (!mObj) return;
+        /* ========================================================================== */
+/* === AWAL PERBAIKAN BLOK 3: SIMPAN DATA ABSEN BESERTA STATUS KELAS ASAL == */
+/* ========================================================================== */
+function kirimDataAbsen() {
+    const idMapel = document.getElementById('pilih-mapel-absen').value;
+    if (!idMapel) return alert("Pilih mata pelajaran terlebih dahulu!");
+    const mObj = getDB('pondok_master_mapel', []).find(x => x.id == idMapel);
+    if (!mObj) return;
 
-        const detailAbsen = [];
-        const dbSantri = getDB('pondok_santri', []);
-        let countAlpa = 0;
+    const detailAbsen = [];
+    const dbSantri = getDB('pondok_santri', []);
+    let countAlpa = 0;
 
-        // PERBAIKAN 1: Variabel penampung Nama dan ID Kelas untuk sesi ini
-        let himpunanIdKelas = new Set();
-        let himpunanNamaKelas = new Set();
+    let himpunanIdKelas = new Set();
+    let himpunanNamaKelas = new Set();
 
-        document.querySelectorAll('.student-item').forEach(item => {
-            const nis = item.id.replace('baris_santri_', '');
-            const santriObj = dbSantri.find(s => s.nis === nis);
-            const radio = item.querySelector('input[type="radio"]:checked');
-            const status = radio ? radio.value : 'Belum';
-            
-            const idKelas = item.getAttribute('data-kelas-id');
-            const namaKelas = item.getAttribute('data-kelas-nama');
-
-            if (status !== 'Belum') {
-                himpunanIdKelas.add(idKelas);
-                himpunanNamaKelas.add(namaKelas);
-
-                detailAbsen.push({
-                    nis: nis,
-                    nama: santriObj ? santriObj.nama : nis,
-                    status: status,
-                    id_kelas: idKelas
-                });
-                if (status === 'Alpa') countAlpa++;
-            }
-        });
-
-        if (detailAbsen.length === 0) return alert("Belum ada status kehadiran yang diisi!");
-
-        const sekarang = new Date();
-        const absensiDB = getDB('pondok_absensi', []);
+    document.querySelectorAll('.student-item').forEach(item => {
+        const nis = item.id.replace('baris_santri_', '');
+        const santriObj = dbSantri.find(s => s.nis === nis);
+        const radio = item.querySelector('input[type="radio"]:checked');
+        const status = radio ? radio.value : 'Belum';
         
-        absensiDB.push({
-            id_sesi: Date.now(),
-            tanggal: sekarang.toLocaleDateString('id-ID'),
-            tanggal_iso: sekarang.toISOString(),
-            waktu: sekarang.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }),
-            mapel: mObj.nama_mapel,
-            ustadz_pj: mObj.ustadz_nama,
-            ustadz_aktual: currentUser ? currentUser.nama : "Ustadz/Guru",
-            
-            // PERBAIKAN 2: Simpan nama & id kelas di sesi agar tidak undefined di laporan
-            id_kelas: Array.from(himpunanIdKelas).join(','),
-            nama_kelas: Array.from(himpunanNamaKelas).join(', '),
-            
-            detail: detailAbsen
-        });
-        localStorage.setItem('pondok_absensi', JSON.stringify(absensiDB));
+        const idKelas = item.getAttribute('data-kelas-id');
+        const namaKelas = item.getAttribute('data-kelas-nama');
+        const isTamu = item.getAttribute('data-is-tamu') === 'true'; // PERBAIKAN: Cek penanda tamu
 
-        if (countAlpa > 0) {
-            const configKeuangan = getDB('pondok_setting_keuangan', { nominal_alpa: 10000 });
-            let tagihanDB = getDB('pondok_tagihan_denda', []);
-            detailAbsen.filter(d => d.status === 'Alpa').forEach(a => {
-                tagihanDB.push({
-                    id_tagihan: Date.now() + Math.random(),
-                    nis: a.nis,
-                    nama: a.nama,
-                    keterangan: `Alpa di pelajaran: ${mObj.nama_mapel}`,
-                    nominal: parseInt(configKeuangan.nominal_alpa) || 10000
-                });
+        if (status !== 'Belum') {
+            himpunanIdKelas.add(idKelas);
+            himpunanNamaKelas.add(namaKelas);
+
+            detailAbsen.push({
+                nis: nis,
+                nama: santriObj ? santriObj.nama : nis,
+                status: status,
+                id_kelas: idKelas,
+                nama_kelas_asal: namaKelas, // PERBAIKAN: Simpan kelas asal
+                is_tamu: isTamu             // PERBAIKAN: Simpan status lintas kelas
             });
-            localStorage.setItem('pondok_tagihan_denda', JSON.stringify(tagihanDB));
+            if (status === 'Alpa') countAlpa++;
         }
+    });
 
-        alert("Data absensi berhasil disimpan secara lokal!");
-        document.getElementById('pilih-mapel-absen').value = "";
-        document.getElementById('student-list').innerHTML = "";
+    if (detailAbsen.length === 0) return alert("Belum ada status kehadiran yang diisi!");
+
+    const sekarang = new Date();
+    const absensiDB = getDB('pondok_absensi', []);
+    
+    absensiDB.push({
+        id_sesi: Date.now(),
+        tanggal: sekarang.toLocaleDateString('id-ID'),
+        tanggal_iso: sekarang.toISOString(),
+        waktu: sekarang.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }),
+        mapel: mObj.nama_mapel,
+        ustadz_pj: mObj.ustadz_nama,
+        ustadz_aktual: currentUser ? currentUser.nama : "Ustadz/Guru",
+        id_kelas: Array.from(himpunanIdKelas).join(','),
+        nama_kelas: Array.from(himpunanNamaKelas).join(', '),
+        detail: detailAbsen
+    });
+    localStorage.setItem('pondok_absensi', JSON.stringify(absensiDB));
+
+    if (countAlpa > 0) {
+        const configKeuangan = getDB('pondok_setting_keuangan', { nominal_alpa: 10000 });
+        let tagihanDB = getDB('pondok_tagihan_denda', []);
+        detailAbsen.filter(d => d.status === 'Alpa').forEach(a => {
+            tagihanDB.push({
+                id_tagihan: Date.now() + Math.random(),
+                nis: a.nis,
+                nama: a.nama,
+                keterangan: `Alpa di pelajaran: ${mObj.nama_mapel}`,
+                nominal: parseInt(configKeuangan.nominal_alpa) || 10000
+            });
+        });
+        localStorage.setItem('pondok_tagihan_denda', JSON.stringify(tagihanDB));
     }
+
+    alert("Data absensi berhasil disimpan secara lokal!");
+    document.getElementById('pilih-mapel-absen').value = "";
+    document.getElementById('student-list').innerHTML = "";
+}
+/* ========================================================================== */
+/* === AKHIR PERBAIKAN BLOK 3: SIMPAN DATA ABSEN BESERTA STATUS KELAS ASAL = */
+/* ========================================================================== */
+
 
 
     function simpanYayasan() {
@@ -4126,20 +4068,125 @@ function simpanTabungan() {
         return saldo;
     }
 
-    function startScannerPaguyuban() {
-        if (typeof Html5Qrcode === 'undefined') return alert("Library Scanner belum siap.");
-        document.getElementById('qr-reader-paguyuban').style.display = 'block';
-        document.getElementById('btn-stop-scanner-paguyuban').style.display = 'flex';
-        document.getElementById('area-input-paguyuban').classList.add('hidden');
-        
-        if (!scannerPaguyuban) {
-            scannerPaguyuban = new Html5Qrcode("qr-reader-paguyuban");
-            scannerPaguyuban.start({ facingMode: "environment" }, { fps: 15, qrbox: { width: 250, height: 250 } }, (rawScan) => {
-                prosesQRPaguyuban(rawScan);
-                stopScannerPaguyuban();
-            }).catch(() => { alert("Gagal membuka kamera."); stopScannerPaguyuban(); });
-        }
+    /* ========================================================================== */
+/* === AWAL PERBAIKAN BLOK 1: CAMERA SCANNER & INJECT SANTRI LINTAS KELAS === */
+/* ========================================================================== */
+function startScanner() {
+    if (typeof Html5Qrcode === 'undefined') return alert("Library Scanner belum siap loaded.");
+    document.getElementById('qr-reader').style.display = 'block';
+    if (!html5QrcodeScanner) {
+        html5QrcodeScanner = new Html5Qrcode("qr-reader");
+        html5QrcodeScanner.start({ facingMode: "environment" }, { fps: 15, qrbox: { width: 250, height: 250 } }, (rawScanText) => {
+            let scanResult = rawScanText;
+            try { let parsed = JSON.parse(rawScanText); if (parsed.n) scanResult = parsed.n; } catch(e) {}
+            
+            const baris = document.getElementById(`baris_santri_${scanResult}`);
+            if (baris) {
+                const radioHadir = baris.querySelector('input[value="Hadir"]');
+                if (radioHadir) {
+                    radioHadir.checked = true;
+                    radioHadir.dispatchEvent(new Event('change'));
+                    document.getElementById('scan-result').innerHTML = `<span style="color:var(--success);"><i class="fa-solid fa-circle-check"></i> Hadir: ${scanResult}</span>`;
+                }
+            } else {
+                // PERBAIKAN: Jika santri bukan dari kelas ini, masukkan sebagai santri tamu lintas kelas!
+                tambahkanSantriTamuKeAbsen(scanResult);
+            }
+        }).catch(err => {
+            alert("Gagal mengaktifkan kamera.");
+            document.getElementById('qr-reader').style.display = 'none';
+        });
     }
+}
+
+// FUNGSI BARU: Menginjeksikan santri dari kelas lain ke layar absen secara otomatis
+function tambahkanSantriTamuKeAbsen(nisScan) {
+    const dbSantri = getDB('pondok_santri', []);
+    const santriObj = dbSantri.find(s => s.nis === nisScan && !s.is_alumni);
+    
+    if (!santriObj) {
+        document.getElementById('scan-result').innerHTML = `<span style="color:var(--danger);"><i class="fa-solid fa-circle-xmark"></i> NIS ${nisScan} tidak terdaftar di sistem!</span>`;
+        return;
+    }
+
+    const dbKelas = getDB('pondok_kelas', []);
+    let kelasAsalObj = dbKelas.find(k => (k.santri_ids || []).includes(santriObj.id));
+    let namaKelasAsal = kelasAsalObj ? kelasAsalObj.nama : (santriObj.kamar || "Kelas Luar");
+    let idKelasAsal = kelasAsalObj ? kelasAsalObj.id : "TAMU";
+
+    let barisAda = document.getElementById(`baris_santri_${nisScan}`);
+    if (barisAda) {
+        const radioHadir = barisAda.querySelector('input[value="Hadir"]');
+        if (radioHadir) {
+            radioHadir.checked = true;
+            radioHadir.dispatchEvent(new Event('change'));
+        }
+        document.getElementById('scan-result').innerHTML = `<span style="color:var(--success);"><i class="fa-solid fa-circle-check"></i> Hadir: ${santriObj.nama}</span>`;
+        return;
+    }
+
+    const wadahListSantri = document.getElementById('student-list');
+    const newRow = document.createElement('div');
+    newRow.className = "student-item";
+    newRow.id = `baris_santri_${santriObj.nis}`;
+    newRow.setAttribute('data-kelas-id', idKelasAsal);
+    newRow.setAttribute('data-kelas-nama', namaKelasAsal);
+    newRow.setAttribute('data-is-tamu', 'true');
+
+    // Tampilan visual beda (Warna Ungu Eksklusif) agar ustadz tahu dia dari kelas lain
+    newRow.style = "display:flex; flex-direction:column; padding:12px 10px; border-bottom:1px solid rgba(0,0,0,0.06); gap:10px; background: rgba(142, 68, 173, 0.08); border-left: 4px solid #8E44AD; border-radius: 8px; margin-top: 6px;";
+
+    newRow.innerHTML = `
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+            <div>
+                <h4 style="color:#8E44AD; margin:0;"><i class="fa-solid fa-user-tag"></i> ${santriObj.nama}</h4>
+                <p style="font-weight:600; font-size:0.75rem; color:var(--text-muted); margin:0;">NIS: ${santriObj.nis}</p>
+            </div>
+            <span style="background:#8E44AD; color:white; font-size:0.65rem; font-weight:bold; padding:4px 8px; border-radius:12px;">
+                TAMU / KELAS: ${namaKelasAsal.toUpperCase()}
+            </span>
+        </div>
+        <div style="display:flex; gap:6px;">
+            <input type="radio" name="status_absen_${santriObj.id}" value="Belum" id="belum_${santriObj.id}" style="display:none;">
+            <label for="belum_${santriObj.id}" style="flex:1; text-align:center; padding:8px; border-radius:10px; background:#95a5a6; color:white; font-size:0.7rem; cursor:pointer; margin:0;">Belum</label>
+            
+            <input type="radio" name="status_absen_${santriObj.id}" value="Hadir" id="hadir_${santriObj.id}" style="display:none;" checked>
+            <label for="hadir_${santriObj.id}" style="flex:1; text-align:center; padding:8px; border-radius:10px; background:var(--success); color:white; font-size:0.7rem; cursor:pointer; margin:0;">Hadir</label>
+            
+            <input type="radio" name="status_absen_${santriObj.id}" value="Izin" id="izin_${santriObj.id}" style="display:none;">
+            <label for="izin_${santriObj.id}" style="flex:1; text-align:center; padding:8px; border-radius:10px; background:#ddd; color:#333; font-size:0.7rem; cursor:pointer; margin:0;">Izin</label>
+            
+            <input type="radio" name="status_absen_${santriObj.id}" value="Sakit" id="sakit_${santriObj.id}" style="display:none;">
+            <label for="sakit_${santriObj.id}" style="flex:1; text-align:center; padding:8px; border-radius:10px; background:#ddd; color:#333; font-size:0.7rem; cursor:pointer; margin:0;">Sakit</label>
+            
+            <input type="radio" name="status_absen_${santriObj.id}" value="Alpa" id="alpa_${santriObj.id}" style="display:none;">
+            <label for="alpa_${santriObj.id}" style="flex:1; text-align:center; padding:8px; border-radius:10px; background:#ddd; color:#333; font-size:0.7rem; cursor:pointer; margin:0;">Alpa</label>
+        </div>
+    `;
+
+    // Pasang di bagian teratas daftar agar langsung terlihat
+    wadahListSantri.prepend(newRow);
+
+    newRow.querySelectorAll('input[type=radio]').forEach(radio => {
+        radio.addEventListener('change', function() {
+            newRow.querySelectorAll('label').forEach(lbl => {
+                lbl.style.background = '#ddd';
+                lbl.style.color = '#333';
+            });
+            const activeLabel = newRow.querySelector(`label[for="${this.id}"]`);
+            if (this.value === 'Hadir') { activeLabel.style.background = 'var(--success)'; activeLabel.style.color = 'white'; }
+            else if (this.value === 'Izin' || this.value === 'Sakit') { activeLabel.style.background = 'var(--warning)'; activeLabel.style.color = 'white'; }
+            else if (this.value === 'Alpa') { activeLabel.style.background = 'var(--danger)'; activeLabel.style.color = 'white'; }
+            else { activeLabel.style.background = '#95a5a6'; activeLabel.style.color = 'white'; }
+        });
+    });
+
+    document.getElementById('scan-result').innerHTML = `<span style="color:#8E44AD; font-weight:bold;"><i class="fa-solid fa-user-check"></i> Hadir (Lintas Kelas): ${santriObj.nama}</span>`;
+}
+/* ========================================================================== */
+/* === AKHIR PERBAIKAN BLOK 1: CAMERA SCANNER & INJECT SANTRI LINTAS KELAS == */
+/* ========================================================================== */
+
 
     function prosesQRPaguyuban(rawScan) {
         let nisScan = rawScan; 
@@ -4243,6 +4290,9 @@ function simpanTabungan() {
                 kalkulasiTabungan();
             } else { alert("Data santri tidak ditemukan via USB"); }
         }
+        /* ========================================================================== */
+/* === AWAL PERBAIKAN BLOK 2: SCANNER USB / WIRELESS LINTAS KELAS =========== */
+/* ========================================================================== */
         else if (activeTab === 'view-absen') {
             let nisScan = hasilScan; 
             try { let p = JSON.parse(hasilScan); if (p.n) nisScan = p.n; } catch(e) {}
@@ -4254,8 +4304,15 @@ function simpanTabungan() {
                     radioHadir.dispatchEvent(new Event('change'));
                     document.getElementById('scan-result').innerHTML = `<span style="color:var(--success);"><i class="fa-solid fa-circle-check"></i> Hadir via USB: ${nisScan}</span>`;
                 }
+            } else {
+                // PERBAIKAN: Jika via USB scan santri kelas lain, langsung injek ke daftar absen
+                tambahkanSantriTamuKeAbsen(nisScan);
             }
         }
+/* ========================================================================== */
+/* === AKHIR PERBAIKAN BLOK 2: SCANNER USB / WIRELESS LINTAS KELAS ========== */
+/* ========================================================================== */
+
         else if (activeTab === 'view-izin') {
             let nisScan = hasilScan; 
             try { let p = JSON.parse(hasilScan); if (p.n) nisScan = p.n; } catch(e) {}
