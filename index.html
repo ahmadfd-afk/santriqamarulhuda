@@ -3305,32 +3305,6 @@ document.getElementById('card-alamat').style.fontSize = sizeFontAlamat + 'px';
         });
     }
 
-    function startScanner() {
-        if (typeof Html5Qrcode === 'undefined') return alert("Library Scanner belum siap loaded.");
-        document.getElementById('qr-reader').style.display = 'block';
-        if (!html5QrcodeScanner) {
-            html5QrcodeScanner = new Html5Qrcode("qr-reader");
-            html5QrcodeScanner.start({ facingMode: "environment" }, { fps: 15, qrbox: { width: 250, height: 250 } }, (rawScanText) => {
-                let scanResult = rawScanText;
-                try { let parsed = JSON.parse(rawScanText); if (parsed.n) scanResult = parsed.n; } catch(e) {}
-                const baris = document.getElementById(`baris_santri_${scanResult}`);
-                if (baris) {
-                    const radioHadir = baris.querySelector('input[value="Hadir"]');
-                    if (radioHadir) {
-                        radioHadir.checked = true;
-                        radioHadir.dispatchEvent(new Event('change'));
-                        document.getElementById('scan-result').innerHTML = `<span style="color:var(--success);"><i class="fa-solid fa-circle-check"></i> Hadir: ${scanResult}</span>`;
-                    }
-                } else {
-                    document.getElementById('scan-result').innerHTML = `<span style="color:var(--danger);"><i class="fa-solid fa-circle-xmark"></i> NIS ${scanResult} tidak ada di mapel ini</span>`;
-                }
-            }).catch(err => {
-                alert("Gagal mengaktifkan kamera.");
-                document.getElementById('qr-reader').style.display = 'none';
-            });
-        }
-    }
-
     function stopScanner() {
         if (html5QrcodeScanner) {
             html5QrcodeScanner.stop().then(() => {
