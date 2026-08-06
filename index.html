@@ -324,6 +324,10 @@
                         <i class="fa-solid fa-cloud-arrow-down" style="color:var(--warning);"></i>
                         <span>Tarik Data Cloud</span>
                     </div>
+                     <div class="dropdown-item" onclick="bersihkanCacheApp()">
+                        <i class="fa-solid fa-arrows-rotate" style="color:var(--primary);"></i>
+                        <span>Perbarui Sistem (Hapus Cache)</span>
+                    </div>
                     <div class="dropdown-item" onclick="prosesLogout()" style="color:var(--danger);">
                         <i class="fa-solid fa-right-from-bracket"></i>
                         <span>Keluar Akun</span>
@@ -4365,6 +4369,36 @@ function startScannerPaguyuban() {
                 validasiSantriBalikIzin(nisScan);
             }
         }
+    }
+    // ==========================================
+    // FUNGSI BERSIHKAN CACHE APLIKASI (PWA)
+    // ==========================================
+    function bersihkanCacheApp() {
+        if (!confirm("Apakah Anda yakin ingin membersihkan cache aplikasi?\n\n(Tenang, data Santri dan Absensi Anda di HP ini akan tetap aman. Sistem hanya akan memuat ulang versi terbaru aplikasi.)")) return;
+        
+        // 1. Hapus Service Worker (PWA)
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.getRegistrations().then(function(registrations) {
+                for (let registration of registrations) {
+                    registration.unregister();
+                }
+            });
+        }
+        
+        // 2. Hapus Cache Storage (Penyimpanan File PWA)
+        if ('caches' in window) {
+            caches.keys().then(function(keyList) {
+                return Promise.all(keyList.map(function(key) {
+                    return caches.delete(key);
+                }));
+            });
+        }
+        
+        // 3. Muat Ulang Halaman Secara Paksa (Hard Reload)
+        setTimeout(() => {
+            alert("Cache berhasil dibersihkan! Sistem akan dimuat ulang ke versi terbaru.");
+            window.location.reload(true);
+        }, 800);
     }
 
     window.onload = initApp;
