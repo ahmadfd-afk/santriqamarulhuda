@@ -4179,6 +4179,27 @@ function tambahkanSantriTamuKeAbsen(nisScan) {
             alert("Kartu Santri tidak dikenali!");
         }
     }
+function startScannerPaguyuban() {
+    if (typeof Html5Qrcode === 'undefined') return alert("Library Scanner belum siap.");
+    document.getElementById('qr-reader-paguyuban').style.display = 'block';
+    document.getElementById('btn-stop-scanner-paguyuban').style.display = 'flex';
+    document.getElementById('area-input-paguyuban').classList.add('hidden');
+
+    if (!scannerPaguyuban) {
+        scannerPaguyuban = new Html5Qrcode("qr-reader-paguyuban");
+        scannerPaguyuban.start(
+            { facingMode: "environment" },
+            { fps: 15, qrbox: { width: 250, height: 250 } },
+            (rawScan) => {
+                prosesQRPaguyuban(rawScan);
+                stopScannerPaguyuban();
+            }
+        ).catch(() => {
+            alert("Gagal membuka kamera scan Paguyuban.");
+            stopScannerPaguyuban();
+        });
+    }
+}
 
     function stopScannerPaguyuban() {
         if (scannerPaguyuban) {
@@ -4302,5 +4323,4 @@ function tambahkanSantriTamuKeAbsen(nisScan) {
     window.onload = initApp;
 </script>
 </body>
-</html>
 </html>
