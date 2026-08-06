@@ -1341,57 +1341,70 @@
             display: block;
         }
 
-                        /* CSS ID CARD & LAINNYA */
+                                /* CSS ID CARD & LAINNYA */
+        :root {
+            --primary: #04432A;
+            --primary-light: #0B6B46;
+            --accent: #D4AF37;
+        }
+
         .id-card-wrapper {
             width: 324px; height: 204px; max-height: 204px;
-            background-color: #fcfcfc; border-radius: 12px; overflow: hidden; position: relative;
-            border: 1px solid #ccc; display: flex; flex-direction: column; page-break-inside: avoid;
+            /* Efek Liquid Glass & Border yang dipertahankan untuk print */
+            background-color: rgba(255, 255, 255, 0.35) !important; 
+            backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); 
+            border: 1px solid rgba(255, 255, 255, 0.6); border-radius: 14px; 
+            overflow: hidden; position: relative; box-shadow: 0 15px 35px rgba(0,0,0,0.2); 
+            display: flex; flex-direction: column; page-break-inside: avoid;
         }
         .id-card-wrapper.portrait { width: 204px; height: 324px; max-height: 324px; }
         
         .id-card-wrapper::before {
             content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 50%;
-            background: #04432A !important;
+            /* Mempertahankan Gradasi Warna */
+            background: linear-gradient(135deg, var(--primary), var(--primary-light)) !important;
             clip-path: polygon(0 0, 100% 0, 100% 45%, 0% 100%); z-index: 0;
         }
         .id-card-wrapper.portrait::before { height: 42%; clip-path: polygon(0 0, 100% 0, 100% 65%, 0% 100%); }
+        
         .id-card-wrapper::after {
             content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 50%;
-            background: #D4AF37 !important;
+            background: var(--accent) !important;
             clip-path: polygon(0 0, 100% 0, 100% 50%, 0% 105%); z-index: -1;
         }
         .id-card-wrapper.portrait::after { height: 42%; clip-path: polygon(0 0, 100% 0, 100% 70%, 0% 105%); }
 
         .id-header {
             background: transparent !important; color: white !important; border: none !important;
-            padding: 12px 14px 4px 14px; text-align: left; display: flex; align-items: center; justify-content: flex-start; gap: 10px; z-index: 1; position: relative;
+            padding: 12px 14px 8px 14px; text-align: left; display: flex; align-items: center; justify-content: flex-start; gap: 10px; z-index: 1; position: relative;
         }
         .id-card-wrapper.portrait .id-header { flex-direction: column; padding: 12px 10px 4px 10px; gap: 4px; text-align: center; }
-        .id-header img { width: 32px; height: 32px; border-radius: 50%; background: white !important; padding: 3px; }
-        .id-header h4 { font-size: 0.85rem; margin: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 220px; }
-        .id-header p { font-size: 0.55rem; color: #F4E29F !important; margin: 0; }
+        
+        .id-header img { width: 32px; height: 32px; border-radius: 50%; background: rgba(255,255,255,0.95) !important; padding: 3px; object-fit: contain; box-shadow: 0 4px 10px rgba(0,0,0,0.15); }
+        .id-header h4 { font-size: 0.85rem; margin: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 220px; text-shadow: 1px 1px 3px rgba(0,0,0,0.4); }
+        .id-header p { font-size: 0.55rem; color: #F4E29F !important; margin: 0; text-shadow: 1px 1px 2px rgba(0,0,0,0.4); }
 
-                .id-body {
+        .id-body {
             padding: 6px 14px 12px 14px; display: flex; gap: 12px; background: transparent !important;
             flex: 1; position: relative; align-items: center; overflow: hidden; z-index: 1;
         }
-        .id-card-wrapper.portrait .id-body { flex-direction: column; align-items: center; justify-content: flex-start; gap: 10px; padding: 8px 10px 10px 10px; }
+        .id-card-wrapper.portrait .id-body { flex-direction: column; align-items: center; justify-content: flex-start; gap: 4px; padding: 4px 10px 25px 10px; }
         
-        /* Foto Cetak Dikecilkan */
-        .id-photo { width: 65px; height: 85px; object-fit: cover; border: 3px solid white; border-radius: 10px; background: #eee; flex-shrink: 0; }
-        .id-card-wrapper.portrait .id-photo { width: 70px; height: 90px; margin-top: 0; }
+        .id-photo { width: 65px; height: 85px; object-fit: cover; border: 2px solid rgba(255,255,255,0.9); border-radius: 10px; background: #eee; flex-shrink: 0; box-shadow: 0 4px 10px rgba(0,0,0,0.15); }
+        .id-card-wrapper.portrait .id-photo { width: 60px; height: 75px; margin-top: 0; }
 
-        /* Box Teks Cetak Dibuang */
         .id-details {
-            flex: 1; font-size: 0.65rem; line-height: 1.4; color: #111; font-weight: 600; text-align: left; overflow: hidden;
-            background: transparent !important; padding: 0 4px; border: none; border-radius: 0;
+            flex: 1; font-size: 0.65rem; line-height: 1.4; color: #111; font-weight: bold; text-align: left; overflow: hidden;
+            background: transparent !important; padding: 0 2px; border: none; border-radius: 0; box-shadow: none;
         }
         .id-card-wrapper.portrait .id-details { text-align: center; width: 100%; }
-        .id-details strong { color: #04432A !important; font-size: 0.85rem; display: block; margin-bottom: 2px; border-bottom: none; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .id-details strong { color: var(--primary) !important; font-size: 0.85rem; display: block; margin-bottom: 2px; border-bottom: none; text-transform: uppercase; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
-        .id-footer-custom { background: #04432A !important; color: white !important; text-align: center; font-size: 0.58rem; padding: 5px; font-weight: bold; width: 100%; z-index: 1; position: relative; }
-        .id-qr-depan { width: 60px !important; height: 60px !important; min-width: 60px; border: 2px solid white; padding: 3px; background: white !important; border-radius: 8px; display: flex; align-items: center; justify-content: center; margin-left: auto; }
-        .id-card-wrapper.portrait .id-qr-depan { margin: 4px auto 0 auto; width: 68px !important; height: 68px !important; }        
+        .id-footer-custom { background: rgba(4, 67, 42, 0.85) !important; backdrop-filter: blur(5px); color: white !important; text-align: center; font-size: 0.6rem; padding: 4px; font-weight: bold; width: 100%; z-index: 10; position: absolute; bottom: 0; left: 0; border-top: 1px solid rgba(255,255,255,0.3); }
+        
+        .id-qr-depan { width: 60px !important; height: 60px !important; min-width: 60px; border: 2px solid white; padding: 3px; background: white !important; border-radius: 8px; display: flex; align-items: center; justify-content: center; margin-left: auto; box-shadow: 0 4px 12px rgba(0,0,0,0.15); }
+        .id-card-wrapper.portrait .id-qr-depan { margin: 2px auto 0 auto; width: 64px !important; height: 64px !important; }
+       
         
         .kolektif-grid-gabung {
             display: grid;
