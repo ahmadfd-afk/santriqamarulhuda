@@ -707,6 +707,9 @@
 <label style="color: var(--primary);"><i class="fa-solid fa-text-height"></i> Ukuran Font Nama (px)</label>
 <input type="number" id="setting-font-nama" placeholder="Rekomendasi: 12 - 14">
 
+<label style="color: var(--primary);"><i class="fa-solid fa-text-height"></i> Ukuran Font Alamat (px)</label>
+<input type="number" id="setting-font-alamat" placeholder="Rekomendasi: 8 - 10">
+
 <label style="color: var(--primary);"><i class="fa-solid fa-qrcode"></i> Ukuran Barcode / QR (px)</label>
 <input type="number" id="setting-ukuran-qr" placeholder="Rekomendasi: 55 - 65">
 
@@ -1075,7 +1078,7 @@
                         <strong id="card-nama" style="text-transform: uppercase;">NAMA LENGKAP</strong>
                         <div style="margin-top: 5px;">
                             <span style="display:inline-block; width: 38px;">NIS</span>: <span id="card-nis" style="font-weight: bold; color: var(--primary);"></span><br>
-                            <span style="display:inline-block; width: 38px;">Alamat</span>: <span id="card-alamat" style="display:inline-block; vertical-align:top; max-width: 105px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;"></span>
+                            <span style="display:inline-block; width: 38px;">Alamat</span>: <span id="card-alamat" style="display:-webkit-inline-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; vertical-align:top; max-width: 140px; line-height:1.2;"></span>
                             
                             <!-- Elemen disembunyikan agar JS Render Data Tidak Error -->
                             <div style="display: none;">
@@ -1549,7 +1552,7 @@
                         <strong style="text-transform: uppercase;">${santri.nama}</strong>
                         <div style="margin-top: 5px;">
                             <span style="display:inline-block; width: 38px;">NIS</span>: <b style="color:var(--primary);">${santri.nis}</b><br>
-                            <span style="display:inline-block; width: 38px;">Alamat</span>: <b style="display:inline-block; vertical-align:top; max-width: 105px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${(santri.alamat || '-')}</b>
+                            <span style="display:inline-block; width: 38px;">Alamat</span>: <b class="alamat-cetak" style="display:-webkit-inline-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; vertical-align:top; max-width: 140px; line-height:1.2;">${(santri.alamat || '-')}</b>
                         </div>
                     </div>
                     <div class="id-qr-depan" id="qr-gabung-${santri.nis}" data-payload='${qrPayload}'></div>
@@ -1571,9 +1574,10 @@
     const sizeFontPrint = parseInt(dataYayasan.font_nama) || 13;
 
     // Terapkan ukuran font nama ke semua kartu yang sedang akan dicetak
-    containerTemp.querySelectorAll('.id-details strong').forEach(namaEl => {
-        namaEl.style.fontSize = sizeFontPrint + 'px';
-    });
+    const sizeFontAlamatPrint = parseInt(dataYayasan.font_alamat) || 9;
+containerTemp.querySelectorAll('.alamat-cetak').forEach(alamatEl => {
+    alamatEl.style.fontSize = sizeFontAlamatPrint + 'px';
+});
 
     databaseSantri.forEach(santri => {
         const wadahQR = containerTemp.querySelector(`#qr-gabung-${santri.nis}`);
@@ -2292,7 +2296,9 @@
 document.getElementById('setting-kertas-sertifikat').value = data.kertas_sertifikat || "A4";
                
                document.getElementById('setting-font-nama').value = data.font_nama || "13";
-                document.getElementById('setting-ukuran-qr').value = data.ukuran_qr || "60";
+               document.getElementById('setting-font-alamat').value = data.font_alamat || "9";
+
+document.getElementById('setting-ukuran-qr').value = data.ukuran_qr || "60";
                  document.getElementById('setting-voice-aktif').value = data.voice_aktif || "1"; 
                 document.getElementById('setting-voice-teks').value = data.voice_teks || ""; 
                 document.getElementById('setting-tata-tertib').value = data.tata_tertib || ""; 
@@ -2773,7 +2779,7 @@ function bukaModalSertifikat(nis) {
                 document.getElementById('label-kamar').innerText = getTerm('kamar') + ":"; document.getElementById('card-kamar').innerText = s.kamar; 
             }
 
-            document.getElementById('card-alamat').innerText = (s.alamat || '-').substring(0, 36); 
+            document.getElementById('card-alamat').innerText = (s.alamat || '-'); 
             qrDataPayload = JSON.stringify({ n: s.nis, u: supabaseConfig.url || "", k: supabaseConfig.key || "" });
         } else { 
             let db = getDB('pondok_users', []); let p = db.find(x => x.username === identifier); if(!p) return; 
@@ -2782,7 +2788,7 @@ function bukaModalSertifikat(nis) {
             document.getElementById('label-nomor').innerText = "ID Pegawai:"; document.getElementById('card-nis').innerText = "PEG-" + p.id; 
             document.getElementById('label-asrama').innerText = "Divisi/Role:"; document.getElementById('card-asrama').innerText = p.role.toUpperCase(); 
             document.getElementById('label-kamar').innerText = "Username:"; document.getElementById('card-kamar').innerText = p.username; 
-            document.getElementById('card-alamat').innerText = (yayasan.alamat || '-').substring(0, 36); 
+            document.getElementById('card-alamat').innerText = (yayasan.alamat || '-'); 
             qrDataPayload = "PEG-" + p.id; 
         } 
 
@@ -2813,6 +2819,8 @@ function bukaModalSertifikat(nis) {
         wadahQR.style.height = sizeQR + 'px';
         wadahQR.style.minWidth = sizeQR + 'px';
         document.getElementById('card-nama').style.fontSize = sizeFont + 'px';
+const sizeFontAlamat = parseInt(yayasan.font_alamat) || 9;
+document.getElementById('card-alamat').style.fontSize = sizeFontAlamat + 'px';
 
         // Render QR dengan ukuran presisi
         if (typeof QRCode !== 'undefined') { 
@@ -3490,6 +3498,7 @@ function bukaModalSertifikat(nis) {
             teks_lulus: document.getElementById('setting-teks-lulus').value,
             kertas_sertifikat: document.getElementById('setting-kertas-sertifikat').value,
             font_nama: document.getElementById('setting-font-nama').value,
+            font_alamat: document.getElementById('setting-font-alamat').value,
             ukuran_qr: document.getElementById('setting-ukuran-qr').value,
             voice_aktif:             document.getElementById('setting-voice-aktif').value,
             voice_teks: document.getElementById('setting-voice-teks').value,
