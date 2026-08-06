@@ -1429,14 +1429,14 @@
         .id-card-wrapper.portrait .id-qr-depan { margin: 2px auto 0 auto; width: 64px !important; height: 64px !important; }
        
         
-        .kolektif-grid-gabung {
-            display: grid;
-            grid-template-columns: auto auto;
+           .kolektif-grid-gabung {
+            display: flex;
+            flex-wrap: wrap;
             justify-content: center;
-            gap: 15px;
-            margin-bottom: 15px;
-            page-break-inside: avoid;
+            gap: 12px;
+            padding-bottom: 15px;
         }
+
         
         .surat-izin-box {
             border: 2px solid #04432A;
@@ -1550,16 +1550,14 @@
     let footerHTML = (dataYayasan.teks_footer && dataYayasan.teks_footer.trim() !== "") ? `<div class="id-footer-custom">${dataYayasan.teks_footer}</div>` : '';
     
     let htmlKartuKolektif = ``;
-    
-    // Deteksi jika user memilih portrait, tambahkan class 'portrait'
     let classTambahan = orientasi === 'portrait' ? ' portrait' : '';
 
-        databaseSantri.forEach((santri) => {
+    // WADAH DIBUKA DI SINI (Di luar loop agar kartu bisa berjejer)
+    htmlKartuKolektif += `<div class="kolektif-grid-gabung">`;
+
+    databaseSantri.forEach((santri) => {
         let qrPayload = JSON.stringify({ n: santri.nis, u: supabaseConfig.url || "", k: supabaseConfig.key || "" });
 
-        htmlKartuKolektif += `<div class="kolektif-grid-gabung">`;
-        
-        // HANYA MENCETAK SISI DEPAN KARENA SEMUA DETAIL & QR SUDAH TERCOVER
         htmlKartuKolektif += `
             <div class="id-card-wrapper${classTambahan}" style="${bgCardStyle}">
                 <div class="id-header">
@@ -1573,7 +1571,6 @@
                         <div style="margin-top: 5px;">
                             <span style="display:inline-block; width: 38px;">NIS</span>: <b style="color:var(--primary);">${santri.nis}</b><br>
                             <b class="alamat-cetak" style="display:-webkit-inline-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; vertical-align:top; max-width: 180px; line-height:1.2; margin-top: 4px;">${(santri.alamat || '-')}</b>
-
                         </div>
                     </div>
                     <div class="id-qr-depan" id="qr-gabung-${santri.nis}" data-payload='${qrPayload}'></div>
@@ -1581,29 +1578,27 @@
                 ${footerHTML}
             </div>
         `;
-        
-        htmlKartuKolektif += `</div>`;
     });
 
+    // WADAH DITUTUP DI SINI SETELAH LOOP SELESAI
+    htmlKartuKolektif += `</div>`;
 
     const containerTemp = document.createElement('div'); 
     containerTemp.style.position = 'fixed'; containerTemp.style.right = '200vw'; 
     document.body.appendChild(containerTemp); 
     containerTemp.innerHTML = htmlKartuKolektif;
     
-        const sizeQRPrint = parseInt(dataYayasan.ukuran_qr) || 60;
+    const sizeQRPrint = parseInt(dataYayasan.ukuran_qr) || 60;
     const sizeFontPrint = parseInt(dataYayasan.font_nama) || 13;
-
-    // Terapkan ukuran font nama ke semua kartu yang sedang akan dicetak
     const sizeFontAlamatPrint = parseInt(dataYayasan.font_alamat) || 9;
-containerTemp.querySelectorAll('.alamat-cetak').forEach(alamatEl => {
-    alamatEl.style.fontSize = sizeFontAlamatPrint + 'px';
-});
+
+    containerTemp.querySelectorAll('.alamat-cetak').forEach(alamatEl => {
+        alamatEl.style.fontSize = sizeFontAlamatPrint + 'px';
+    });
 
     databaseSantri.forEach(santri => {
         const wadahQR = containerTemp.querySelector(`#qr-gabung-${santri.nis}`);
         if (wadahQR && typeof QRCode !== 'undefined') {
-            // Terapkan ukuran div QR sebelum di-render
             wadahQR.style.width = sizeQRPrint + 'px';
             wadahQR.style.height = sizeQRPrint + 'px';
             wadahQR.style.minWidth = sizeQRPrint + 'px';
@@ -1617,7 +1612,6 @@ containerTemp.querySelectorAll('.alamat-cetak').forEach(alamatEl => {
         }
     });
 
-    // Sesuaikan perbaikan ukuran canvas agar gambar tidak pecah / meluber saat di print
     setTimeout(() => { 
         const canvases = containerTemp.querySelectorAll('canvas');
         canvases.forEach(canvas => {
@@ -1626,20 +1620,6 @@ containerTemp.querySelectorAll('.alamat-cetak').forEach(alamatEl => {
             const siblingImg = canvas.nextElementSibling; if(siblingImg && siblingImg.tagName === 'IMG') siblingImg.remove();
             canvas.parentNode.replaceChild(img, canvas);
         });
-        cetakElemenHTML(containerTemp.innerHTML, 'portrait'); 
-        containerTemp.remove();
-    }, 600);
-
-
-    setTimeout(() => { 
-        const canvases = containerTemp.querySelectorAll('canvas');
-        canvases.forEach(canvas => {
-            const img = document.createElement('img'); img.src = canvas.toDataURL('image/png'); 
-            img.style.width = '85px'; img.style.height = '85px';
-            const siblingImg = canvas.nextElementSibling; if(siblingImg && siblingImg.tagName === 'IMG') siblingImg.remove();
-            canvas.parentNode.replaceChild(img, canvas);
-        });
-        // Kita kunci settingan cetak kertasnya ke 'portrait' untuk cetak massal F4/A4 agar rapi ke bawah
         cetakElemenHTML(containerTemp.innerHTML, 'portrait'); 
         containerTemp.remove();
     }, 600);
