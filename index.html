@@ -4306,7 +4306,8 @@ function simpanTabungan() {
                 <tr><td style="padding:8px; border:1px solid #000; font-weight:bold;">Pengajar (Ustadz)</td><td style="padding:8px; border:1px solid #000;">${m.ustadz_nama}</td></tr>
                 <tr><td style="padding:8px; border:1px solid #000; font-weight:bold;">Kelas Terlibat</td><td style="padding:8px; border:1px solid #000;">${namaKelasTerpilih.join(', ')}</td></tr>
                 <tr><td style="padding:8px; border:1px solid #000; font-weight:bold;">Jadwal / Waktu</td><td style="padding:8px; border:1px solid #000;">${m.hari ? `${m.hari}, ${m.jam_mulai} - ${m.jam_selesai}` : 'Waktu Fleksibel (Menunggu Arahan / Tanpa Hari Tetap)'}</td></tr>
-                <tr><td style="padding:8px; border:1px solid #000; font-weight:bold;">Status Sistem</td><td style="padding:8px; border:1px solid #000; color:green; font-weight:bold;">TERVALIDASI / SIAP MULAI</td></tr>
+                <tr><td style="padding:8px; border:1px solid #000; font-weight:bold;">Status Sistem</td><
+              style="padding:8px; border:1px solid #000; color:green; font-weight:bold;">TERVALIDASI / SIAP MULAI</td></tr>
             </table>
             <p style="font-size:11px; text-align:center; margin-top:30px; font-style:italic;">Dokumen ini dicetak otomatis dari Sistem Manajemen Instansi.</p>
         `;
@@ -4326,37 +4327,6 @@ function simpanTabungan() {
         });
         return saldo;
     }
-
-    /* ========================================================================== */
-/* === AWAL PERBAIKAN BLOK 1: CAMERA SCANNER & INJECT SANTRI LINTAS KELAS === */
-/* ========================================================================== */
-function startScanner() {
-    if (typeof Html5Qrcode === 'undefined') return alert("Library Scanner belum siap loaded.");
-    document.getElementById('qr-reader').style.display = 'block';
-    if (!html5QrcodeScanner) {
-        html5QrcodeScanner = new Html5Qrcode("qr-reader");
-        html5QrcodeScanner.start({ facingMode: "environment" }, { fps: 15, qrbox: { width: 250, height: 250 } }, (rawScanText) => {
-            let scanResult = rawScanText;
-            try { let parsed = JSON.parse(rawScanText); if (parsed.n) scanResult = parsed.n; } catch(e) {}
-            
-            const baris = document.getElementById(`baris_santri_${scanResult}`);
-            if (baris) {
-                const radioHadir = baris.querySelector('input[value="Hadir"]');
-                if (radioHadir) {
-                    radioHadir.checked = true;
-                    radioHadir.dispatchEvent(new Event('change'));
-                    document.getElementById('scan-result').innerHTML = `<span style="color:var(--success);"><i class="fa-solid fa-circle-check"></i> Hadir: ${scanResult}</span>`;
-                }
-            } else {
-                // PERBAIKAN: Jika santri bukan dari kelas ini, masukkan sebagai santri tamu lintas kelas!
-                tambahkanSantriTamuKeAbsen(scanResult);
-            }
-        }).catch(err => {
-            alert("Gagal mengaktifkan kamera.");
-            document.getElementById('qr-reader').style.display = 'none';
-        });
-    }
-}
 
 // FUNGSI BARU: Menginjeksikan santri dari kelas lain ke layar absen secara otomatis
 function tambahkanSantriTamuKeAbsen(nisScan) {
