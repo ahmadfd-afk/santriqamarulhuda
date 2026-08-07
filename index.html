@@ -295,6 +295,95 @@
 
         /* CSS TAMBAHAN SCROLL DATA SANTRI & TOGGLE TABLE */
         .wadah-scroll-santri { max-height: 420px; overflow-y: auto; overflow-x: auto; border: 1px solid rgba(0,0,0,0.08); border-radius: 12px; background: #ffffff; margin-bottom: 10px; }
+        /* ========================================================= */
+/* === TAMPILAN DESKTOP ELEGAN & MEWAH (MIN-WIDTH 850px) === */
+/* ========================================================= */
+@media screen and (min-width: 850px) {
+    /* 1. Efek Floating Dashboard untuk Container Utama */
+    body {
+        padding: 30px 0; /* Memberi ruang di atas dan bawah layar */
+    }
+    
+    .app-container {
+        max-width: 1100px; /* Lebar maksimal diperbesar */
+        min-height: calc(100vh - 60px);
+        border-radius: 34px; /* Sudut membulat yang elegan */
+        box-shadow: 0 35px 85px rgba(0,0,0,0.6), inset 0 0 0 1px rgba(255,255,255,0.25);
+        margin: 0 auto;
+    }
+
+    /* 2. Header Menyesuaikan Sudut Container */
+    header {
+        border-radius: 34px 34px 0 0;
+        padding: 22px 35px;
+    }
+
+    #dashboard-wrapper {
+        padding: 30px 35px 120px 35px;
+    }
+
+    /* 3. Merubah Layout Card menjadi 2 Kolom (Grid/Flex) */
+    .page-view {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 22px;
+        align-items: flex-start;
+    }
+
+    .page-view > .card {
+        flex: 1 1 calc(50% - 22px);
+        margin-bottom: 0;
+    }
+
+    /* 4. Memaksa elemen tertentu tetap 1 Kolom Penuh (Full Width) */
+    .page-view > .back-nav,
+    .page-view > div[style*="display: flex; gap: 8px;"], /* Tab Santri Aktif/Alumni */
+    .page-view > .card[id="card-setup-pin"],
+    .page-view > .card:first-of-type:not(.card-premium) {
+        flex: 1 1 100%;
+    }
+
+    /* 5. Navigasi Bawah Menjadi Floating Dock ala Mac/iPad */
+    .bottom-nav {
+        max-width: 650px;
+        bottom: 30px;
+        padding: 16px 25px;
+        border-radius: 40px;
+        box-shadow: 0 25px 60px rgba(0,0,0,0.4);
+        border: 1px solid rgba(255,255,255,0.9);
+    }
+
+    .nav-item {
+        font-size: 0.8rem;
+    }
+
+    .nav-item i {
+        font-size: 1.4rem;
+        margin-bottom: 6px;
+    }
+
+    /* 6. Form Login Lebih Proporsional */
+    .login-wrapper {
+        border-radius: 34px;
+    }
+    
+    .glass-card-login {
+        max-width: 420px;
+        padding: 45px 35px !important;
+        box-shadow: 0 30px 70px rgba(0,0,0,0.6) !important;
+    }
+    
+    /* 7. Memperindah Scrollbar pada Tabel */
+    .wadah-scroll-santri {
+        max-height: 550px;
+    }
+    
+    /* 8. Modal Tampil Lebih Lebar dan Mewah */
+    .glass-panel {
+        max-width: 600px !important;
+        box-shadow: 0 40px 100px rgba(0,0,0,0.5);
+    }
+}
     </style>
 </head>
 <body>
