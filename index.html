@@ -282,6 +282,16 @@
         .sertifikat-predikat { font-size: 1.3rem; font-weight: bold; color: var(--danger); margin: 10px 0; }
         .sertifikat-footer { margin-top: 40px; display: flex; justify-content: flex-end; padding-right: 40px; text-align: center; }
         .sertifikat-ttd img { max-height: 50px; margin: 5px auto; display: block;}
+/* --- TAMBAHAN CSS DROPDOWN & HARI --- */
+.custom-select-wrapper { position: relative; width: 100%; margin-bottom: 14px; }
+.custom-select-btn { display:flex; justify-content:space-between; align-items:center; width: 100%; padding: 13px 15px; border-radius: var(--radius-sm); border: 1px solid rgba(0,0,0,0.12); background: rgba(255,255,255,0.92); cursor: pointer; font-size: 0.95rem; font-weight: 600; color: #333; }
+.custom-select-content { display: none; position: absolute; top: 100%; left: 0; right: 0; background: #fff; border: 1px solid #ccc; border-radius: 8px; box-shadow: 0 10px 25px rgba(0,0,0,0.15); z-index: 1000; max-height: 250px; overflow-y: auto; padding: 10px; margin-top: 5px; }
+.custom-select-content.show { display: block; }
+
+.hari-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+.hari-btn { padding: 10px; text-align: center; border-radius: 8px; border: 1.5px solid var(--primary); color: var(--primary); cursor: pointer; font-size: 0.8rem; font-weight: 600; background: rgba(255,255,255,0.8); transition: 0.2s all; }
+.hari-btn:active { transform: scale(0.95); }
+.hari-btn.active { background: var(--primary); color: #fff; box-shadow: 0 4px 10px var(--glass-glow); }
 
         /* CSS TAMBAHAN SCROLL DATA SANTRI & TOGGLE TABLE */
         .wadah-scroll-santri { max-height: 420px; overflow-y: auto; overflow-x: auto; border: 1px solid rgba(0,0,0,0.08); border-radius: 12px; background: #ffffff; margin-bottom: 10px; }
@@ -547,54 +557,119 @@
                 <div class="back-nav" onclick="closeSubMenu()"><i class="fa-solid fa-arrow-left"></i> Kembali ke Dashboard</div>
                 
                 <div class="card card-premium" style="border-left-color: var(--info);">
+                    
                     <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; flex-wrap:wrap; gap:8px;">
                         <h3 style="color: var(--info); margin:0;"><i class="fa-solid fa-book"></i> Buat Master Mata Pelajaran</h3>
                         <button type="button" class="btn-outline" style="width:auto; padding:6px 12px; margin:0; font-size:0.72rem; border-color:var(--info); color:var(--info);" onclick="aktifkanNotifikasiJadwal()">
                             <i class="fa-solid fa-bell"></i> Izin Layar PWA Notif
                         </button>
                     </div>
-                    <p style="font-size:0.75rem; color:var(--text-muted); margin-bottom:10px;">Buat mata pelajaran dan tentukan ustadz/guru penanggung jawabnya (bisa lebih dari satu), lalu centang kelas mana saja yang mempelajarinya.</p>
+                                        <p style="font-size:0.75rem; color:var(--text-muted); margin-bottom:10px;">Buat mata pelajaran dan tentukan ustadz/guru penanggung jawabnya (bisa lebih dari satu), lalu centang kelas mana saja yang mempelajarinya.</p>
                     
-                    <label>Nama Mata Pelajaran</label>
-                    <input type="text" id="input-nama-mapel" placeholder="Cth: Fiqih / Al-Qur'an / Nahwu">
-                    
-                    <label style="cursor:pointer; display:flex; align-items:center; gap:8px; color:var(--primary); margin-top:14px;">
-                        <input type="checkbox" id="input-opsi-jadwal" onchange="toggleFormJadwalMapel()" style="width:18px; height:18px; margin:0;">
-                        <span>Atur Jadwal Hari & Jam (Opsional)</span>
-                    </label>
-                    <div id="wadah-input-jadwal" class="hidden" style="margin-top:10px; background:rgba(4,67,42,0.05); padding:12px; border-radius:12px; border:1px solid rgba(0,0,0,0.08);">
-                        <label style="margin-top:0;">Hari Pelaksanaan</label>
-                        <select id="input-hari-mapel">
-                            <option value="Senin">Senin</option>
-                            <option value="Selasa">Selasa</option>
-                            <option value="Rabu">Rabu</option>
-                            <option value="Kamis">Kamis</option>
-                            <option value="Jumat">Jumat</option>
-                            <option value="Sabtu">Sabtu</option>
-                            <option value="Minggu">Minggu</option>
-                        </select>
-                        <div style="display:flex; gap:8px;">
-                            <div style="flex:1;"><label>Jam Mulai</label><input type="time" id="input-jam-mulai"></div>
-                            <div style="flex:1;"><label>Jam Selesai</label><input type="time" id="input-jam-selesai"></div>
-                        </div>
+                    <!-- PERBAIKAN: BANK MATA PELAJARAN MULTIPLE CHECKBOX -->
+                    <label style="color:var(--primary); margin-top:10px;"><i class="fa-solid fa-layer-group"></i> 1. Bank Nama Mata Pelajaran</label>
+                    <div style="display:flex; gap:8px; margin-bottom:10px;">
+                        <input type="text" id="input-tambah-bank-mapel" placeholder="Ketik mapel baru (cth: Fiqih)..." style="margin:0; flex:1;">
+                        <button type="button" class="btn-outline" style="margin:0; width:auto; border-color:var(--info); color:var(--info); padding:10px;" onclick="tambahBankMapel()">
+                            <i class="fa-solid fa-plus"></i> Tambah ke Bank
+                        </button>
                     </div>
+                    
+                    <div id="wadah-bank-mapel" style="max-height: 150px; overflow-y: auto; border: 1px dashed var(--info); padding: 10px; border-radius: 12px; background: rgba(0,122,255,0.03); margin-bottom: 14px; display: flex; flex-wrap: wrap; gap: 8px;">
+                        <!-- Checkbox Mapel dari Bank dirender via JS -->
+                    </div>
+                    <!-- AKHIR PERBAIKAN BANK MAPEL -->
+                    
+                   <label style="cursor:pointer; display:flex; align-items:center; gap:8px; color:var(--primary); margin-top:14px;">
+    <input type="checkbox" id="input-opsi-jadwal" onchange="toggleFormJadwalMapel()" style="width:18px; height:18px; margin:0;">
+    <span>Atur Jadwal Hari & Jam (Opsional)</span>
+</label>
 
-                    <label style="color:var(--primary); margin-top:14px;"><i class="fa-solid fa-users"></i> Pilih Ustadz / Guru Pengajar (Bisa Lebih dari 1):</label>
-                    <div id="input-ustadz-mapel-container" style="max-height: 320px; overflow-y: auto; border: 1px solid #ddd; padding: 10px; border-radius: 12px; background: #fff; margin-bottom: 14px;"></div>
+<!-- PERBAIKAN: Tombol Hari & Input Teks Jam Fleksibel -->
+<div id="wadah-input-jadwal" class="hidden" style="margin-top:10px; background:rgba(4,67,42,0.05); padding:12px; border-radius:12px; border:1px solid rgba(0,0,0,0.08);">
+    <label style="margin-top:0; margin-bottom:8px;">Hari Pelaksanaan</label>
+    <div class="hari-grid">
+        <div class="hari-btn active" id="btn-hari-Senin" onclick="pilihHari('Senin')">Senin</div>
+        <div class="hari-btn" id="btn-hari-Selasa" onclick="pilihHari('Selasa')">Selasa</div>
+        <div class="hari-btn" id="btn-hari-Rabu" onclick="pilihHari('Rabu')">Rabu</div>
+        <div class="hari-btn" id="btn-hari-Kamis" onclick="pilihHari('Kamis')">Kamis</div>
+        <div class="hari-btn" id="btn-hari-Jumat" onclick="pilihHari('Jumat')">Jumat</div>
+        <div class="hari-btn" id="btn-hari-Sabtu" onclick="pilihHari('Sabtu')">Sabtu</div>
+        <div class="hari-btn" id="btn-hari-Minggu" onclick="pilihHari('Minggu')">Minggu</div>
+    </div>
+    <input type="hidden" id="input-hari-mapel" value="Senin"> <!-- Nilai default Senin -->
 
-                    <label style="color:var(--primary); margin-top:14px;"><i class="fa-solid fa-layer-group"></i> Pilih Kelas Yang Mempelajari Mapel Ini:</label>
-                    <div id="input-kelas-mapel-container" style="max-height: 320px; overflow-y: auto; border: 1px solid #ddd; padding: 10px; border-radius: 12px; background: #fff; margin-bottom: 14px;"></div>
+        <!-- PERBAIKAN: Dropdown Pilihan Cepat dari Logika Jam Singkatan -->
+    <div style="margin-top:12px;">
+        <label style="color:var(--warning); margin-bottom:4px;">
+            <i class="fa-solid fa-clock"></i> Pilih Preset Jam Singkatan (BA, BS, BM, dll):
+        </label>
+        <select id="select-jam-preset" onchange="pilihPresetJam(this.value)" style="margin-bottom:8px; border-color:var(--warning);">
+            <option value="">-- Pilih dari Setting Jam Singkatan / Isi Manual --</option>
+        </select>
+    </div>
 
-                    <button class="btn-primary" style="background: var(--info); border: none; box-shadow: none;" onclick="simpanMapel()">SIMPAN MATA PELAJARAN</button>
+    <div style="display:flex; gap:8px;">
+        <div style="flex:1;"><label>Jam Mulai (Opsional)</label><input type="text" id="input-jam-mulai" placeholder="Cth: BA / 15:30"></div>
+        <div style="flex:1;"><label>Jam Selesai (Opsional)</label><input type="text" id="input-jam-selesai" placeholder="Cth: 16:30"></div>
+    </div>
+</div>
+
+
+<!-- PERBAIKAN: Dropdown Ustadz -->
+<label style="color:var(--primary); margin-top:14px;"><i class="fa-solid fa-users"></i> Pilih Ustadz / Guru Pengajar (Bisa Lebih dari 1):</label>
+<div class="custom-select-wrapper">
+    <div class="custom-select-btn" onclick="document.getElementById('input-ustadz-mapel-container').classList.toggle('show')">
+        Klik untuk Pilih Ustadz... <i class="fa-solid fa-chevron-down"></i>
+    </div>
+    <!-- Wadah list checkbox dari JS tetap menggunakan ID yang sama -->
+    <div id="input-ustadz-mapel-container" class="custom-select-content"></div> 
+</div>
+
+<!-- PERBAIKAN: Dropdown Kelas -->
+<label style="color:var(--primary); margin-top:14px;"><i class="fa-solid fa-layer-group"></i> Pilih Kelas Yang Mempelajari Mapel Ini:</label>
+<div class="custom-select-wrapper">
+    <div class="custom-select-btn" onclick="document.getElementById('input-kelas-mapel-container').classList.toggle('show')">
+        Klik untuk Pilih Kelas... <i class="fa-solid fa-chevron-down"></i>
+    </div>
+    <!-- Wadah list checkbox dari JS tetap menggunakan ID yang sama -->
+    <div id="input-kelas-mapel-container" class="custom-select-content"></div>
+</div>
+
+                                        <button class="btn-primary" style="background: var(--info); border: none; box-shadow: none;" onclick="simpanMapel()">SIMPAN MATA PELAJARAN</button>
                     
                     <div style="margin-top: 15px; border-top: 1px solid rgba(0,0,0,0.08); padding-top: 10px;">
-                        <h4 style="font-size:0.8rem; color:var(--primary); margin-bottom:8px;">Daftar Mata Pelajaran & Kelas Peserta:</h4>
+                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; flex-wrap:wrap; gap:8px;">
+    <h4 style="font-size:0.8rem; color:var(--primary); margin:0;">Daftar Mata Pelajaran & Kelas Peserta:</h4>
+    <button class="btn-print" style="width:auto; padding:6px 12px; margin:0; font-size:0.75rem;" onclick="cetakSemuaJadwalPDF()"><i class="fa-solid fa-print"></i> Download Semua Jadwal</button>
+</div>
                         <div style="overflow-x:auto;"><table><thead><tr><th>Mata Pelajaran</th><th>Ustadz PJ</th><th>Kelas & Jadwal</th><th>Aksi</th></tr></thead><tbody id="tabel-mapel-body"></tbody></table></div>
                     </div>
                 </div>
 
+                <!-- ⬇️ TAMBAHKAN KOTAK INI DI SINI ⬇️ -->
+                <div class="card card-premium" style="border-left-color: var(--warning);">
+                    <h3 style="margin-bottom: 10px; color: var(--warning);"><i class="fa-solid fa-clock"></i> Setting Logika Jam Singkatan</h3>
+                    <p style="font-size:0.75rem; color:var(--text-muted); margin-bottom:10px;">Definisikan jam aktual untuk singkatan seperti BS (Ba'da Subuh) atau BM agar pengingat jadwal dan absensi otomatis berfungsi.</p>
+                    
+                    <div style="display:flex; gap:8px; margin-bottom:10px; flex-wrap: wrap;">
+                        <input type="text" id="input-kode-jam" placeholder="Kode (Cth: BS)" style="flex:1; min-width:80px; margin:0;">
+                        <input type="time" id="input-waktu-mulai-jam" style="flex:1; min-width:90px; margin:0;" title="Jam Mulai">
+                        <input type="time" id="input-waktu-selesai-jam" style="flex:1; min-width:90px; margin:0;" title="Jam Selesai">
+                        <button type="button" class="btn-warning" style="margin:0; padding:10px 14px; width:auto;" onclick="tambahJamKustom()">
+                            <i class="fa-solid fa-plus"></i> Tambah
+                        </button>
+                    </div>
+                    
+                    <div id="wadah-jam-kustom" style="display: flex; flex-direction: column; gap: 8px;">
+                        <!-- List jam akan dirender di sini via JS -->
+                    </div>
+                </div>
+                <!-- ⬆️ SAMPAI SINI ⬆️ -->
+
                 <div class="card card-premium">
                     <h3 style="margin-bottom: 14px; color: var(--primary);"><i class="fa-solid fa-layer-group"></i> Buat Kelas / Forum Baru</h3>
+
                     <p style="font-size:0.75rem; color:var(--text-muted); margin-bottom:10px;">Buat kelas baru terlebih dahulu, lalu Anda dapat mengaturnya di pembuatan mata pelajaran di atas atau klik Edit Plotting di tabel bawah.</p>
                     <label>Nama Kelas / Forum</label><input type="text" id="input-nama-kelas" placeholder="Cth: Kelas 1-A / Takhassus">
                     <button class="btn-primary" onclick="simpanKelasBaru()">BUAT & SIMPAN KELAS</button>
@@ -2021,11 +2096,27 @@ function cetakLaporanPDF() {
 
     function initApp() {
         muatScriptEksternal(); registerServiceWorker();
+        
+        // ⬇️ TAMBAHKAN INISIALISASI INI DI SINI ⬇️
+        if (!localStorage.getItem('pondok_jam_kustom')) {
+            localStorage.setItem('pondok_jam_kustom', JSON.stringify([
+                { kode: "BS", mulai: "05:00", selesai: "06:30" },
+                { kode: "BM", mulai: "18:30", selesai: "19:30" }
+            ]));
+        }
+        // ⬆️ SAMPAI SINI ⬆️
         if (!localStorage.getItem('pondok_users')) { localStorage.setItem('pondok_users', JSON.stringify([ { id: 1, nama: "Super Admin Mutlak", username: "admin", password: "admin123", pin_login: "123456", role: "superadmin", foto: 'https://cdn-icons-png.flaticon.com/512/149/149071.png' }, { id: 2, nama: "Admin Tata Usaha", username: "tu", password: "tu123", pin_login: "112233", role: "admin", foto: 'https://cdn-icons-png.flaticon.com/512/149/149071.png' }, { id: 3, nama: "Guru / Ustadz", username: "ustadz", password: "ustadz123", pin_login: "1234", role: "ustadz", foto: 'https://cdn-icons-png.flaticon.com/512/149/149071.png' }, { id: 4, nama: "Kasir Keuangan", username: "keuangan", password: "keuangan123", pin_login: "998877", role: "accounting", foto: 'https://cdn-icons-png.flaticon.com/512/149/149071.png' } ])); }
         let cekAkses = getDB('pondok_akses', defaultAkses); localStorage.setItem('pondok_akses', JSON.stringify(cekAkses));
         if (!localStorage.getItem('pondok_absensi')) localStorage.setItem('pondok_absensi', JSON.stringify([]));
         if (!localStorage.getItem('pondok_evaluasi')) localStorage.setItem('pondok_evaluasi', JSON.stringify([]));
         if (!localStorage.getItem('pondok_tabungan')) localStorage.setItem('pondok_tabungan', JSON.stringify([]));
+         // PERBAIKAN: Inisialisasi Bank Mapel Otomatis
+        if (!localStorage.getItem('pondok_bank_mapel')) {
+            let listM = getDB('pondok_master_mapel', []);
+            let unikMapel = [...new Set(listM.map(m => m.nama_mapel))];
+            if (unikMapel.length === 0) unikMapel = ["Fiqih Shalat", "Tahfidz Al-Qur'an", "Bahasa Arab", "Aqidah Akhlak"];
+            localStorage.setItem('pondok_bank_mapel', JSON.stringify(unikMapel));
+        }
         if (!localStorage.getItem('pondok_master_mapel')) {
             localStorage.setItem('pondok_master_mapel', JSON.stringify([
                 { id: 101, nama_mapel: "Fiqih Shalat & Thaharah", ustadz_ids: ["ustadz"], ustadz_nama: "Guru / Ustadz", kelas_ids: [201], jadwal_aktif: true, hari: "Senin", jam_mulai: "08:00", jam_selesai: "09:30" },
@@ -2174,7 +2265,6 @@ function cetakLaporanPDF() {
             });
         }
     }
-
     function masukKeSistemSetelahLogin(playSuara = true) {
         document.getElementById('header-user-name').innerText = currentUser.nama || "User";
         document.getElementById('header-user-photo').src = currentUser.foto || "https://cdn-icons-png.flaticon.com/512/149/149071.png";
@@ -2194,7 +2284,7 @@ function cetakLaporanPDF() {
         if(lastTab === 'view-santri') { switchTabSantri('aktif'); renderDropdownKelasSantri(); }
         if(lastTab === 'view-evaluasi') renderDropdownKelasEvaluasi();
         if(lastTab === 'view-izin') renderTabelIzinAktif();
-        if(lastTab === 'view-kelas') { renderMasterMapel(); renderTabelDaftarKelas(); }
+        if(lastTab === 'view-kelas') { renderMasterMapel(); renderTabelDaftarKelas(); renderJamKustom(); }    
                if (lastTab === 'view-absen') startAnalisisGPSUstadz(); 
         if (lastTab === 'view-keuangan') renderDataKeuanganPanel();
         if (lastTab === 'view-paguyuban') { document.getElementById('area-input-paguyuban').classList.add('hidden'); } 
@@ -2857,8 +2947,48 @@ document.getElementById('card-alamat').style.fontSize = sizeFontAlamat + 'px';
             else wadah.classList.add('hidden');
         }
     }
+    function tambahBankMapel() {
+        const nama = document.getElementById('input-tambah-bank-mapel').value.trim();
+        if (!nama) return alert("Ketik nama mata pelajaran terlebih dahulu!");
+        let bank = getDB('pondok_bank_mapel', []);
+        
+        // Cek agar tidak duplikat
+        if (bank.find(m => m.toLowerCase() === nama.toLowerCase())) return alert("Mata pelajaran ini sudah ada di Bank Mapel!");
+        
+        bank.push(nama);
+        localStorage.setItem('pondok_bank_mapel', JSON.stringify(bank));
+        document.getElementById('input-tambah-bank-mapel').value = '';
+        renderMasterMapel();
+    }
 
-    function renderMasterMapel() {
+    function hapusBankMapel(nama) {
+        if (!confirm(`Hapus "${nama}" dari Bank Mapel?\n(Mata pelajaran yang sudah diatur jadwalnya di tabel bawah tidak akan hilang).`)) return;
+        let bank = getDB('pondok_bank_mapel', []);
+        bank = bank.filter(m => m !== nama);
+        localStorage.setItem('pondok_bank_mapel', JSON.stringify(bank));
+        renderMasterMapel();
+    }
+
+        function renderMasterMapel() {
+        // PERBAIKAN: Render Bank Mapel Checkbox
+        const wadahBank = document.getElementById('wadah-bank-mapel');
+        if (wadahBank) {
+            wadahBank.innerHTML = '';
+            const bank = getDB('pondok_bank_mapel', []);
+            if (bank.length === 0) {
+                wadahBank.innerHTML = '<span style="color:red; font-size:0.8rem; font-style:italic;">Bank mapel kosong. Tambahkan lewat kolom di atas.</span>';
+            } else {
+                bank.forEach((nama, idx) => {
+                    wadahBank.innerHTML += `
+                    <div style="display:flex; align-items:center; background:#fff; padding:6px 12px; border-radius:20px; border:1px solid #ccc; gap:8px; box-shadow:0 2px 5px rgba(0,0,0,0.05);">
+                        <input type="checkbox" value="${nama}" class="cb-bank-mapel" id="cb_bank_${idx}" style="margin:0; width:16px; height:16px; cursor:pointer;">
+                        <label for="cb_bank_${idx}" style="margin:0; font-size:0.75rem; cursor:pointer; font-weight:600; color:var(--primary);">${nama}</label>
+                        <i class="fa-solid fa-times-circle" style="color:var(--danger); font-size:0.85rem; cursor:pointer; margin-left:4px;" onclick="hapusBankMapel('${nama}')"></i>
+                    </div>`;
+                });
+            }
+        }
+
         const wadahUstadz = document.getElementById('input-ustadz-mapel-container');
         if (wadahUstadz) {
             wadahUstadz.innerHTML = '';
@@ -2934,10 +3064,13 @@ document.getElementById('card-alamat').style.fontSize = sizeFontAlamat + 'px';
         });
     }
 
-    function simpanMapel() {
-        const namaMapel = document.getElementById('input-nama-mapel').value.trim();
-        if (!namaMapel) return alert("Isi nama mata pelajaran!");
+        function simpanMapel() {
+        // 1. Ambil Array Mapel yang dicentang
+        let selectedMapels = [];
+        document.querySelectorAll('.cb-bank-mapel:checked').forEach(cb => selectedMapels.push(cb.value));
+        if (selectedMapels.length === 0) return alert("Pilih / Centang minimal satu mata pelajaran dari Bank Mapel!");
 
+        // 2. Ambil Array Ustadz yang dicentang
         let selectedUstadzIds = [];
         let selectedUstadzNama = [];
         document.querySelectorAll('.cb-ustadz-mapel:checked').forEach(cb => {
@@ -2946,6 +3079,7 @@ document.getElementById('card-alamat').style.fontSize = sizeFontAlamat + 'px';
         });
         if (selectedUstadzIds.length === 0) return alert("Pilih minimal satu ustadz/guru pengajar!");
 
+        // 3. Ambil Array Kelas yang dicentang
         let selectedKelasIds = [];
         document.querySelectorAll('.cb-kelas-mapel:checked').forEach(cb => selectedKelasIds.push(parseInt(cb.value)));
 
@@ -2954,39 +3088,50 @@ document.getElementById('card-alamat').style.fontSize = sizeFontAlamat + 'px';
         const jamMulai = jadwalAktif ? document.getElementById('input-jam-mulai').value : '';
         const jamSelesai = jadwalAktif ? document.getElementById('input-jam-selesai').value : '';
 
-        const newMapelId = Date.now();
-
         let listMapel = getDB('pondok_master_mapel', []);
-        listMapel.push({
-            id: newMapelId,
-            nama_mapel: namaMapel,
-            ustadz_ids: selectedUstadzIds,
-            ustadz_nama: selectedUstadzNama.join(", "),
-            kelas_ids: selectedKelasIds,
-            jadwal_aktif: jadwalAktif,
-            hari: hariMapel,
-            jam_mulai: jamMulai,
-            jam_selesai: jamSelesai
-        });
-        localStorage.setItem('pondok_master_mapel', JSON.stringify(listMapel));
-
         let listKelas = getDB('pondok_kelas', []);
-        listKelas.forEach(kls => {
-            if (selectedKelasIds.includes(kls.id)) {
-                if (!kls.mapel_ids) kls.mapel_ids = [];
-                if (!kls.mapel_ids.includes(newMapelId)) kls.mapel_ids.push(newMapelId);
-            }
+
+        // 4. LOOPING: Simpan Setiap Mapel yang dicentang secara mandiri
+        selectedMapels.forEach(namaMapel => {
+            // Gunakan random desimal agar ID unik jika tersimpan di milidetik yang sama
+            const newMapelId = Date.now() + Math.floor(Math.random() * 10000); 
+
+            listMapel.push({
+                id: newMapelId,
+                nama_mapel: namaMapel,
+                ustadz_ids: selectedUstadzIds,
+                ustadz_nama: selectedUstadzNama.join(", "),
+                kelas_ids: selectedKelasIds,
+                jadwal_aktif: jadwalAktif,
+                hari: hariMapel,
+                jam_mulai: jamMulai,
+                jam_selesai: jamSelesai
+            });
+
+            // Update Mapel ke dalam Kelas ID
+            listKelas.forEach(kls => {
+                if (selectedKelasIds.includes(kls.id)) {
+                    if (!kls.mapel_ids) kls.mapel_ids = [];
+                    if (!kls.mapel_ids.includes(newMapelId)) kls.mapel_ids.push(newMapelId);
+                }
+            });
         });
+
+        // 5. Simpan ke LocalStorage
+        localStorage.setItem('pondok_master_mapel', JSON.stringify(listMapel));
         localStorage.setItem('pondok_kelas', JSON.stringify(listKelas));
 
-        document.getElementById('input-nama-mapel').value = '';
+        // 6. Reset Form
+        document.querySelectorAll('.cb-bank-mapel').forEach(cb => cb.checked = false);
+        document.querySelectorAll('.cb-ustadz-mapel').forEach(cb => cb.checked = false);
         document.getElementById('input-opsi-jadwal').checked = false;
         toggleFormJadwalMapel();
 
-        alert(`Mata pelajaran "${namaMapel}" berhasil disimpan untuk ${selectedKelasIds.length} Kelas dengan ${selectedUstadzIds.length} Pengajar!`);
+        alert(`SUKSES!\n${selectedMapels.length} Mata Pelajaran berhasil diplot ke ${selectedKelasIds.length} Kelas dengan ${selectedUstadzIds.length} Pengajar!`);
         renderMasterMapel();
         renderTabelDaftarKelas();
     }
+
 
     function hapusMasterMapel(idMapel) {
         if (!confirm("Yakin hapus mata pelajaran ini?")) return;
@@ -4400,9 +4545,177 @@ function startScannerPaguyuban() {
             window.location.reload(true);
         }, 800);
     }
+// ==========================================
+// FUNGSI PERBAIKAN: PILIH HARI
+// ==========================================
+function pilihHari(hari) {
+    // Hilangkan efek aktif di semua tombol hari
+    document.querySelectorAll('.hari-btn').forEach(btn => btn.classList.remove('active'));
+    // Berikan efek aktif di tombol yang diklik
+    document.getElementById('btn-hari-' + hari).classList.add('active');
+    // Set value tersembunyi untuk diambil oleh fungsi simpan
+    document.getElementById('input-hari-mapel').value = hari;
+}
+
+// Tutup dropdown jika user klik di luar kotak dropdown
+document.addEventListener('click', function(e) {
+    if (!e.target.closest('.custom-select-wrapper')) {
+        document.querySelectorAll('.custom-select-content').forEach(el => {
+            el.classList.remove('show');
+        });
+    }
+});
+
+// ==========================================
+// FUNGSI PERBAIKAN: DOWNLOAD SEMUA JADWAL
+// ==========================================
+function cetakSemuaJadwalPDF() {
+    const listMapel = getDB('pondok_master_mapel', []);
+    const dbKelas = getDB('pondok_kelas', []);
+    
+    if (listMapel.length === 0) return alert("Belum ada jadwal yang diinput untuk dicetak!");
+
+    let htmlPrint = generateStandardKopSuratHTML(); 
+    htmlPrint += `
+        <div style="text-align:center; margin-bottom: 20px;">
+            <h3 style="margin:0; text-transform:uppercase;">SELURUH JADWAL PELAJARAN (MASTER)</h3>
+        </div>
+        <table style="width:100%; border-collapse: collapse; margin-bottom: 20px;">
+            <thead>
+                <tr>
+                    <th style="padding:8px; border:1px solid #000;">Mata Pelajaran</th>
+                    <th style="padding:8px; border:1px solid #000;">Pengajar / Ustadz</th>
+                    <th style="padding:8px; border:1px solid #000;">Kelas Terlibat</th>
+                    <th style="padding:8px; border:1px solid #000;">Jadwal (Hari & Jam)</th>
+                </tr>
+            </thead>
+            <tbody>
+    `;
+
+    listMapel.forEach(m => {
+        let namaKelasTerpilih = [];
+        (m.kelas_ids || []).forEach(kId => {
+            const kObj = dbKelas.find(k => k.id == kId);
+            if (kObj) namaKelasTerpilih.push(kObj.nama);
+        });
+        let txtKelas = namaKelasTerpilih.length > 0 ? namaKelasTerpilih.join(", ") : "-";
+        
+        // Membaca Jam (sudah mendukung teks fleksibel seperti BS/BM)
+        let txtJadwal = (m.jadwal_aktif && m.hari) ? `${m.hari}, ${m.jam_mulai || ''} - ${m.jam_selesai || ''}` : 'Waktu Fleksibel';
+        
+        htmlPrint += `
+            <tr>
+                <td style="padding:8px; border:1px solid #000; font-weight:bold;">${m.nama_mapel}</td>
+                <td style="padding:8px; border:1px solid #000;">${m.ustadz_nama}</td>
+                <td style="padding:8px; border:1px solid #000;">${txtKelas}</td>
+                <td style="padding:8px; border:1px solid #000;">${txtJadwal}</td>
+            </tr>
+        `;
+    });
+
+    htmlPrint += `
+            </tbody>
+        </table>
+        <p style="font-size:11px; text-align:center; margin-top:30px; font-style:italic;">Dokumen ini dicetak otomatis dari Sistem Manajemen Instansi.</p>
+    `;
+    
+    // Cetak menggunakan format landscape agar tabel cukup
+    cetakElemenHTML(htmlPrint, 'landscape');
+}
+// ==========================================
+// FUNGSI LOGIKA JAM SINGKATAN (BS, BM, BA, Dll)
+// ==========================================
+function renderJamKustom() {
+    const wadah = document.getElementById('wadah-jam-kustom');
+    if (!wadah) return;
+    const dataJam = getDB('pondok_jam_kustom', []);
+    wadah.innerHTML = '';
+    
+    // 1. PERBAIKAN: Selalu perbarui dropdown di form jadwal mata pelajaran
+    renderDropdownJamPreset();
+
+    if (dataJam.length === 0) {
+        wadah.innerHTML = '<span style="font-size:0.8rem; color:var(--danger); font-style:italic;">Belum ada definisi jam singkatan.</span>';
+        return;
+    }
+    
+    dataJam.forEach((item, idx) => {
+        wadah.innerHTML += `
+        <div style="display:flex; justify-content:space-between; align-items:center; background:rgba(0,0,0,0.03); padding:8px 12px; border:1px solid rgba(0,0,0,0.08); border-radius:8px;">
+            <div>
+                <strong style="color:var(--primary); font-size:0.9rem;">${item.kode}</strong>
+                <span style="font-size:0.75rem; color:var(--text-muted); margin-left:8px; font-weight:bold;">${item.mulai} - ${item.selesai}</span>
+            </div>
+            <button class="btn-danger" style="margin:0; padding:6px 10px; font-size:0.75rem; width:auto; border-radius:8px;" onclick="hapusJamKustom(${idx})"><i class="fa-solid fa-trash"></i></button>
+        </div>`;
+    });
+}
+
+// ==========================================
+// FUNGSI BARU: SINKRONISASI DROPDOWN PRESET JAM
+// ==========================================
+function renderDropdownJamPreset() {
+    const selectEl = document.getElementById('select-jam-preset');
+    if (!selectEl) return;
+    
+    const dataJam = getDB('pondok_jam_kustom', []);
+    selectEl.innerHTML = '<option value="">-- Pilih dari Setting Jam Singkatan / Isi Manual --</option>';
+    
+    dataJam.forEach((item, idx) => {
+        selectEl.innerHTML += `<option value="${idx}">${item.kode} (${item.mulai} - ${item.selesai} WITA)</option>`;
+    });
+}
+
+// ==========================================
+// FUNGSI BARU: OTOMATIS ISI KOLOM JAM SAAT PRESET DIPILIH
+// ==========================================
+function pilihPresetJam(idx) {
+    if (idx === "") return;
+    const dataJam = getDB('pondok_jam_kustom', []);
+    const terpilih = dataJam[idx];
+    
+    if (terpilih) {
+        // Mengisi kode singkatan ke kolom Jam Mulai (misal: BA atau BS) 
+        // dan jam selesai ke kolom Jam Selesai
+        document.getElementById('input-jam-mulai').value = terpilih.kode;
+        document.getElementById('input-jam-selesai').value = terpilih.selesai;
+    }
+}
+
+function tambahJamKustom() {
+    const kode = document.getElementById('input-kode-jam').value.trim().toUpperCase();
+    const mulai = document.getElementById('input-waktu-mulai-jam').value;
+    const selesai = document.getElementById('input-waktu-selesai-jam').value;
+
+    if (!kode || !mulai || !selesai) return alert("Kode dan waktu (mulai & selesai) harus diisi lengkap!");
+
+    let dataJam = getDB('pondok_jam_kustom', []);
+    const existIdx = dataJam.findIndex(x => x.kode === kode);
+    
+    if (existIdx > -1) {
+        dataJam[existIdx].mulai = mulai;
+        dataJam[existIdx].selesai = selesai;
+    } else {
+        dataJam.push({ kode, mulai, selesai });
+    }
+    
+    localStorage.setItem('pondok_jam_kustom', JSON.stringify(dataJam));
+
+    document.getElementById('input-kode-jam').value = '';
+    document.getElementById('input-waktu-mulai-jam').value = '';
+    document.getElementById('input-waktu-selesai-jam').value = '';
+    renderJamKustom();
+}
+
+function hapusJamKustom(idx) {
+    if (!confirm("Hapus logika jam ini?")) return;
+    let dataJam = getDB('pondok_jam_kustom', []);
+    dataJam.splice(idx, 1);
+    localStorage.setItem('pondok_jam_kustom', JSON.stringify(dataJam));
+    renderJamKustom();
+}
 
     window.onload = initApp;
 </script>
 </body>
-</html>
 </html>
