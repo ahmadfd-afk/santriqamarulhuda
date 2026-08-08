@@ -119,6 +119,24 @@
 
         #id-card-modal, #modal-scanner-login, #modal-show-qr, #modal-input-izin, #modal-sertifikat, #modal-plotting-kelas, #modal-reset-opsi, #modal-edit-profil-self { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px); z-index: 9999; display: flex; align-items: center; justify-content: center; flex-direction: column; padding: 15px; }
                 /* ========================================= */
+        /* CSS PERBAIKAN KAMERA SCANNER KAKU & PRO   */
+        /* ========================================= */
+        div[id^="qr-reader"] {
+            overflow: hidden !important;
+            border-radius: 12px !important;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.15) !important;
+            position: relative !important;
+            transform: translateZ(0) !important; /* Hardware acceleration agar kaku */
+            touch-action: none !important; /* Mencegah layar ikut ketarik saat menyentuh kamera */
+        }
+        div[id^="qr-reader"] video {
+            object-fit: cover !important;
+            pointer-events: none !important; /* Mematikan interaksi sentuh langsung pada video */
+            -webkit-user-drag: none !important; /* Mencegah video bisa ditarik/drag */
+            user-select: none !important;
+        }
+
+                /* ========================================= */
                 /* ========================================= */
         /* CSS PERBAIKAN TATA LETAK ID CARD PREVIEW  */
         /* ========================================= */
