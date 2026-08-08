@@ -2977,12 +2977,16 @@ document.getElementById('card-alamat').style.fontSize = sizeFontAlamat + 'px';
         document.getElementById('qr-reader-izin').style.display = 'block'; document.getElementById('btn-stop-camera-izin').style.display = 'flex';
         if (!scannerIzin) { scannerIzin = new Html5Qrcode("qr-reader-izin"); scannerIzin.start({ facingMode: "environment" }, { fps: 20, qrbox: { width: 250, height: 250 } }, (rawScan) => { let nisScan = rawScan; try { let parsed = JSON.parse(rawScan); if (parsed.n) nisScan = parsed.n; } catch(e) {} if (modeScannerIzinAktif === 'keluar') bukaModalInputIzin(nisScan); else validasiSantriBalikIzin(nisScan); stopScannerIzin(); }).catch(() => { alert("Gagal membuka kamera."); document.getElementById('qr-reader-izin').style.display = 'none'; document.getElementById('btn-stop-camera-izin').style.display = 'none'; }); }
     }
-        function startScanner() {
+            function startScanner() {
         if (typeof Html5Qrcode === 'undefined') return alert("Library Scanner belum siap.");
         
         const qrReaderArea = document.getElementById('qr-reader');
         const scanResultArea = document.getElementById('scan-result');
         qrReaderArea.style.display = 'block';
+
+        // Variabel penahan agar tidak scan QR yang sama berkali-kali dalam 1 detik (Debounce)
+        window.lastScannedNIS = window.lastScannedNIS || '';
+        window.lastScanTime = window.lastScanTime || 0;
 
         if (!html5QrcodeScanner) {
             html5QrcodeScanner = new Html5Qrcode("qr-reader");
@@ -2990,6 +2994,8 @@ document.getElementById('card-alamat').style.fontSize = sizeFontAlamat + 'px';
                 { facingMode: "environment" }, 
                 { fps: 15, qrbox: { width: 250, height: 250 } },
                 (rawScan) => {
+                    const currentTime = Date.now();
+                    
                     // 1. Ekstrak NIS dari QR
                     let nisScan = rawScan; 
                     try { 
@@ -2997,26 +3003,58 @@ document.getElementById('card-alamat').style.fontSize = sizeFontAlamat + 'px';
                         if (parsed.n) nisScan = parsed.n; 
                     } catch(e) {}
 
-                    // 2. Cari baris santri di daftar absen
+                    // 2. Mencegah Spam: Abaikan jika QR yang sama discan dalam waktu kurang dari 2.5 detik
+                    if (nisScan === window.lastScannedNIS && (currentTime - window.lastScanTime) < 2500) {
+                        return;
+                    }
+                    window.lastScannedNIS = nisScan;
+                    window.lastScanTime = currentTime;
+
+                    // 3. Ambil data santri untuk cek gender (Putra / Putri)
+                    const dbSantri = getDB('pondok_santri', []);
+                    const santriObj = dbSantri.find(s => s.nis === nisScan && !s.is_alumni);
+                    
+                    let teksSuara = "Hadir"; // Default
+                    if (santriObj) {
+                        const asramaLower = (santriObj.asrama || '').toLowerCase();
+                        if (asramaLower.includes('putri') || asramaLower.includes('perempuan')) {
+                            teksSuara = "Hadiroh";
+                        }
+                    }
+
+                    // Fungsi internal untuk memutar suara
+                    const mainkanSuara = (teks) => {
+                        if ('speechSynthesis' in window) {
+                            window.speechSynthesis.cancel();
+                            const u = new SpeechSynthesisUtterance(teks);
+                            u.lang = 'id-ID';
+                            u.rate = 1.0;
+                            window.speechSynthesis.speak(u);
+                        }
+                    };
+
+                    // 4. Cari baris santri di daftar absen
                     const baris = document.getElementById(`baris_santri_${nisScan}`);
                     if (baris) {
                         const radioHadir = baris.querySelector('input[value="Hadir"]');
                         if (radioHadir) {
                             radioHadir.checked = true;
                             radioHadir.dispatchEvent(new Event('change'));
-                            scanResultArea.innerHTML = `<span style="color:var(--success);"><i class="fa-solid fa-circle-check"></i> Hadir: ${nisScan}</span>`;
+                            scanResultArea.innerHTML = `<span style="color:var(--success);"><i class="fa-solid fa-circle-check"></i> Berhasil: ${santriObj ? santriObj.nama : nisScan}</span>`;
+                            mainkanSuara(teksSuara);
                         }
                     } else {
-                        // 3. Jika santri lintas kelas / tidak ada di list
+                        // 5. Jika santri lintas kelas / tidak ada di list
                         if (typeof tambahkanSantriTamuKeAbsen === 'function') {
                             tambahkanSantriTamuKeAbsen(nisScan);
+                            mainkanSuara(teksSuara);
                         } else {
                             scanResultArea.innerHTML = `<span style="color:var(--danger);"><i class="fa-solid fa-circle-xmark"></i> NIS ${nisScan} tidak ditemukan!</span>`;
+                            mainkanSuara("Tidak ditemukan");
                         }
                     }
                     
-                    // 4. Tutup scanner setelah berhasil membaca 1 QR (opsional, hapus baris bawah ini jika ingin scan terus-menerus)
-                    stopScanner();
+                    // 6. PERINTAH stopScanner() DIHAPUS DI SINI AGAR KAMERA TETAP NYALA
                 }
             ).catch((err) => {
                 alert("Gagal membuka kamera scan Absensi.");
