@@ -939,11 +939,13 @@
                     <p style="font-size:0.75rem; color:var(--text-muted); margin-bottom:12px;">Pilih role lalu centang modul fitur apa saja yang boleh diakses.</p>
                     <label>Pilih Tipe Pengguna</label>
                     <select id="select-role-akses" onchange="renderCheckboxHakAkses()">
-                        <option value="superadmin">Super Admin</option>
-                        <option value="admin">Admin Tata Usaha</option>
-                        <option value="ustadz">Ustadz / Guru Pengajar</option>
-                        <option value="accounting">Bagian Keuangan</option>
-                    </select>
+    <option value="superadmin">Super Admin</option>
+    <option value="admin">Admin Tata Usaha</option>
+    <option value="ustadz">Ustadz / Guru Pengajar</option>
+    <option value="accounting">Bagian Keuangan</option>
+    <option value="paguyuban">Paguyuban / Pedagang</option> 
+</select>
+
                     <label style="margin-top:14px;">Beri Izin Fitur Modul:</label>
                     <div id="container-checkbox-akses" style="background:#f9f9f9; padding:12px; border-radius:14px; border:1px solid rgba(0,0,0,0.06); margin-bottom:14px;"></div>
                     <button class="btn-primary" onclick="simpanHakAkses()"><i class="fa-solid fa-check"></i> SIMPAN HAK AKSES</button>
