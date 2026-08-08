@@ -3736,18 +3736,6 @@ document.getElementById('card-alamat').style.fontSize = sizeFontAlamat + 'px';
             });
         });
     }
-
-    function stopScanner() {
-        if (html5QrcodeScanner) {
-            html5QrcodeScanner.stop().then(() => {
-                document.getElementById('qr-reader').style.display = 'none';
-                html5QrcodeScanner = null;
-            });
-        } else {
-            document.getElementById('qr-reader').style.display = 'none';
-        }
-    }
-
         /* ========================================================================== */
 /* === AWAL PERBAIKAN BLOK 3: SIMPAN DATA ABSEN BESERTA STATUS KELAS ASAL == */
 /* ========================================================================== */
