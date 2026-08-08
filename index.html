@@ -2974,6 +2974,54 @@ document.getElementById('card-alamat').style.fontSize = sizeFontAlamat + 'px';
         document.getElementById('qr-reader-izin').style.display = 'block'; document.getElementById('btn-stop-camera-izin').style.display = 'flex';
         if (!scannerIzin) { scannerIzin = new Html5Qrcode("qr-reader-izin"); scannerIzin.start({ facingMode: "environment" }, { fps: 20, qrbox: { width: 250, height: 250 } }, (rawScan) => { let nisScan = rawScan; try { let parsed = JSON.parse(rawScan); if (parsed.n) nisScan = parsed.n; } catch(e) {} if (modeScannerIzinAktif === 'keluar') bukaModalInputIzin(nisScan); else validasiSantriBalikIzin(nisScan); stopScannerIzin(); }).catch(() => { alert("Gagal membuka kamera."); document.getElementById('qr-reader-izin').style.display = 'none'; document.getElementById('btn-stop-camera-izin').style.display = 'none'; }); }
     }
+        function startScanner() {
+        if (typeof Html5Qrcode === 'undefined') return alert("Library Scanner belum siap.");
+        
+        const qrReaderArea = document.getElementById('qr-reader');
+        const scanResultArea = document.getElementById('scan-result');
+        qrReaderArea.style.display = 'block';
+
+        if (!html5QrcodeScanner) {
+            html5QrcodeScanner = new Html5Qrcode("qr-reader");
+            html5QrcodeScanner.start(
+                { facingMode: "environment" }, 
+                { fps: 15, qrbox: { width: 250, height: 250 } },
+                (rawScan) => {
+                    // 1. Ekstrak NIS dari QR
+                    let nisScan = rawScan; 
+                    try { 
+                        let parsed = JSON.parse(rawScan); 
+                        if (parsed.n) nisScan = parsed.n; 
+                    } catch(e) {}
+
+                    // 2. Cari baris santri di daftar absen
+                    const baris = document.getElementById(`baris_santri_${nisScan}`);
+                    if (baris) {
+                        const radioHadir = baris.querySelector('input[value="Hadir"]');
+                        if (radioHadir) {
+                            radioHadir.checked = true;
+                            radioHadir.dispatchEvent(new Event('change'));
+                            scanResultArea.innerHTML = `<span style="color:var(--success);"><i class="fa-solid fa-circle-check"></i> Hadir: ${nisScan}</span>`;
+                        }
+                    } else {
+                        // 3. Jika santri lintas kelas / tidak ada di list
+                        if (typeof tambahkanSantriTamuKeAbsen === 'function') {
+                            tambahkanSantriTamuKeAbsen(nisScan);
+                        } else {
+                            scanResultArea.innerHTML = `<span style="color:var(--danger);"><i class="fa-solid fa-circle-xmark"></i> NIS ${nisScan} tidak ditemukan!</span>`;
+                        }
+                    }
+                    
+                    // 4. Tutup scanner setelah berhasil membaca 1 QR (opsional, hapus baris bawah ini jika ingin scan terus-menerus)
+                    stopScanner();
+                }
+            ).catch((err) => {
+                alert("Gagal membuka kamera scan Absensi.");
+                stopScanner();
+            });
+        }
+    }
+
     function stopScannerIzin() { if (scannerIzin) { scannerIzin.stop().then(() => { document.getElementById('qr-reader-izin').style.display = 'none'; document.getElementById('btn-stop-camera-izin').style.display = 'none'; scannerIzin = null; }); } else { document.getElementById('qr-reader-izin').style.display = 'none'; document.getElementById('btn-stop-camera-izin').style.display = 'none'; } }
     
     function bukaModalInputIzin(nisSantri) { const santriDB = getDB('pondok_santri', []); const santri = santriDB.find(s => s.nis === nisSantri); if (!santri) return alert(`Data [${nisSantri}] tidak ditemukan!`); const stat = getStatistikIzin(santri.nis); document.getElementById('pop-izin-nis').value = santri.nis; document.getElementById('pop-izin-nama-txt').innerText = santri.nama; document.getElementById('pop-izin-nis-txt').innerText = santri.nis; document.getElementById('pop-izin-stat-txt').innerText = `${stat.total_kali} Kali (Total ${stat.total_hari} Hari)`; document.getElementById('pop-izin-keperluan').value = ''; const besok = new Date(); besok.setDate(besok.getDate() + 1); document.getElementById('pop-izin-tgl-balik').value = besok.toISOString().split('T')[0]; document.getElementById('modal-input-izin').classList.remove('hidden'); }
