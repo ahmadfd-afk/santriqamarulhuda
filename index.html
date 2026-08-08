@@ -875,6 +875,18 @@
                     <label>Wallpaper ID Card & Sertifikat</label><input type="file" id="input-bg-idcard" accept="image/*" onchange="previewGambarApp(event, 'bg-card-preview-yayasan', 'bg_idcard')">
                     <img id="bg-card-preview-yayasan" src="" style="max-width:140px; display:none; margin-top:5px; border-radius:8px; border:2px solid var(--info);">
                 </div>
+                <!-- KARTU TAMBAHAN: SLIDESHOW WALLPAPER UNTUK WALI SANTRI -->
+<div class="card card-premium" style="border-left-color: #27AE60;">
+    <h3 style="margin-bottom: 10px; color: #27AE60;"><i class="fa-solid fa-images"></i> Wallpaper Slideshow Portal Wali Santri</h3>
+    <p style="font-size:0.75rem; color:var(--text-muted); margin-bottom:10px;">Unggah foto-foto kegiatan/prestasi sekolah di sini. Foto ini akan diputar sebagai bingkai digital (slideshow) otomatis saat orang tua membuka aplikasi Wali Santri.</p>
+    
+    <label>Unggah Foto Slideshow Baru</label>
+    <input type="file" id="input-wallpaper-slide" accept="image/*" onchange="tambahFotoSlideshow(event)">
+    
+    <label style="margin-top: 10px;">Daftar Foto Slideshow Aktif:</label>
+    <div id="wadah-list-slideshow" style="display: flex; flex-wrap: wrap; gap: 8px; margin-top: 6px;"></div>
+</div>
+
                 <div class="card card-premium" style="border-left-color: #8E44AD;">
                     <h3 style="margin-bottom: 10px; color: #8E44AD;"><i class="fa-solid fa-list-check"></i> Tata Tertib Kartu Belakang</h3>
                     <textarea id="setting-tata-tertib" rows="4"></textarea>
@@ -4181,112 +4193,113 @@ function kirimDataAbsen() {
     }
 
         async function sinkronisasiKeCloud() {
-        if (!supabaseConfig.url || !supabaseConfig.key) {
-            return alert("Konfigurasi URL & Key Supabase belum diisi di menu Database!");
-        }
-        const btn = document.getElementById('btn-sync-cloud');
-        if (btn) btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> MENGIRIM KE CLOUD...';
+    if (!supabaseConfig.url || !supabaseConfig.key) {
+        return alert("Konfigurasi URL & Key Supabase belum diisi di menu Database!");
+    }
+    const btn = document.getElementById('btn-sync-cloud');
+    if (btn) btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> MENGIRIM KE CLOUD...';
 
-        try {
-            // PAYLOAD FULL BACKUP
-            const payload = {
-                santri: getDB('pondok_santri', []),
-                absensi: getDB('pondok_absensi', []),
-                kelas: getDB('pondok_kelas', []),
-                mapel: getDB('pondok_master_mapel', []),
-                evaluasi: getDB('pondok_evaluasi', []),
-                tagihan: getDB('pondok_tagihan_denda', []),
-                izin_aktif: getDB('pondok_izin_aktif', []),
-                history_izin: getDB('pondok_history_izin', []),
-                yayasan: getDB('pondok_yayasan', {}),
-                users: getDB('pondok_users', []),
-                akses: getDB('pondok_akses', {}),
-                gps: getDB('pondok_gps', {}),
-                setting_keuangan: getDB('pondok_setting_keuangan', {})
-            };
+    try {
+        // PAYLOAD FULL BACKUP (DIPERBARUI DENGAN DATA TABUNGAN)
+        const payload = {
+            santri: getDB('pondok_santri', []),
+            absensi: getDB('pondok_absensi', []),
+            kelas: getDB('pondok_kelas', []),
+            mapel: getDB('pondok_master_mapel', []),
+            evaluasi: getDB('pondok_evaluasi', []),
+            tagihan: getDB('pondok_tagihan_denda', []),
+            tabungan: getDB('pondok_tabungan', []), // <-- DITAMBAHKAN AGAR BISA DIBACA WALI SANTRI
+            izin_aktif: getDB('pondok_izin_aktif', []),
+            history_izin: getDB('pondok_history_izin', []),
+            yayasan: getDB('pondok_yayasan', {}),
+            users: getDB('pondok_users', []),
+            akses: getDB('pondok_akses', {}),
+            gps: getDB('pondok_gps', {}),
+            setting_keuangan: getDB('pondok_setting_keuangan', {})
+        };
 
-            const response = await fetch(`${supabaseConfig.url}/rest/v1/backup_lms?id=eq.1`, {
-                method: 'PATCH',
+        const response = await fetch(`${supabaseConfig.url}/rest/v1/backup_lms?id=eq.1`, {
+            method: 'PATCH',
+            headers: {
+                'Content-Type': 'application/json',
+                'apikey': supabaseConfig.key,
+                'Authorization': `Bearer ${supabaseConfig.key}`,
+                'Prefer': 'return=representation'
+            },
+            body: JSON.stringify({ data_json: payload, updated_at: new Date().toISOString() })
+        });
+
+        if (response.ok) {
+            alert("Berhasil mengunggah dan menyinkronkan SELURUH DATA & PENGATURAN ke Cloud!");
+        } else {
+            await fetch(`${supabaseConfig.url}/rest/v1/backup_lms`, {
+                method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                     'apikey': supabaseConfig.key,
-                    'Authorization': `Bearer ${supabaseConfig.key}`,
-                    'Prefer': 'return=representation'
-                },
-                body: JSON.stringify({ data_json: payload, updated_at: new Date().toISOString() })
-            });
-
-            if (response.ok) {
-                alert("Berhasil mengunggah dan menyinkronkan SELURUH DATA & PENGATURAN ke Cloud!");
-            } else {
-                await fetch(`${supabaseConfig.url}/rest/v1/backup_lms`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'apikey': supabaseConfig.key,
-                        'Authorization': `Bearer ${supabaseConfig.key}`
-                    },
-                    body: JSON.stringify({ id: 1, data_json: payload, updated_at: new Date().toISOString() })
-                });
-                alert("Berhasil membuat rekam cadangan baru di Cloud!");
-            }
-        } catch (err) {
-            alert("Gagal koneksi ke server Cloud. Periksa jaringan internet kamu.");
-        } finally {
-            if (btn) btn.innerHTML = '<i class="fa-solid fa-cloud-arrow-up"></i> KIRIM DATA KE CLOUD (SYNC MANUAL)';
-        }
-    }
-
-
-        async function tarikDataDariSupabase() {
-        if (!supabaseConfig.url || !supabaseConfig.key) {
-            return alert("URL & Key Supabase belum tersedia!");
-        }
-        if (!confirm("Peringatan: Menarik data dari Cloud akan menimpa seluruh database lokal HP ini. Lanjutkan?")) return;
-
-        const btn = document.getElementById('btn-pull-cloud');
-        if (btn) btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> MENARIK DATA...';
-
-        try {
-            const response = await fetch(`${supabaseConfig.url}/rest/v1/backup_lms?id=eq.1&select=data_json`, {
-                headers: {
-                    'apikey': supabaseConfig.key,
                     'Authorization': `Bearer ${supabaseConfig.key}`
-                }
+                },
+                body: JSON.stringify({ id: 1, data_json: payload, updated_at: new Date().toISOString() })
             });
-
-            const rows = await response.json();
-            if (rows && rows.length > 0 && rows[0].data_json) {
-                const data = rows[0].data_json;
-                
-                // RESTORE DATA UTAMA
-                if (data.santri) localStorage.setItem('pondok_santri', JSON.stringify(data.santri));
-                if (data.absensi) localStorage.setItem('pondok_absensi', JSON.stringify(data.absensi));
-                if (data.kelas) localStorage.setItem('pondok_kelas', JSON.stringify(data.kelas));
-                if (data.mapel) localStorage.setItem('pondok_master_mapel', JSON.stringify(data.mapel));
-                if (data.evaluasi) localStorage.setItem('pondok_evaluasi', JSON.stringify(data.evaluasi));
-                if (data.tagihan) localStorage.setItem('pondok_tagihan_denda', JSON.stringify(data.tagihan));
-                if (data.izin_aktif) localStorage.setItem('pondok_izin_aktif', JSON.stringify(data.izin_aktif));
-                if (data.history_izin) localStorage.setItem('pondok_history_izin', JSON.stringify(data.history_izin));
-                
-                // RESTORE DATA PENGATURAN & AKUN (FULL BACKUP)
-                if (data.yayasan) localStorage.setItem('pondok_yayasan', JSON.stringify(data.yayasan));
-                if (data.users) localStorage.setItem('pondok_users', JSON.stringify(data.users));
-                if (data.akses) localStorage.setItem('pondok_akses', JSON.stringify(data.akses));
-                if (data.gps) localStorage.setItem('pondok_gps', JSON.stringify(data.gps));
-                if (data.setting_keuangan) localStorage.setItem('pondok_setting_keuangan', JSON.stringify(data.setting_keuangan));
-
-                alert("Berhasil menarik SELURUH data terbaru dari Cloud! Sistem akan dimuat ulang.");
-                location.reload();
-            } else {
-                alert("Belum ada data cadangan tersimpan di server Supabase kamu.");
-            }
-        } catch (err) {
-            alert("Gagal menarik data dari server Cloud.");
-        } finally {
-            if (btn) btn.innerHTML = '<i class="fa-solid fa-triangle-exclamation"></i> TARIK DATA DARI CLOUD (TIMPA DATA LOKAL)';
+            alert("Berhasil membuat rekam cadangan baru di Cloud!");
         }
+    } catch (err) {
+        alert("Gagal koneksi ke server Cloud. Periksa jaringan internet kamu.");
+    } finally {
+        if (btn) btn.innerHTML = '<i class="fa-solid fa-cloud-arrow-up"></i> KIRIM DATA KE CLOUD (SYNC MANUAL)';
     }
+}
+
+async function tarikDataDariSupabase() {
+    if (!supabaseConfig.url || !supabaseConfig.key) {
+        return alert("URL & Key Supabase belum tersedia!");
+    }
+    if (!confirm("Peringatan: Menarik data dari Cloud akan menimpa seluruh database lokal HP ini. Lanjutkan?")) return;
+
+    const btn = document.getElementById('btn-pull-cloud');
+    if (btn) btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> MENARIK DATA...';
+
+    try {
+        const response = await fetch(`${supabaseConfig.url}/rest/v1/backup_lms?id=eq.1&select=data_json`, {
+            headers: {
+                'apikey': supabaseConfig.key,
+                'Authorization': `Bearer ${supabaseConfig.key}`
+            }
+        });
+
+        const rows = await response.json();
+        if (rows && rows.length > 0 && rows[0].data_json) {
+            const data = rows[0].data_json;
+            
+            // RESTORE DATA UTAMA
+            if (data.santri) localStorage.setItem('pondok_santri', JSON.stringify(data.santri));
+            if (data.absensi) localStorage.setItem('pondok_absensi', JSON.stringify(data.absensi));
+            if (data.kelas) localStorage.setItem('pondok_kelas', JSON.stringify(data.kelas));
+            if (data.mapel) localStorage.setItem('pondok_master_mapel', JSON.stringify(data.mapel));
+            if (data.evaluasi) localStorage.setItem('pondok_evaluasi', JSON.stringify(data.evaluasi));
+            if (data.tagihan) localStorage.setItem('pondok_tagihan_denda', JSON.stringify(data.tagihan));
+            if (data.tabungan) localStorage.setItem('pondok_tabungan', JSON.stringify(data.tabungan)); // <-- DITAMBAHKAN
+            if (data.izin_aktif) localStorage.setItem('pondok_izin_aktif', JSON.stringify(data.izin_aktif));
+            if (data.history_izin) localStorage.setItem('pondok_history_izin', JSON.stringify(data.history_izin));
+            
+            // RESTORE DATA PENGATURAN & AKUN (FULL BACKUP)
+            if (data.yayasan) localStorage.setItem('pondok_yayasan', JSON.stringify(data.yayasan));
+            if (data.users) localStorage.setItem('pondok_users', JSON.stringify(data.users));
+            if (data.akses) localStorage.setItem('pondok_akses', JSON.stringify(data.akses));
+            if (data.gps) localStorage.setItem('pondok_gps', JSON.stringify(data.gps));
+            if (data.setting_keuangan) localStorage.setItem('pondok_setting_keuangan', JSON.stringify(data.setting_keuangan));
+
+            alert("Berhasil menarik SELURUH data terbaru dari Cloud! Sistem akan dimuat ulang.");
+            location.reload();
+        } else {
+            alert("Belum ada data cadangan tersimpan di server Supabase kamu.");
+        }
+    } catch (err) {
+        alert("Gagal menarik data dari server Cloud.");
+    } finally {
+        if (btn) btn.innerHTML = '<i class="fa-solid fa-triangle-exclamation"></i> TARIK DATA DARI CLOUD (TIMPA DATA LOKAL)';
+    }
+}
 
 
     function bukaModalResetOpsi() {
@@ -4905,6 +4918,59 @@ function hapusJamKustom(idx) {
     dataJam.splice(idx, 1);
     localStorage.setItem('pondok_jam_kustom', JSON.stringify(dataJam));
     renderJamKustom();
+}
+// ==========================================
+// KODE SLIDESHOW WALLPAPER WALI SANTRI (APP 2)
+// ==========================================
+function tambahFotoSlideshow(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+    
+    kompresiGambar(file, 800, (base64Hasil) => {
+        let yayasan = getDB('pondok_yayasan', {});
+        if (!yayasan.wallpaper_slides || !Array.isArray(yayasan.wallpaper_slides)) {
+            yayasan.wallpaper_slides = [];
+        }
+        yayasan.wallpaper_slides.push(base64Hasil);
+        localStorage.setItem('pondok_yayasan', JSON.stringify(yayasan));
+        
+        renderListSlideshow();
+        alert("Foto berhasil ditambahkan ke daftar slideshow Wali Santri! Jangan lupa tekan 'Kirim Data ke Cloud' di menu Database.");
+        event.target.value = '';
+    });
+}
+
+function hapusFotoSlideshow(index) {
+    if (!confirm("Hapus foto ini dari slideshow Wali Santri?")) return;
+    let yayasan = getDB('pondok_yayasan', {});
+    if (yayasan.wallpaper_slides && Array.isArray(yayasan.wallpaper_slides)) {
+        yayasan.wallpaper_slides.splice(index, 1);
+        localStorage.setItem('pondok_yayasan', JSON.stringify(yayasan));
+        renderListSlideshow();
+    }
+}
+
+function renderListSlideshow() {
+    const wadah = document.getElementById('wadah-list-slideshow');
+    if (!wadah) return;
+    wadah.innerHTML = '';
+    
+    let yayasan = getDB('pondok_yayasan', {});
+    let slides = yayasan.wallpaper_slides || [];
+    
+    if (slides.length === 0) {
+        wadah.innerHTML = '<span style="font-size:0.75rem; color:#999; font-style:italic;">Belum ada foto slideshow khusus. Aplikasi Wali Santri akan menggunakan gambar default.</span>';
+        return;
+    }
+    
+    slides.forEach((imgSrc, idx) => {
+        wadah.innerHTML += `
+            <div style="position: relative; width: 80px; height: 60px; border-radius: 8px; overflow: hidden; border: 2px solid #27AE60;">
+                <img src="${imgSrc}" style="width: 100%; height: 100%; object-fit: cover;">
+                <button type="button" onclick="hapusFotoSlideshow(${idx})" style="position: absolute; top: 2px; right: 2px; background: rgba(231, 76, 60, 0.9); color: white; border: none; border-radius: 50%; width: 20px; height: 20px; font-size: 0.65rem; cursor: pointer; padding: 0;">✕</button>
+            </div>
+        `;
+    });
 }
 
     window.onload = initApp;
