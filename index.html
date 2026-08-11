@@ -1770,7 +1770,16 @@
         
         .id-qr-depan { width: 60px !important; height: 60px !important; min-width: 60px; border: 2px solid white; padding: 3px; background: white !important; border-radius: 8px; display: flex; align-items: center; justify-content: center; margin-left: auto; box-shadow: 0 4px 12px rgba(0,0,0,0.15); }
         .id-card-wrapper.portrait .id-qr-depan { margin: 2px auto 0 auto; width: 64px !important; height: 64px !important; }
-       
+               /* KODE PERBAIKAN: Memaksa teks belakang di atas ornamen gambar */
+        #sisi-belakang-kartu {
+            position: relative !important;
+            z-index: 10 !important;
+        }
+        .id-back-content {
+            position: relative !important;
+            z-index: 10 !important;
+            background-color: #ffffff !important;
+        }
         
            .kolektif-grid-gabung {
             display: flex;
@@ -1909,15 +1918,19 @@
                 </div>
                 <div class="id-body">
                     <img src="${santri.foto}" class="id-photo">
-                    <div class="id-details">
+                                        <div class="id-details">
                         <strong style="text-transform: uppercase;">${santri.nama}</strong>
                         <div style="margin-top: 5px;">
                             <span style="display:inline-block; width: 38px;">NIS</span>: <b style="color:var(--primary);">${santri.nis}</b><br>
                             <b class="alamat-cetak" style="display:-webkit-inline-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; vertical-align:top; max-width: 180px; line-height:1.2; margin-top: 4px;">${(santri.alamat || '-')}</b>
                         </div>
                     </div>
-                    <div class="id-qr-depan" id="qr-gabung-${santri.nis}" data-payload='${qrPayload}'></div>
+                    <!-- KODE PERBAIKAN: Wadah diganti menjadi SVG untuk Barcode 1D -->
+                    <div class="id-qr-depan" style="border:none; padding:0; background:transparent; box-shadow:none; width:auto; height:auto; overflow:hidden;">
+                        <svg id="barcode-gabung-${santri.nis}" style="width: 100%; max-width: 80px;"></svg>
+                    </div>
                 </div>
+
                 ${footerHTML}
             </div>
         `;
@@ -1931,7 +1944,7 @@
     document.body.appendChild(containerTemp); 
     containerTemp.innerHTML = htmlKartuKolektif;
     
-    const sizeQRPrint = parseInt(dataYayasan.ukuran_qr) || 60;
+        const size1DPrint = parseInt(dataYayasan.ukuran_barcode1d) || 30; // Ambil settingan tinggi barcode 1D
     const sizeFontPrint = parseInt(dataYayasan.font_nama) || 13;
     const sizeFontAlamatPrint = parseInt(dataYayasan.font_alamat) || 9;
 
@@ -1939,19 +1952,20 @@
         alamatEl.style.fontSize = sizeFontAlamatPrint + 'px';
     });
 
+    // KODE PERBAIKAN: Looping menggunakan JsBarcode, bukan QRCode
     databaseSantri.forEach(santri => {
-        const wadahQR = containerTemp.querySelector(`#qr-gabung-${santri.nis}`);
-        if (wadahQR && typeof QRCode !== 'undefined') {
-            wadahQR.style.width = sizeQRPrint + 'px';
-            wadahQR.style.height = sizeQRPrint + 'px';
-            wadahQR.style.minWidth = sizeQRPrint + 'px';
-
-            new QRCode(wadahQR, { 
-                text: wadahQR.getAttribute('data-payload'), 
-                width: sizeQRPrint, 
-                height: sizeQRPrint, 
-                correctLevel: QRCode.CorrectLevel.L 
-            });
+        const wadahBarcode = containerTemp.querySelector(`#barcode-gabung-${santri.nis}`);
+        if (wadahBarcode && typeof JsBarcode !== 'undefined') {
+            try {
+                JsBarcode(wadahBarcode, santri.nis, {
+                    format: "CODE128",
+                    width: 1.5,
+                    height: size1DPrint,
+                    displayValue: false,
+                    margin: 0,
+                    background: "transparent"
+                });
+            } catch(err) { console.log("Barcode error:", err); }
         }
     });
 
