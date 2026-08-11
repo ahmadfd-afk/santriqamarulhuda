@@ -402,6 +402,39 @@
         box-shadow: 0 40px 100px rgba(0,0,0,0.5);
     }
 }
+/* ========================================= */
+/* CSS ATM MANDIRI & CETAK THERMAL 58mm      */
+/* ========================================= */
+
+/* Kiosk Layar Penuh */
+#kiosk-atm { position: fixed; inset: 0; z-index: 999999; background: #000; flex-direction: column; display: none; }
+#kiosk-atm.aktif { display: flex; }
+
+/* Mode Standby (Slideshow) */
+#kiosk-standby { position: absolute; inset: 0; display: flex; overflow: hidden; }
+.slideshow-bg { position: absolute; width: 100%; height: 100%; object-fit: cover; opacity: 0; transition: opacity 1.5s ease-in-out; }
+.slideshow-bg.tampil { opacity: 1; }
+.kiosk-overlay { position: absolute; inset: 0; background: linear-gradient(to bottom, rgba(4,67,42,0.8), rgba(0,0,0,0.9)); display: flex; align-items: center; justify-content: center; flex-direction: column; color: white; text-align: center; }
+
+/* Dashboard ATM ala Brimo */
+#kiosk-dashboard { position: absolute; inset: 0; background: #f4f6f9; display: none; align-items: center; justify-content: center; padding: 20px; }
+.atm-card { width: 100%; max-width: 550px; background: white; border-radius: 28px; box-shadow: 0 25px 60px rgba(0,0,0,0.2); overflow: hidden; transform: translateY(20px); opacity: 0; transition: all 0.4s ease; }
+.atm-card.tampil { transform: translateY(0); opacity: 1; }
+.atm-header { background: linear-gradient(135deg, var(--primary), var(--primary-light)); padding: 35px 20px; color: white; text-align: center; position: relative; border-bottom: 5px solid var(--accent); }
+.atm-foto { width: 90px; height: 90px; border-radius: 50%; border: 4px solid var(--accent); margin-bottom: 10px; object-fit: cover; background: white; }
+
+/* Tombol Transaksi */
+.grid-nominal-atm { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 20px; }
+.btn-nominal { border: 2px solid var(--primary); color: var(--primary); background: transparent; padding: 12px; border-radius: 12px; font-weight: bold; cursor: pointer; transition: 0.2s; }
+.btn-nominal:active, .btn-nominal.terpilih { background: var(--primary); color: white; }
+
+/* Aturan Cetak Printer Thermal Khusus */
+@media print {
+    body * { visibility: hidden; }
+    #area-cetak-thermal, #area-cetak-thermal * { visibility: visible; }
+    #area-cetak-thermal { position: absolute; left: 0; top: 0; width: 58mm; padding: 0; margin: 0; }
+    @page { size: 58mm auto; margin: 0mm; }
+}
     </style>
 </head>
 <body>
@@ -586,16 +619,16 @@
                                 <i class="fa-solid fa-eye-slash" id="icon-toggle-tabel"></i> Sembunyikan
                             </button>
                         </div>
-                        <div style="display:flex; gap:8px;">
-                            <div style="display: flex; gap: 4px; flex: 1;">
-    <button class="btn-primary" onclick="cetakKolektifF4Gabung('landscape')" style="margin: 0; padding: 12px 6px; font-size: 0.75rem; background: var(--info); flex: 1;">
-        <i class="fa-solid fa-print"></i> Cetak Landscape
+                                                <div style="display:flex; gap:8px;">
+                            <div style="display: flex; gap: 4px; flex: 1; flex-wrap: wrap;">
+    <button class="btn-primary" onclick="cetakKolektifF4Gabung('portrait')" style="margin: 0; padding: 12px 6px; font-size: 0.72rem; background: var(--info); flex: 1; min-width:100px;">
+        <i class="fa-solid fa-id-badge"></i> Cetak Depan
     </button>
-    <button class="btn-primary" onclick="cetakKolektifF4Gabung('portrait')" style="margin: 0; padding: 12px 6px; font-size: 0.75rem; background: #8E44AD; flex: 1;">
-        <i class="fa-solid fa-id-badge"></i> Cetak Portrait
+    <button class="btn-primary" onclick="cetakKolektifF4Belakang('portrait')" style="margin: 0; padding: 12px 6px; font-size: 0.72rem; background: #8E44AD; flex: 1; min-width:100px;">
+        <i class="fa-solid fa-qrcode"></i> Cetak Belakang
     </button>
 </div>
-                            <button class="btn-outline" onclick="cetakRekapSantriPDF()" style="justify-content: center; font-size: 0.75rem; background: #fff3cd; border-color: var(--warning); flex: 1; margin: 0;">
+                            <button class="btn-outline" onclick="cetakRekapSantriPDF()" style="justify-content: center; font-size: 0.72rem; background: #fff3cd; border-color: var(--warning); flex: 1; margin: 0; min-width:90px;">
                                 <i class="fa-solid fa-file-pdf"></i> Rekap PDF
                             </button>
                         </div>
@@ -694,17 +727,16 @@
 
 <!-- PERBAIKAN: Tombol Hari & Input Teks Jam Fleksibel -->
 <div id="wadah-input-jadwal" class="hidden" style="margin-top:10px; background:rgba(4,67,42,0.05); padding:12px; border-radius:12px; border:1px solid rgba(0,0,0,0.08);">
-    <label style="margin-top:0; margin-bottom:8px;">Hari Pelaksanaan</label>
-    <div class="hari-grid">
-        <div class="hari-btn active" id="btn-hari-Senin" onclick="pilihHari('Senin')">Senin</div>
-        <div class="hari-btn" id="btn-hari-Selasa" onclick="pilihHari('Selasa')">Selasa</div>
-        <div class="hari-btn" id="btn-hari-Rabu" onclick="pilihHari('Rabu')">Rabu</div>
-        <div class="hari-btn" id="btn-hari-Kamis" onclick="pilihHari('Kamis')">Kamis</div>
-        <div class="hari-btn" id="btn-hari-Jumat" onclick="pilihHari('Jumat')">Jumat</div>
-        <div class="hari-btn" id="btn-hari-Sabtu" onclick="pilihHari('Sabtu')">Sabtu</div>
-        <div class="hari-btn" id="btn-hari-Minggu" onclick="pilihHari('Minggu')">Minggu</div>
+    <label style="margin-top:0; margin-bottom:8px;">Hari Pelaksanaan (Bisa Centang Ganda)</label>
+    <div class="hari-grid" id="container-hari-checkbox" style="display:grid; grid-template-columns: repeat(3, 1fr); gap:10px; background:#fff; padding:10px; border-radius:8px; border:1px solid #ccc;">
+        <label style="font-size:0.8rem; display:flex; align-items:center; gap:6px;"><input type="checkbox" value="Senin" class="cb-hari-mapel"> Senin</label>
+        <label style="font-size:0.8rem; display:flex; align-items:center; gap:6px;"><input type="checkbox" value="Selasa" class="cb-hari-mapel"> Selasa</label>
+        <label style="font-size:0.8rem; display:flex; align-items:center; gap:6px;"><input type="checkbox" value="Rabu" class="cb-hari-mapel"> Rabu</label>
+        <label style="font-size:0.8rem; display:flex; align-items:center; gap:6px;"><input type="checkbox" value="Kamis" class="cb-hari-mapel"> Kamis</label>
+        <label style="font-size:0.8rem; display:flex; align-items:center; gap:6px;"><input type="checkbox" value="Jumat" class="cb-hari-mapel"> Jumat</label>
+        <label style="font-size:0.8rem; display:flex; align-items:center; gap:6px;"><input type="checkbox" value="Sabtu" class="cb-hari-mapel"> Sabtu</label>
+        <label style="font-size:0.8rem; display:flex; align-items:center; gap:6px;"><input type="checkbox" value="Minggu" class="cb-hari-mapel"> Minggu</label>
     </div>
-    <input type="hidden" id="input-hari-mapel" value="Senin"> <!-- Nilai default Senin -->
 
         <!-- PERBAIKAN: Dropdown Pilihan Cepat dari Logika Jam Singkatan -->
     <div style="margin-top:12px;">
@@ -788,11 +820,18 @@
                 </div>
             </div>
 
-            <div id="view-absen" class="hidden page-view">
+                        <div id="view-absen" class="hidden page-view">
                 <div class="back-nav" onclick="closeSubMenu()"><i class="fa-solid fa-arrow-left"></i> Kembali</div>
+                
+                <!-- TOMBOL REKAP PRIBADI USTADZ -->
+                <button class="btn-outline" onclick="cetakRekapPribadiUstadz()" style="width:100%; border-color:var(--info); color:var(--info); justify-content:center; padding:15px; border-radius:14px; margin-bottom:15px; font-size:0.95rem;">
+                    <i class="fa-solid fa-file-pdf"></i> Download Formulir / Rekap Mengajar Saya
+                </button>
+
                 <div class="card card-premium">
                     <h3 style="margin-bottom: 14px; color: var(--primary);"><i class="fa-solid fa-camera"></i> Modul Absensi (100% Manual Lokal)</h3>
                     <div id="gps-status-box" style="padding: 12px; border-radius: 10px; font-weight: bold; margin-bottom: 14px; display:flex; align-items:center; gap:8px;"><i class="fa-solid fa-spinner fa-spin"></i> Mengecek GPS & Jarak Radius...</div>
+
                     <div id="absen-form-container" class="hidden">
                         <label>Pilih Mata Pelajaran (Lintas Kelas)</label>
                         <select id="pilih-mapel-absen" onchange="renderAbsenSantriByMapel()"></select>
@@ -902,6 +941,8 @@
                     <input type="text" id="setting-voice-teks">
                     <button class="btn-outline" type="button" onclick="testSuaraSapaan()" style="border-color:var(--info); color:var(--info); justify-content:center; padding:8px; font-size:0.8rem;"><i class="fa-solid fa-play"></i> Tes Suara Sekarang</button>
                 </div>
+                <label style="color: var(--info);"><i class="fa-solid fa-bullhorn"></i> Teks Berita / Running Text (Tampil di Wali)</label>
+<input type="text" id="setting-teks-berita" placeholder="Cth: Info Libur Semester Ganjil mulai tanggal...">
                 <div class="card card-premium" style="border-left-color: #E67E22;">
                     <h3 style="margin-bottom: 10px; color: #E67E22;"><i class="fa-solid fa-envelope-open-text"></i> Template Surat Izin & Kembali</h3>
                     <label>Judul Surat Izin Keluar</label><input type="text" id="setting-izin-judul">
@@ -918,8 +959,11 @@
 <label style="color: var(--primary);"><i class="fa-solid fa-text-height"></i> Ukuran Font Alamat (px)</label>
 <input type="number" id="setting-font-alamat" placeholder="Rekomendasi: 8 - 10">
 
-<label style="color: var(--primary);"><i class="fa-solid fa-qrcode"></i> Ukuran Barcode / QR (px)</label>
+<label style="color: var(--primary);"><i class="fa-solid fa-qrcode"></i> Ukuran QR Code 2D Belakang (px)</label>
 <input type="number" id="setting-ukuran-qr" placeholder="Rekomendasi: 55 - 65">
+
+<label style="color: var(--primary);"><i class="fa-solid fa-barcode"></i> Tinggi Barcode 1D Depan (px)</label>
+<input type="number" id="setting-ukuran-barcode1d" placeholder="Rekomendasi: 25 - 40">
 
 <label>Teks Keputusan Kelulusan Sertifikat</label><input type="text" id="setting-teks-lulus" placeholder="Telah mengikuti proses belajar dan dinyatakan:">
 <!-- TAMBAHAN PILIHAN KERTAS -->
@@ -1044,7 +1088,12 @@
     <div class="back-nav" onclick="closeSubMenu()"><i class="fa-solid fa-arrow-left"></i> Kembali ke Dashboard</div>
     <div class="card card-premium" style="border-left-color: var(--success);">
         <h3 style="margin-bottom: 14px; color: var(--success);"><i class="fa-solid fa-piggy-bank"></i> Tabungan Santri</h3>
-        
+                <!-- ⬇️ TOMBOL BUKA MESIN ATM ⬇️ -->
+        <button class="btn-primary" onclick="bukaKioskATM()" style="width: 100%; padding: 15px; margin-bottom: 20px; font-size: 1.05rem; background: #007AFF; box-shadow: 0 10px 25px rgba(0, 122, 255, 0.4); border-radius: 15px; border: none;">
+            <i class="fa-solid fa-desktop fa-beat" style="margin-right: 8px;"></i> BUKA MODE MESIN ATM (LAYAR PENUH)
+        </button>
+        <!-- ⬆️ SAMPAI SINI ⬆️ -->
+
         <div style="display: flex; gap: 8px; margin-bottom: 14px;">
             <button class="btn-primary" onclick="startScannerTabungan()" style="flex:1;"><i class="fa-solid fa-qrcode"></i> Scan ID Santri</button>
             <button class="btn-outline" onclick="stopScannerTabungan()" id="btn-stop-scanner-tabungan" style="flex:1; display:none;"><i class="fa-solid fa-stop"></i> Tutup</button>
@@ -1316,8 +1365,10 @@
                             </div>
                         </div>
                     </div>
-                    <!-- Barcode/QR Dipindah Ke Depan -->
-                    <div class="id-qr-depan" id="card-qr"></div>
+                                        <!-- Barcode 1D NIS di Depan -->
+                    <div class="id-qr-depan" style="border:none; padding:0; background:transparent; box-shadow:none; width:auto; height:auto; overflow:hidden;">
+                        <svg id="card-barcode" style="width: 100%; max-width: 80px;"></svg>
+                    </div>
                 </div>
                 <div class="id-footer-custom hidden" id="card-footer-custom"></div>
             </div>
@@ -1340,12 +1391,14 @@
                         </div>
                     </div>
                     
-                    <!-- KANAN BAWAH: KOLOM DIPERLEBAR (130px), IKON MAPS & ALAMAT RATA KIRI -->
-                    <div class="id-back-right" style="width: 130px; padding-left: 10px; justify-content: center; align-items: flex-start;">
-                        <div style="display: flex; align-items: flex-start; gap: 5px; width: 100%;">
+                                        <!-- KANAN BAWAH: KOLOM DIPERLEBAR (130px), IKON MAPS & ALAMAT RATA KIRI -->
+                    <div class="id-back-right" style="width: 130px; padding-left: 10px; justify-content: center; align-items: center;">
+                        <div style="display: flex; align-items: flex-start; gap: 5px; width: 100%; margin-bottom: 6px;">
                             <i class="fa-solid fa-location-dot" style="color: var(--primary); font-size: 0.72rem; margin-top: 1px; flex-shrink: 0;"></i>
                             <span id="back-alamat-text" style="font-size:0.52rem; font-weight:600; color:#222; text-align:left; line-height:1.3; display:-webkit-box; -webkit-line-clamp:3; -webkit-box-orient:vertical; overflow:hidden; word-break:break-word;">ALAMAT INSTANSI</span>
                         </div>
+                        <!-- Barcode QR 2D di Belakang -->
+                        <div class="id-qr-back" id="card-qr" style="width:55px; height:55px; padding:2px; border:2px solid var(--primary); background:#fff; border-radius:6px; display:flex; justify-content:center; align-items:center;"></div>
                     </div>
                 </div>
             </div>
@@ -1358,6 +1411,78 @@
         </div>
     </div>
 </div>
+<!-- ========================================= -->
+<!-- LAYAR ATM MANDIRI KIOSK                   -->
+<!-- ========================================= -->
+<div id="kiosk-atm">
+    
+    <!-- 1. Mode Slideshow I-News -->
+    <div id="kiosk-standby">
+        <!-- Gambar bisa disesuaikan dengan aset pondok -->
+        <img src="https://images.unsplash.com/photo-1542810634-71277d95dcbb?q=80&w=1000" class="slideshow-bg tampil">
+        <img src="https://images.unsplash.com/photo-1577896851231-70ef18881754?q=80&w=1000" class="slideshow-bg">
+        <img src="https://images.unsplash.com/photo-1524901548305-08eeddc35080?q=80&w=1000" class="slideshow-bg">
+        
+        <div class="kiosk-overlay">
+            <i class="fa-solid fa-building-columns" style="font-size: 3rem; color: var(--accent); margin-bottom: 15px;"></i>
+            <h1 style="font-size: 2.5rem; margin-bottom: 5px; font-weight: 900; letter-spacing: 2px;">ATM SANTRI</h1>
+            <p style="font-size: 1.2rem; color: #ccc; margin-bottom: 40px;">Layanan Keuangan Mandiri</p>
+            
+            <div style="background: rgba(255,255,255,0.1); backdrop-filter: blur(10px); padding: 20px 40px; border-radius: 20px; border: 1px solid rgba(255,255,255,0.2);">
+                <i class="fa-solid fa-barcode fa-4x fa-beat" style="margin-bottom: 15px;"></i>
+                <h3 style="margin: 0;">Silakan Scan Kartu ID Anda</h3>
+            </div>
+            
+            <button class="btn-danger" style="position: absolute; top: 20px; right: 20px; width: auto; padding: 10px 20px; border-radius: 12px; background: rgba(255,59,48,0.5); backdrop-filter: blur(5px);" onclick="tutupKioskATM()">X Tutup Kiosk</button>
+        </div>
+    </div>
+
+    <!-- 2. UI Dashboard Keuangan (Brimo Style) -->
+    <div id="kiosk-dashboard">
+        <div class="atm-card" id="atm-card-ui">
+            <div class="atm-header">
+                <img src="" id="atm-foto" class="atm-foto">
+                <h2 id="atm-nama" style="margin: 0; font-size: 1.6rem; text-transform: uppercase;">NAMA SANTRI</h2>
+                <p id="atm-nis" style="margin: 5px 0 0 0; color: var(--accent); font-weight: bold;">NIS: 12345</p>
+                <input type="hidden" id="atm-nis-hidden">
+            </div>
+            
+            <div style="padding: 30px;">
+                <div style="text-align: center; margin-bottom: 30px;">
+                    <p style="color: var(--text-muted); font-size: 0.95rem; margin-bottom: 5px; font-weight: 600;">Saldo Aktif Anda</p>
+                    <h1 style="color: var(--primary); font-size: 2.8rem; margin: 0; font-weight: 900;">Rp <span id="atm-saldo">0</span></h1>
+                </div>
+
+                <!-- Tombol Pilihan Utama -->
+                <div id="atm-menu-utama" style="display: flex; gap: 15px;">
+                    <button onclick="bukaFormATM('Tarik Tunai')" style="flex: 1; padding: 25px 15px; border-radius: 20px; background: var(--danger); color: white; border: none; font-size: 1.1rem; font-weight: bold; box-shadow: 0 10px 25px rgba(255,59,48,0.3); cursor: pointer;"><i class="fa-solid fa-money-bill-transfer fa-2x" style="margin-bottom: 10px;"></i><br>TARIK TUNAI</button>
+                    <button onclick="bukaFormATM('Setor Tabungan')" style="flex: 1; padding: 25px 15px; border-radius: 20px; background: var(--success); color: white; border: none; font-size: 1.1rem; font-weight: bold; box-shadow: 0 10px 25px rgba(52,199,89,0.3); cursor: pointer;"><i class="fa-solid fa-piggy-bank fa-2x" style="margin-bottom: 10px;"></i><br>MENABUNG</button>
+                </div>
+
+                <!-- Form Input Nominal (Disembunyikan awalnya) -->
+                <div id="atm-form-nominal" class="hidden">
+                    <h3 id="atm-judul-form" style="text-align: center; margin-bottom: 15px; color: var(--primary);">Pilih Nominal</h3>
+                    <input type="hidden" id="atm-jenis-transaksi">
+                    
+                    <div class="grid-nominal-atm">
+                        <button class="btn-nominal" onclick="setNominalATM(10000)">10 Ribu</button>
+                        <button class="btn-nominal" onclick="setNominalATM(20000)">20 Ribu</button>
+                        <button class="btn-nominal" onclick="setNominalATM(50000)">50 Ribu</button>
+                        <button class="btn-nominal" onclick="setNominalATM(100000)">100 Ribu</button>
+                        <button class="btn-nominal" onclick="setNominalATM(200000)">200 Ribu</button>
+                        <input type="number" id="atm-input-nominal" placeholder="Nominal Lain" style="margin: 0; padding: 12px; border: 2px solid var(--primary); text-align: center; border-radius: 12px; font-weight: bold; width: 100%; box-sizing: border-box;">
+                    </div>
+                    
+                    <button class="btn-primary" onclick="eksekusiTransaksiATM()" style="width: 100%; padding: 16px; font-size: 1.1rem; border-radius: 14px; margin-bottom: 10px;"><i class="fa-solid fa-print"></i> PROSES & CETAK NOTA</button>
+                    <button class="btn-outline" onclick="kembaliKeMenuATM()" style="width: 100%; justify-content: center; border-radius: 14px;">Kembali</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Wadah Tersembunyi Khusus Printer Thermal -->
+<div id="area-cetak-thermal" class="hidden"></div>
 
 <script>
     const KODE_RAHASIA_SYNC = "SYNC_PONDOK_SUPABASE_ENTERPRISE_V1";
@@ -1378,9 +1503,11 @@
 
     let supabaseConfig = getDB('pondok_supabase_config', { url: '', key: '' });
 
-    function muatScriptEksternal() {
+        function muatScriptEksternal() {
         if (typeof QRCode === 'undefined') { const qs = document.createElement('script'); qs.src = "https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"; document.body.appendChild(qs); }
         if (typeof Html5Qrcode === 'undefined') { const hs = document.createElement('script'); hs.src = "https://unpkg.com/html5-qrcode"; document.body.appendChild(hs); }
+        if (typeof JsBarcode === 'undefined') { const jsb = document.createElement('script'); jsb.src = "https://cdn.jsdelivr.net/npm/jsbarcode@3.11.5/dist/JsBarcode.all.min.js"; document.body.appendChild(jsb); }
+
     }
 
     let currentUser = null, html5QrcodeScanner = null, scannerLoginData = null, scannerIzin = null;
@@ -1840,6 +1967,67 @@
         containerTemp.remove();
     }, 600);
 }
+    function cetakKolektifF4Belakang(orientasi = 'portrait') {
+        let databaseSantri = getDB('pondok_santri', []).filter(s => !s.is_alumni); 
+        if (databaseSantri.length === 0) return alert("Belum ada data santri aktif.");
+        const yayasan = getDB('pondok_yayasan', {});
+        const teksTertib = yayasan.tata_tertib || "1. Wajib menjaga tata tertib...";
+        const daftarPoin = teksTertib.split('\n').filter(baris => baris.trim() !== '');
+        const formatTertib = daftarPoin.map(baris => `<div class="poin-tertib">${baris}</div>`).join('');
+        
+        let htmlKartuKolektif = `<div class="kolektif-grid-gabung">`;
+        databaseSantri.forEach((santri) => {
+            let qrPayload = JSON.stringify({ n: santri.nis, u: supabaseConfig.url || "", k: supabaseConfig.key || "" });
+            htmlKartuKolektif += `
+                <div class="id-card-wrapper portrait">
+                    <div id="sisi-belakang-kartu" style="height:100%; display:flex; flex-direction:column;">
+                        <div class="id-header" style="padding:6px; background:linear-gradient(135deg, var(--primary), var(--primary-light));">
+                            <h4 style="font-size:0.75rem; margin:0; text-transform: uppercase; color:white; text-align:center;">SISTEM MONITORING SANTRI</h4>
+                        </div>
+                        <div class="id-back-content" style="display:flex; flex-direction:column; padding:10px; flex:1; background:rgba(255, 255, 255, 0.9); text-align:center;">
+                            <div class="id-back-left" style="width:100%; flex:1;">
+                                <div class="id-back-title" style="font-size:0.75rem; font-weight:bold; color:var(--primary); border-bottom:1px solid #ccc; margin-bottom:4px;">${yayasan.pondok || 'INSTANSI'}</div>
+                                <div class="id-back-rules" style="font-size: 0.55rem; text-align:left;">${formatTertib}</div>
+                            </div>
+                            <div class="id-back-right" style="width:100%; border-top:1px dashed #999; padding-top:8px; display:flex; flex-direction:row; justify-content:space-between; align-items:center; gap:5px;">
+                                <div class="id-back-ttd" style="text-align:left; font-size:0.5rem; color:var(--primary); font-weight:bold; width:50%;">
+                                    <div>Mengetahui,</div>
+                                    ${yayasan.ttd_mudir ? `<img src="${yayasan.ttd_mudir}" style="height:25px; margin:2px 0; display:block;">` : '<div style="height:25px;"></div>'}
+                                    <div>${yayasan.mudir || 'Pimpinan'}</div>
+                                </div>
+                                <div class="id-qr-back" id="qr-back-${santri.nis}" data-payload='${qrPayload}' style="width:55px; height:55px; min-width:55px; padding:2px; border:2px solid var(--primary); background:#fff; border-radius:6px; display:flex; justify-content:center; align-items:center;"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>`;
+        });
+        htmlKartuKolektif += `</div>`;
+        
+        const containerTemp = document.createElement('div'); 
+        containerTemp.style.position = 'fixed'; containerTemp.style.right = '200vw'; 
+        document.body.appendChild(containerTemp); 
+        containerTemp.innerHTML = htmlKartuKolektif;
+        
+        const sizeQRPrint = parseInt(yayasan.ukuran_qr) || 60;
+        databaseSantri.forEach(santri => {
+            const wadahQR = containerTemp.querySelector(`#qr-back-${santri.nis}`);
+            if (wadahQR && typeof QRCode !== 'undefined') {
+                new QRCode(wadahQR, { text: wadahQR.getAttribute('data-payload'), width: sizeQRPrint, height: sizeQRPrint, correctLevel: QRCode.CorrectLevel.L });
+            }
+        });
+
+        setTimeout(() => { 
+            const canvases = containerTemp.querySelectorAll('canvas');
+            canvases.forEach(canvas => {
+                const img = document.createElement('img'); img.src = canvas.toDataURL('image/png'); 
+                img.style.width = sizeQRPrint + 'px'; img.style.height = sizeQRPrint + 'px';
+                const siblingImg = canvas.nextElementSibling; if(siblingImg && siblingImg.tagName === 'IMG') siblingImg.remove();
+                canvas.parentNode.replaceChild(img, canvas);
+            });
+            cetakElemenHTML(containerTemp.innerHTML, 'portrait'); 
+            containerTemp.remove();
+        }, 600);
+    }
 
     function cetakRekapSantriPDF() {
         let databaseSantri = getDB('pondok_santri', []).filter(s => modeTampilanSantri === 'alumni' ? s.is_alumni : !s.is_alumni); 
@@ -2351,8 +2539,9 @@ function cetakLaporanPDF() {
         const listMapel = getDB('pondok_master_mapel', []);
         const dbKelas = getDB('pondok_kelas', []);
 
-        listMapel.forEach(m => {
-            if (m.jadwal_aktif && m.hari === namaHariIni && m.jam_mulai === jamSekarangID) {
+                listMapel.forEach(m => {
+            // Mengakomodasi hari yang kini string dipisah koma (Misal: "Senin, Selasa")
+            if (m.jadwal_aktif && m.hari && m.hari.includes(namaHariIni) && m.jam_mulai === jamSekarangID) {
                 // Periksa apakah user adalah Ustadz pengampu ATAU Super Admin (untuk keperluan testing)
                 const isPengampu = (m.ustadz_ids || []).includes(currentUser.username) || (m.ustadz_id === currentUser.username);
                 if (isPengampu || currentUser.role === 'superadmin') {
@@ -2467,7 +2656,8 @@ document.getElementById('setting-kertas-sertifikat').value = data.kertas_sertifi
                document.getElementById('setting-font-nama').value = data.font_nama || "13";
                document.getElementById('setting-font-alamat').value = data.font_alamat || "9";
 
-document.getElementById('setting-ukuran-qr').value = data.ukuran_qr || "60";
+                document.getElementById('setting-ukuran-qr').value = data.ukuran_qr || "60";
+                document.getElementById('setting-ukuran-barcode1d').value = data.ukuran_barcode1d || "30";
                  document.getElementById('setting-voice-aktif').value = data.voice_aktif || "1"; 
                 document.getElementById('setting-voice-teks').value = data.voice_teks || ""; 
                 document.getElementById('setting-tata-tertib').value = data.tata_tertib || ""; 
@@ -2476,6 +2666,7 @@ document.getElementById('setting-ukuran-qr').value = data.ukuran_qr || "60";
                 document.getElementById('setting-blur-login').value = tingkatBlur;
                 document.getElementById('setting-pwa-notif-aktif').value = data.pwa_notif_aktif || "1";
                 document.getElementById('setting-pwa-notif-teks').value = data.pwa_notif_teks || "Waktunya mengajar mata pelajaran {mapel} di kelas {kelas}.";
+                document.getElementById('setting-teks-berita').value = data.teks_berita || "";
 
                 if(data.ttd_mudir) { base64TempImages.ttd_mudir = data.ttd_mudir; document.getElementById('ttd-preview-yayasan').src = data.ttd_mudir; document.getElementById('ttd-preview-yayasan').style.display = 'block'; }
             }
@@ -2990,20 +3181,37 @@ function bukaModalSertifikat(nis) {
             footerEl.classList.add('hidden'); 
         } 
         
-        // Ambil ukuran dari pengaturan (default 60 jika kosong)
+               // Ambil ukuran dari pengaturan (default 60 jika kosong)
         const yayasan = getDB('pondok_yayasan', {});
         const sizeQR = parseInt(yayasan.ukuran_qr) || 60;
         const sizeFont = parseInt(yayasan.font_nama) || 13;
+        const size1D = parseInt(yayasan.ukuran_barcode1d) || 30;
 
         // Terapkan ukuran dinamis ke tampilan
         wadahQR.style.width = sizeQR + 'px';
         wadahQR.style.height = sizeQR + 'px';
         wadahQR.style.minWidth = sizeQR + 'px';
         document.getElementById('card-nama').style.fontSize = sizeFont + 'px';
-const sizeFontAlamat = parseInt(yayasan.font_alamat) || 9;
-document.getElementById('card-alamat').style.fontSize = sizeFontAlamat + 'px';
+        const sizeFontAlamat = parseInt(yayasan.font_alamat) || 9;
+        document.getElementById('card-alamat').style.fontSize = sizeFontAlamat + 'px';
 
-        // Render QR dengan ukuran presisi
+        // Render Barcode 1D (Depan)
+        if (typeof JsBarcode !== 'undefined') {
+            try {
+                let nisRaw = qrText;
+                try { let parsed = JSON.parse(qrText); if(parsed.n) nisRaw = parsed.n; } catch(e){}
+                JsBarcode("#card-barcode", nisRaw, {
+                    format: "CODE128",
+                    width: 1.5,
+                    height: size1D,
+                    displayValue: false,
+                    margin: 0,
+                    background: "transparent"
+                });
+            } catch(err) { console.log("Barcode error:", err); }
+        }
+
+        // Render QR dengan ukuran presisi (Belakang)
         if (typeof QRCode !== 'undefined') { 
             new QRCode(wadahQR, { 
                 text: qrText, 
@@ -3329,9 +3537,15 @@ document.getElementById('card-alamat').style.fontSize = sizeFontAlamat + 'px';
         let selectedKelasIds = [];
         document.querySelectorAll('.cb-kelas-mapel:checked').forEach(cb => selectedKelasIds.push(parseInt(cb.value)));
 
-        const jadwalAktif = document.getElementById('input-opsi-jadwal').checked;
-        const hariMapel = jadwalAktif ? document.getElementById('input-hari-mapel').value : null;
+                const jadwalAktif = document.getElementById('input-opsi-jadwal').checked;
+        let arrHariTerpilih = [];
+        document.querySelectorAll('.cb-hari-mapel:checked').forEach(cb => arrHariTerpilih.push(cb.value));
+        const hariMapel = jadwalAktif ? arrHariTerpilih.join(', ') : null;
+        
+        if (jadwalAktif && arrHariTerpilih.length === 0) return alert("Pilih minimal 1 Hari untuk Jadwal Aktif!");
+        
         const jamMulai = jadwalAktif ? document.getElementById('input-jam-mulai').value : '';
+
         const jamSelesai = jadwalAktif ? document.getElementById('input-jam-selesai').value : '';
 
         let listMapel = getDB('pondok_master_mapel', []);
@@ -3636,12 +3850,13 @@ document.getElementById('card-alamat').style.fontSize = sizeFontAlamat + 'px';
         masterMapel.forEach(m => {
             let tampilkan = false;
 
-            // 1. Filter HANYA berdasarkan Hari dan Jam
+                        // 1. Filter HANYA berdasarkan Hari dan Jam
             if (m.jadwal_aktif) {
-                if (m.hari === namaHariIni && jamSekarang >= (m.jam_mulai || "00:00") && jamSekarang <= (m.jam_selesai || "23:59")) {
+                if (m.hari && m.hari.includes(namaHariIni) && jamSekarang >= (m.jam_mulai || "00:00") && jamSekarang <= (m.jam_selesai || "23:59")) {
                     tampilkan = true;
                 }
             } else {
+
                 // Jadwal fleksibel
                 tampilkan = true;
             }
@@ -3857,13 +4072,15 @@ function kirimDataAbsen() {
             teks_lulus: document.getElementById('setting-teks-lulus').value,
             kertas_sertifikat: document.getElementById('setting-kertas-sertifikat').value,
             font_nama: document.getElementById('setting-font-nama').value,
-            font_alamat: document.getElementById('setting-font-alamat').value,
+                        font_alamat: document.getElementById('setting-font-alamat').value,
             ukuran_qr: document.getElementById('setting-ukuran-qr').value,
+            ukuran_barcode1d: document.getElementById('setting-ukuran-barcode1d').value,
             voice_aktif:             document.getElementById('setting-voice-aktif').value,
             voice_teks: document.getElementById('setting-voice-teks').value,
             tata_tertib: document.getElementById('setting-tata-tertib').value,
             izin_judul: document.getElementById('setting-izin-judul').value,
             izin_catatan: document.getElementById('setting-izin-catatan').value,
+            teks_berita: document.getElementById('setting-teks-berita').value,
             pwa_notif_aktif: document.getElementById('setting-pwa-notif-aktif').value,
             pwa_notif_teks: document.getElementById('setting-pwa-notif-teks').value
         };
@@ -4972,7 +5189,266 @@ function renderListSlideshow() {
         `;
     });
 }
+/* ========================================= */
+/* LOGIKA ATM MANDIRI & CETAK THERMAL        */
+/* ========================================= */
 
+let isKioskModeAktif = false;
+let slideIndexATM = 0;
+let timerLogoutATM;
+
+// Modifikasi fungsi prosesHasilScanUSB yang sudah ada di sistem Anda
+// Cukup sisipkan logika ini di baris pertama di dalam fungsi tersebut:
+const fungsiAsliUSB = prosesHasilScanUSB;
+prosesHasilScanUSB = function(hasilScan) {
+    if (isKioskModeAktif) {
+        prosesScanDiATM(hasilScan);
+        return; 
+    }
+    fungsiAsliUSB(hasilScan); // Lanjutkan fungsi asli jika bukan mode ATM
+};
+
+// 1. Fungsi Buka & Tutup Kiosk
+function bukaKioskATM() {
+    isKioskModeAktif = true;
+    document.getElementById('kiosk-atm').classList.add('aktif');
+    kembaliKeStandbyATM();
+    jalankanSlideshowATM();
+    
+    // Request Fullscreen agar terasa seperti mesin ATM sungguhan
+    if (document.documentElement.requestFullscreen) {
+        document.documentElement.requestFullscreen().catch(err => console.log(err));
+    }
+}
+
+function tutupKioskATM() {
+    isKioskModeAktif = false;
+    document.getElementById('kiosk-atm').classList.remove('aktif');
+    if (document.exitFullscreen) document.exitFullscreen();
+}
+
+// 2. Mesin Slideshow Berita/Branding
+function jalankanSlideshowATM() {
+    let slides = document.getElementsByClassName("slideshow-bg");
+    for (let i = 0; i < slides.length; i++) {
+        slides[i].classList.remove('tampil');
+    }
+    slideIndexATM++;
+    if (slideIndexATM > slides.length) { slideIndexATM = 1 }
+    slides[slideIndexATM - 1].classList.add('tampil');
+    
+    if(isKioskModeAktif) {
+        setTimeout(jalankanSlideshowATM, 4000); // Ganti gambar tiap 4 detik
+    }
+}
+
+// 3. Logika Scan Kartu Masuk ke Dashboard
+function prosesScanDiATM(rawScan) {
+    let nisScan = rawScan; 
+    try { let p = JSON.parse(rawScan); if (p.n) nisScan = p.n; } catch(e) {}
+    
+    const santri = getDB('pondok_santri', []).find(s => s.nis === nisScan);
+    if (santri) {
+        document.getElementById('kiosk-standby').style.display = 'none';
+        document.getElementById('kiosk-dashboard').style.display = 'flex';
+        
+        // Animasi pop-up Brimo
+        setTimeout(() => { document.getElementById('atm-card-ui').classList.add('tampil'); }, 100);
+
+        document.getElementById('atm-foto').src = santri.foto || "https://cdn-icons-png.flaticon.com/512/847/847969.png";
+        document.getElementById('atm-nama').innerText = santri.nama;
+        document.getElementById('atm-nis').innerText = "NIS: " + santri.nis;
+        document.getElementById('atm-nis-hidden').value = santri.nis;
+        
+        // Ambil saldo real-time
+        document.getElementById('atm-saldo').innerText = hitungSaldo(santri.nis).toLocaleString('id-ID');
+        kembaliKeMenuATM();
+        resetTimerKeluarATM(); // Auto logout 15 detik jika ditinggal
+    }
+}
+
+// 4. Interaksi UI ATM
+function bukaFormATM(jenis) {
+    resetTimerKeluarATM();
+    document.getElementById('atm-menu-utama').classList.add('hidden');
+    document.getElementById('atm-form-nominal').classList.remove('hidden');
+    document.getElementById('atm-judul-form').innerText = "Nominal " + jenis;
+    document.getElementById('atm-jenis-transaksi').value = jenis;
+    document.getElementById('atm-input-nominal').value = '';
+}
+
+function kembaliKeMenuATM() {
+    resetTimerKeluarATM();
+    document.getElementById('atm-menu-utama').classList.remove('hidden');
+    document.getElementById('atm-form-nominal').classList.add('hidden');
+}
+
+function setNominalATM(nominal) {
+    resetTimerKeluarATM();
+    document.getElementById('atm-input-nominal').value = nominal;
+}
+
+// 5. Eksekusi & Cetak Nota Thermal
+function eksekusiTransaksiATM() {
+    const nis = document.getElementById('atm-nis-hidden').value;
+    const nominal = parseInt(document.getElementById('atm-input-nominal').value);
+    const jenis = document.getElementById('atm-jenis-transaksi').value; // 'Tarik Tunai' atau 'Setor Tabungan'
+    const saldoAktif = hitungSaldo(nis);
+
+    if (!nominal || nominal <= 0) return alert("Masukkan nominal yang valid!");
+    
+    if (jenis === 'Tarik Tunai' && nominal > saldoAktif) {
+        return alert("Maaf, saldo Anda tidak mencukupi untuk penarikan ini.");
+    }
+
+    // Hitung nominal ke database (Tarik = minus, Setor = positif)
+    const nominalFinal = (jenis === 'Tarik Tunai') ? -Math.abs(nominal) : Math.abs(nominal);
+
+    // Simpan ke Database
+    let dbTabungan = getDB('pondok_tabungan', []);
+    const idTransaksi = "TRX" + Date.now().toString().slice(-6);
+    const tgl = new Date();
+    
+    dbTabungan.push({
+        id: Date.now(),
+        nis: nis,
+        nominal: nominalFinal,
+        pedagang: "ATM MANDIRI", 
+        tanggal: tgl.toISOString(),
+        kode_trx: idTransaksi
+    });
+    localStorage.setItem('pondok_tabungan', JSON.stringify(dbTabungan));
+
+    const sisaSaldoBaru = saldoAktif + nominalFinal;
+    const santriNama = document.getElementById('atm-nama').innerText;
+    const yayasan = getDB('pondok_yayasan', {});
+
+    // Buat HTML Khusus Kertas Thermal 58mm
+    const htmlNota = `
+    <div style="font-family: monospace; font-size: 12px; color: #000; width: 100%; padding: 5px; box-sizing: border-box;">
+        <div style="text-align: center; border-bottom: 1px dashed #000; padding-bottom: 5px; margin-bottom: 5px;">
+            <h3 style="margin: 0; font-size: 14px; text-transform: uppercase;">${yayasan.pondok || 'KOPERASI INSTANSI'}</h3>
+            <p style="margin: 0; font-size: 10px;">SISTEM ATM SANTRI MANDIRI</p>
+        </div>
+        <div style="margin-bottom: 5px; line-height: 1.4;">
+            Tgl : ${tgl.toLocaleDateString('id-ID')} ${tgl.toLocaleTimeString('id-ID')}<br>
+            No  : <strong>${idTransaksi}</strong><br>
+            NIS : ${nis}<br>
+            Nama: ${santriNama.substring(0, 20)}
+        </div>
+        <div style="border-top: 1px dashed #000; border-bottom: 1px dashed #000; padding: 5px 0; margin-bottom: 5px;">
+            <strong style="font-size: 14px;">${jenis.toUpperCase()}</strong><br>
+            <div style="display: flex; justify-content: space-between;">
+                <span>Nominal</span>
+                <span>: Rp ${nominal.toLocaleString('id-ID')}</span>
+            </div>
+            <div style="display: flex; justify-content: space-between;">
+                <span>Status</span>
+                <span>: BERHASIL</span>
+            </div>
+        </div>
+        <div style="text-align: right; font-weight: bold; margin-bottom: 10px; font-size: 13px;">
+            Sisa Saldo: Rp ${sisaSaldoBaru.toLocaleString('id-ID')}
+        </div>
+        <div style="text-align: center; font-size: 10px; line-height: 1.2;">
+            Terima Kasih<br>Serahkan resi ini ke bagian keuangan untuk validasi fisik.
+        </div>
+    </div>
+    `;
+
+    document.getElementById('area-cetak-thermal').innerHTML = htmlNota;
+    
+    // Beri jeda kecil agar DOM selesai dirender, lalu trigger Print
+    setTimeout(() => {
+        window.print();
+        alert("Transaksi Berhasil! Silakan ambil nota Anda.");
+        kembaliKeStandbyATM(); // Otomatis logout setelah transaksi selesai
+    }, 500);
+}
+
+// 6. Pengaturan Timer Logout Otomatis
+function resetTimerKeluarATM() {
+    clearTimeout(timerLogoutATM);
+    // Jika tidak ada interaksi selama 15 detik, tutup paksa akunnya
+    timerLogoutATM = setTimeout(kembaliKeStandbyATM, 15000);
+}
+
+function kembaliKeStandbyATM() {
+    clearTimeout(timerLogoutATM);
+    document.getElementById('atm-card-ui').classList.remove('tampil');
+    setTimeout(() => {
+        document.getElementById('kiosk-dashboard').style.display = 'none';
+        document.getElementById('kiosk-standby').style.display = 'flex';
+    }, 300);
+}
+function cetakRekapPribadiUstadz() {
+    if (!currentUser) return alert("Silakan login kembali.");
+    const absensiDB = getDB('pondok_absensi', []);
+    
+    // Filter absensi: Ambil yang Ustadz bersangkutan mengajar sebagai ustadz aktual atau ustadz PJ
+    const riwayatUstadz = absensiDB.filter(sesi => 
+        (sesi.ustadz_aktual === currentUser.nama) || (sesi.ustadz_pj.includes(currentUser.nama))
+    );
+
+    if (riwayatUstadz.length === 0) return alert("Anda belum memiliki riwayat/rekam mengajar di sistem.");
+
+    // Bangun HTML Cetak
+    let htmlPrint = generateStandardKopSuratHTML();
+    htmlPrint += `
+        <div style="text-align:center; margin-bottom: 20px;">
+            <h3 style="margin:0; text-transform:uppercase;">FORMULIR BUKTI MENGAJAR & REKAP KELAS</h3>
+            <p style="margin:2px 0; font-size:12px;">Ustadz / Pengajar: <strong>${currentUser.nama}</strong></p>
+        </div>
+        <table style="width:100%; border-collapse: collapse; margin-bottom: 20px;">
+            <thead>
+                <tr>
+                    <th style="padding:8px; border:1px solid #000; text-align:center;">Waktu / Tgl Sesi</th>
+                    <th style="padding:8px; border:1px solid #000; text-align:center;">Mata Pelajaran</th>
+                    <th style="padding:8px; border:1px solid #000; text-align:center;">Kelas Tujuan</th>
+                    <th style="padding:8px; border:1px solid #000; text-align:center;">Total Hadir</th>
+                    <th style="padding:8px; border:1px solid #000; text-align:center;">Tidak Hadir (Ket)</th>
+                </tr>
+            </thead>
+            <tbody>
+    `;
+
+    riwayatUstadz.forEach(sesi => {
+        let countHadir = 0;
+        let ketTidakHadir = [];
+        
+        sesi.detail.forEach(absen => {
+            if (absen.status === 'Hadir') countHadir++;
+            else if (absen.status !== 'Belum') ketTidakHadir.push(`${absen.nama} (${absen.status})`);
+        });
+
+        htmlPrint += `
+            <tr>
+                <td style="padding:8px; border:1px solid #000; text-align:center;">${sesi.tanggal} ${sesi.waktu}</td>
+                <td style="padding:8px; border:1px solid #000;"><strong>${sesi.mapel}</strong></td>
+                <td style="padding:8px; border:1px solid #000; text-align:center;">${sesi.nama_kelas}</td>
+                <td style="padding:8px; border:1px solid #000; text-align:center;">${countHadir} Orang</td>
+                <td style="padding:8px; border:1px solid #000; font-size:10px;">${ketTidakHadir.length > 0 ? ketTidakHadir.join('<br>') : 'Hadir Semua'}</td>
+            </tr>
+        `;
+    });
+
+    htmlPrint += `
+            </tbody>
+        </table>
+        
+        <div style="display:flex; justify-content:flex-end; width:100%; margin-top:30px;">
+            <div style="text-align:center; width:200px;">
+                <p style="margin-bottom: 50px; font-size:12px;">Ustadz / Pengajar Terkait,</p>
+                <p style="font-weight:bold; font-size:12px; border-bottom:1px solid #000;">${currentUser.nama}</p>
+                <p style="font-size:11px;">(Sistem ID: ${currentUser.username})</p>
+            </div>
+        </div>
+        <p style="font-size:10px; text-align:center; margin-top:20px; font-style:italic;">Formulir ini dapat digunakan sebagai lampiran/pegangan pribadi apabila ada diskrepansi data rekap kolektif dengan Admin.</p>
+    `;
+    
+    // Panggil fungsi print
+    cetakElemenHTML(htmlPrint, 'portrait');
+}
     window.onload = initApp;
 </script>
 </body>
