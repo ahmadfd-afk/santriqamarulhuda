@@ -738,7 +738,7 @@
         <label style="font-size:0.8rem; display:flex; align-items:center; gap:6px;"><input type="checkbox" value="Minggu" class="cb-hari-mapel"> Minggu</label>
     </div>
 
-            <!-- PERBAIKAN: Dropdown Pilihan Cepat dari Logika Jam Singkatan -->
+        <!-- PERBAIKAN: Dropdown Pilihan Cepat dari Logika Jam Singkatan -->
     <div style="margin-top:12px;">
         <label style="color:var(--warning); margin-bottom:4px;">
             <i class="fa-solid fa-clock"></i> Pilih Preset Jam Singkatan (BA, BS, BM, dll):
@@ -749,9 +749,11 @@
     </div>
 
     <div style="display:flex; gap:8px;">
-        <div style="flex:1;"><label>Jam Mulai (Opsional)</label><input type="time" id="input-jam-mulai" style="font-weight:bold;"></div>
-        <div style="flex:1;"><label>Jam Selesai (Opsional)</label><input type="time" id="input-jam-selesai" style="font-weight:bold;"></div>
+        <div style="flex:1;"><label>Jam Mulai (Opsional)</label><input type="text" id="input-jam-mulai" placeholder="Cth: BA / 15:30"></div>
+        <div style="flex:1;"><label>Jam Selesai (Opsional)</label><input type="text" id="input-jam-selesai" placeholder="Cth: 16:30"></div>
     </div>
+</div>        
+
 
 <!-- PERBAIKAN: Dropdown Ustadz -->
 <label style="color:var(--primary); margin-top:14px;"><i class="fa-solid fa-users"></i> Pilih Ustadz / Guru Pengajar (Bisa Lebih dari 1):</label>
@@ -3336,7 +3338,7 @@ function bukaModalSertifikat(nis) {
                 colorLight: "#ffffff", 
                 correctLevel: QRCode.CorrectLevel.L 
             }); 
-        } 
+                } 
     }
     function getStatistikIzin(nisSantri) { const histDB = getDB('pondok_history_izin', []); const riwayatSantri = histDB.filter(x => x.nis === nisSantri); let totalHari = 0; riwayatSantri.forEach(item => { totalHari += (parseInt(item.durasi_hari) || 1); }); return { total_kali: riwayatSantri.length, total_hari: totalHari }; }
 
@@ -5318,8 +5320,9 @@ function pilihPresetJam(idx) {
     const terpilih = dataJam[idx];
     
     if (terpilih) {
-        // PERBAIKAN: Memasukkan jam aslinya ke input time, bukan kodenya
-        document.getElementById('input-jam-mulai').value = terpilih.mulai;
+        // Mengisi kode singkatan ke kolom Jam Mulai (misal: BA atau BS) 
+        // dan jam selesai ke kolom Jam Selesai
+        document.getElementById('input-jam-mulai').value = terpilih.kode;
         document.getElementById('input-jam-selesai').value = terpilih.selesai;
     }
 }
