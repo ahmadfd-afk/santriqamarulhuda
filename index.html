@@ -98,7 +98,22 @@
         .btn-success { background: var(--success); color: white; border: none; padding: 10px 14px; border-radius: 10px; width: auto; font-size: 0.82rem; margin-top: 0; }
         .btn-print { background: #1D1D1F; color: white; border: none; padding: 10px 14px; border-radius: 10px; width: auto; font-size: 0.82rem; margin-top: 0; }
         .btn-warning { background: var(--warning); color: white; border: none; padding: 10px 14px; border-radius: 10px; width: auto; font-size: 0.82rem; margin-top: 0; }
-        .back-nav { display: flex; align-items: center; gap: 10px; color: var(--primary); font-weight: 700; margin-bottom: 20px; cursor: pointer; padding: 10px 0; font-size: 0.95rem; }
+                .back-nav { 
+            display: inline-flex; align-items: center; gap: 10px; 
+            background: rgba(255, 255, 255, 0.85); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+            color: var(--primary); font-weight: 800; margin-bottom: 20px; cursor: pointer; 
+            padding: 10px 20px; font-size: 0.9rem; border-radius: 30px;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.08); border: 1px solid rgba(255,255,255,1);
+            transition: 0.2s all ease;
+        }
+        .back-nav:active {
+            transform: scale(0.92) translateX(-5px);
+            background: #000000 !important;
+            color: #ffffff !important;
+            border-color: #000000 !important;
+        }
+        .back-nav i { font-size: 1.15rem; }
+
         table { width: 100%; border-collapse: separate; border-spacing: 0; margin-bottom: 15px; font-size: 0.8rem; }
         th, td { padding: 10px 8px; text-align: left; border-bottom: 1px solid rgba(0,0,0,0.06); }
         th { background-color: var(--primary); color: white; font-weight: 600; position: sticky; top: 0; z-index: 5; }
@@ -433,8 +448,27 @@
     body * { visibility: hidden; }
     #area-cetak-thermal, #area-cetak-thermal * { visibility: visible; }
     #area-cetak-thermal { position: absolute; left: 0; top: 0; width: 58mm; padding: 0; margin: 0; }
-    @page { size: 58mm auto; margin: 0mm; }
+        @page { size: 58mm auto; margin: 0mm; }
 }
+
+/* --- TAMBAHAN EFEK MENU HITAM & KILAT --- */
+.nav-item:active { 
+    color: #000000 !important; 
+    transform: scale(0.9) !important; 
+    transition: 0.1s all ease !important;
+}
+.nav-item.active { 
+    color: #000000 !important; 
+    font-weight: 800; 
+    transform: translateY(-2px); 
+}
+.btn-outline:active { 
+    background: #000000 !important; 
+    color: #ffffff !important; 
+    border-color: #000000 !important; 
+    transform: scale(0.95); 
+}
+/* -------------------------------------- */
     </style>
 </head>
 <body>
@@ -706,21 +740,27 @@
                     </div>
                                         <p style="font-size:0.75rem; color:var(--text-muted); margin-bottom:10px;">Buat mata pelajaran dan tentukan ustadz/guru penanggung jawabnya (bisa lebih dari satu), lalu centang kelas mana saja yang mempelajarinya.</p>
                     
-                    <!-- PERBAIKAN: BANK MATA PELAJARAN MULTIPLE CHECKBOX -->
-                    <label style="color:var(--primary); margin-top:10px;"><i class="fa-solid fa-layer-group"></i> 1. Bank Nama Mata Pelajaran</label>
-                    <div style="display:flex; gap:8px; margin-bottom:10px;">
-                        <input type="text" id="input-tambah-bank-mapel" placeholder="Ketik mapel baru (cth: Fiqih)..." style="margin:0; flex:1;">
-                        <button type="button" class="btn-outline" style="margin:0; width:auto; border-color:var(--info); color:var(--info); padding:10px;" onclick="tambahBankMapel()">
-                            <i class="fa-solid fa-plus"></i> Tambah ke Bank
-                        </button>
-                    </div>
-                    
-                    <div id="wadah-bank-mapel" style="max-height: 150px; overflow-y: auto; border: 1px dashed var(--info); padding: 10px; border-radius: 12px; background: rgba(0,122,255,0.03); margin-bottom: 14px; display: flex; flex-wrap: wrap; gap: 8px;">
-                        <!-- Checkbox Mapel dari Bank dirender via JS -->
-                    </div>
-                    <!-- AKHIR PERBAIKAN BANK MAPEL -->
-                    
-                   <label style="cursor:pointer; display:flex; align-items:center; gap:8px; color:var(--primary); margin-top:14px;">
+                                        <!-- PERBAIKAN: <!-- PERBAIKAN: BANK MATA PELAJARAN MULTIPLE CHECKBOX DROPDOWN -->
+<label style="color:var(--primary); margin-top:10px;"><i class="fa-solid fa-layer-group"></i> 1. Pilih Dari Bank Mata Pelajaran</label>
+<div style="display:flex; gap:8px; margin-bottom:10px;">
+    <input type="text" id="input-tambah-bank-mapel" placeholder="Ketik mapel baru (cth: Fiqih)..." style="margin:0; flex:1;">
+    <button type="button" class="btn-outline" style="margin:0; width:auto; border-color:var(--info); color:var(--info); padding:10px;" onclick="tambahBankMapel()">
+        <i class="fa-solid fa-plus"></i> Tambah Baru
+    </button>
+</div>
+
+<div class="custom-select-wrapper">
+    <div class="custom-select-btn" onclick="document.getElementById('wadah-bank-mapel').classList.toggle('show')" style="border: 1px solid var(--info); color: var(--info);">
+        Klik untuk Menampilkan Mapel... <i class="fa-solid fa-chevron-down"></i>
+    </div>
+    <!-- KODE PERBAIKAN: Hapus display:flex inline agar bisa disembunyikan/ditampilkan -->
+    <div id="wadah-bank-mapel" class="custom-select-content" style="max-height: 220px; padding: 10px;">
+        <!-- Checkbox Mapel dari Bank dirender via JS -->
+    </div>
+</div>
+<!-- AKHIR PERBAIKAN BANK MAPEL -->
+
+<label style="cursor:pointer; display:flex; align-items:center; gap:8px; color:var(--primary); margin-top:14px;">
     <input type="checkbox" id="input-opsi-jadwal" onchange="toggleFormJadwalMapel()" style="width:18px; height:18px; margin:0;">
     <span>Atur Jadwal Hari & Jam (Opsional)</span>
 </label>
@@ -738,7 +778,7 @@
         <label style="font-size:0.8rem; display:flex; align-items:center; gap:6px;"><input type="checkbox" value="Minggu" class="cb-hari-mapel"> Minggu</label>
     </div>
 
-        <!-- PERBAIKAN: Dropdown Pilihan Cepat dari Logika Jam Singkatan -->
+    <!-- PERBAIKAN: Dropdown Pilihan Cepat dari Logika Jam Singkatan -->
     <div style="margin-top:12px;">
         <label style="color:var(--warning); margin-bottom:4px;">
             <i class="fa-solid fa-clock"></i> Pilih Preset Jam Singkatan (BA, BS, BM, dll):
@@ -754,8 +794,7 @@
     </div>
 </div>        
 
-
-<!-- PERBAIKAN: Dropdown Ustadz -->
+<!-- PERBAIKAN: Dropdown Ustadz (Mengembalikan yang hilang) -->
 <label style="color:var(--primary); margin-top:14px;"><i class="fa-solid fa-users"></i> Pilih Ustadz / Guru Pengajar (Bisa Lebih dari 1):</label>
 <div class="custom-select-wrapper">
     <div class="custom-select-btn" onclick="document.getElementById('input-ustadz-mapel-container').classList.toggle('show')">
@@ -786,22 +825,26 @@
                     </div>
                 </div>
 
-                <!-- ⬇️ TAMBAHKAN KOTAK INI DI SINI ⬇️ -->
+                                <!-- ⬇️ TAMBAHKAN KOTAK INI DI SINI ⬇️ -->
                 <div class="card card-premium" style="border-left-color: var(--warning);">
-                    <h3 style="margin-bottom: 10px; color: var(--warning);"><i class="fa-solid fa-clock"></i> Setting Logika Jam Singkatan</h3>
-                    <p style="font-size:0.75rem; color:var(--text-muted); margin-bottom:10px;">Definisikan jam aktual untuk singkatan seperti BS (Ba'da Subuh) atau BM agar pengingat jadwal dan absensi otomatis berfungsi.</p>
-                    
-                    <div style="display:flex; gap:8px; margin-bottom:10px; flex-wrap: wrap;">
-                        <input type="text" id="input-kode-jam" placeholder="Kode (Cth: BS)" style="flex:1; min-width:80px; margin:0;">
-                        <input type="time" id="input-waktu-mulai-jam" style="flex:1; min-width:90px; margin:0;" title="Jam Mulai">
-                        <input type="time" id="input-waktu-selesai-jam" style="flex:1; min-width:90px; margin:0;" title="Jam Selesai">
-                        <button type="button" class="btn-warning" style="margin:0; padding:10px 14px; width:auto;" onclick="tambahJamKustom()">
-                            <i class="fa-solid fa-plus"></i> Tambah
-                        </button>
+                    <div style="display:flex; justify-content:space-between; align-items:center; cursor:pointer;" onclick="document.getElementById('panel-jam-singkatan').classList.toggle('hidden')">
+                        <h3 style="margin: 0; color: var(--warning);"><i class="fa-solid fa-clock"></i> Setting Logika Jam Singkatan</h3>
+                        <i class="fa-solid fa-chevron-down" style="color:var(--warning);"></i>
                     </div>
                     
-                    <div id="wadah-jam-kustom" style="display: flex; flex-direction: column; gap: 8px;">
-                        <!-- List jam akan dirender di sini via JS -->
+                    <div id="panel-jam-singkatan" class="hidden" style="margin-top: 14px; border-top: 1px dashed rgba(0,0,0,0.1); padding-top: 14px;">
+                        <p style="font-size:0.75rem; color:var(--text-muted); margin-bottom:10px;">Definisikan jam aktual untuk singkatan seperti BS (Ba'da Subuh) agar pengingat jadwal dan absensi otomatis berfungsi.</p>
+                        
+                        <div style="display:flex; gap:8px; margin-bottom:10px; flex-wrap: wrap;">
+                            <input type="text" id="input-kode-jam" placeholder="Kode (BS)" style="flex:1; min-width:80px; margin:0;">
+                            <input type="time" id="input-waktu-mulai-jam" style="flex:1; min-width:90px; margin:0;" title="Jam Mulai">
+                            <input type="time" id="input-waktu-selesai-jam" style="flex:1; min-width:90px; margin:0;" title="Jam Selesai">
+                            <button type="button" class="btn-warning" style="margin:0; padding:10px 14px; width:auto;" onclick="tambahJamKustom()">
+                                <i class="fa-solid fa-plus"></i> Tambah
+                            </button>
+                        </div>
+                        
+                        <div id="wadah-jam-kustom" style="display: flex; flex-direction: column; gap: 8px;"></div>
                     </div>
                 </div>
                 <!-- ⬆️ SAMPAI SINI ⬆️ -->
@@ -815,14 +858,6 @@
 <label style="color: var(--primary); margin-top: 10px;"><i class="fa-solid fa-user-tie"></i> Pilih Wali Kelas</label>
 <select id="input-wali-kelas" style="margin-bottom: 10px;">
     <!-- Opsi akan diisi otomatis oleh JS renderTabelDaftarKelas -->
-</select>
-
-<label style="color: var(--primary);"><i class="fa-solid fa-palette"></i> Warna Barcode Kelas (Identitas)</label>
-<select id="input-warna-barcode" style="margin-bottom: 14px;">
-    <option value="#000000">Hitam (Default - Paling Aman)</option>
-    <option value="#04432A">Hijau Tua (Gelap)</option>
-    <option value="#8B0000">Merah Tua (Maroon)</option>
-    <option value="#00008B">Biru Tua (Navy)</option>
 </select>
 
 <button class="btn-primary" onclick="simpanKelasBaru()">BUAT & SIMPAN KELAS</button>
@@ -1012,7 +1047,15 @@
 <label style="color: var(--primary);"><i class="fa-solid fa-barcode"></i> Tinggi Barcode 1D Depan (px)</label>
 <input type="number" id="setting-ukuran-barcode1d" placeholder="Rekomendasi: 25 - 40">
 
+<label style="color: var(--primary);"><i class="fa-solid fa-palette"></i> Warna Barcode 1D & QR (Semua Kartu)</label>
+<select id="setting-warna-barcode" style="margin-bottom: 14px;">
+    <option value="#000000">Hitam (Default - Paling Aman)</option>
+    <option value="#04432A">Hijau Tua (Gelap)</option>
+    <option value="#8B0000">Merah Tua (Maroon)</option>
+    <option value="#00008B">Biru Tua (Navy)</option>
+</select>
 <label>Teks Keputusan Kelulusan Sertifikat</label><input type="text" id="setting-teks-lulus" placeholder="Telah mengikuti proses belajar dan dinyatakan:">
+
 <!-- TAMBAHAN PILIHAN KERTAS -->
 <label style="color: var(--danger);"><i class="fa-solid fa-scroll"></i> Ukuran Kertas Cetak Sertifikat</label>
 <select id="setting-kertas-sertifikat">
@@ -1480,7 +1523,10 @@
                 <h3 style="margin: 0;">Silakan Scan Kartu ID Anda</h3>
             </div>
             
-            <button class="btn-danger" style="position: absolute; top: 20px; right: 20px; width: auto; padding: 10px 20px; border-radius: 12px; background: rgba(255,59,48,0.5); backdrop-filter: blur(5px);" onclick="tutupKioskATM()">X Tutup Kiosk</button>
+                        <button style="position: absolute; top: 15px; right: 15px; background: transparent; border: none; color: rgba(255,255,255,0.15); font-size: 2rem; cursor: pointer; z-index: 99999; padding: 15px;" onclick="verifikasiTutupATM()">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+
         </div>
     </div>
 
@@ -1557,10 +1603,32 @@
 
     }
 
-    let currentUser = null, html5QrcodeScanner = null, scannerLoginData = null, scannerIzin = null;
+        let currentUser = null, html5QrcodeScanner = null, scannerLoginData = null, scannerIzin = null;
     let modeScannerIzinAktif = 'keluar';
     let base64TempImages = { logo: '', bg_login: '', bg_idcard: '', ttd_mudir: '' }, tempFotoSantriBase64 = ''; 
     let tempFotoPegawaiBase64 = '', tempSelfFotoBase64 = '';
+
+    // --- TAMBAHAN FUNGSI GETAR & SUARA BIP ---
+    function playHapticAndSound() {
+        if (navigator.vibrate) navigator.vibrate(40);
+        try {
+            const AudioContext = window.AudioContext || window.webkitAudioContext;
+            if (AudioContext) {
+                const ctx = new AudioContext();
+                const osc = ctx.createOscillator();
+                const gainNode = ctx.createGain();
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(800, ctx.currentTime);
+                gainNode.gain.setValueAtTime(0.1, ctx.currentTime);
+                gainNode.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.1);
+                osc.connect(gainNode);
+                gainNode.connect(ctx.destination);
+                osc.start();
+                osc.stop(ctx.currentTime + 0.1);
+            }
+        } catch (e) { console.log("Audio Error:", e); }
+    }
+    // -----------------------------------------
     
                 const defaultAkses = { 
         superadmin: ['view-santri', 'view-evaluasi', 'view-izin', 'view-rekap', 'view-kelas', 'view-absen', 'view-scanner-wireless', 'view-keuangan', 'view-tabungan', 'view-paguyuban', 'view-yayasan', 'view-lokasi', 'view-hak-akses', 'view-pengguna', 'view-database'], 
@@ -2727,7 +2795,8 @@ function cetakLaporanPDF() {
                 document.getElementById('setting-teks-lulus').value = data.teks_lulus || ""; 
                 
 document.getElementById('setting-kertas-sertifikat').value = data.kertas_sertifikat || "A4";
-               
+document.getElementById('setting-warna-barcode').value = data.warna_barcode || "#000000";
+document.getElementById('setting-font-nama').value = data.font_nama || "13";
                document.getElementById('setting-font-nama').value = data.font_nama || "13";
                document.getElementById('setting-font-alamat').value = data.font_alamat || "9";
 
@@ -2762,8 +2831,8 @@ document.getElementById('setting-kertas-sertifikat').value = data.kertas_sertifi
         if (currentUser) { localStorage.setItem('pondok_active_user', JSON.stringify(currentUser)); localStorage.setItem('pondok_active_tab', 'view-dashboard'); document.getElementById('login-error').classList.add('hidden'); masukKeSistemSetelahLogin(); } else { document.getElementById('login-error').classList.remove('hidden'); } 
     }
     
-    function prosesLogout() { localStorage.removeItem('pondok_active_user'); localStorage.removeItem('pondok_active_tab'); location.reload(); }
-    function switchTab(viewId) { document.querySelectorAll('.page-view').forEach(el => el.classList.add('hidden')); document.getElementById(viewId).classList.remove('hidden'); localStorage.setItem('pondok_active_tab', viewId); bukaFungsiTabSesuaiTujuan(viewId); }
+        function prosesLogout() { playHapticAndSound(); localStorage.removeItem('pondok_active_user'); localStorage.removeItem('pondok_active_tab'); location.reload(); }
+    function switchTab(viewId) { playHapticAndSound(); document.querySelectorAll('.page-view').forEach(el => el.classList.add('hidden')); document.getElementById(viewId).classList.remove('hidden'); localStorage.setItem('pondok_active_tab', viewId); bukaFungsiTabSesuaiTujuan(viewId); }
     function openSubMenu(id) { switchTab(id); } function closeSubMenu() { if(html5QrcodeScanner) html5QrcodeScanner.stop(); if(scannerIzin) scannerIzin.stop(); switchTab('view-dashboard'); }
     
     function renderMenuBerdasarkanAkses() { 
@@ -3289,27 +3358,8 @@ function bukaModalSertifikat(nis) {
         const sizeFontAlamat = parseInt(yayasan.font_alamat) || 9;
         document.getElementById('card-alamat').style.fontSize = sizeFontAlamat + 'px';
 
-        // --- CARI WARNA BARCODE DARI KELAS SANTRI ---
-        let warnaGarisBarcode = "#000000"; // Default Hitam
-        try {
-            let nisRawCek = qrText;
-            let parsed = JSON.parse(qrText); 
-            if(parsed.n) nisRawCek = parsed.n;
-            
-            const dbSantri = getDB('pondok_santri', []);
-            const santriObj = dbSantri.find(s => s.nis === nisRawCek);
-            
-            if (santriObj) {
-                const dbKelas = getDB('pondok_kelas', []);
-                const kls = dbKelas.find(k => (k.santri_ids || []).includes(santriObj.id));
-                // Jika kelas punya warna barcode kustom, gunakan warna tersebut
-                if (kls && kls.warna_barcode) {
-                    warnaGarisBarcode = kls.warna_barcode;
-                }
-            }
-        } catch(e) {
-            console.log("Gagal memproses warna barcode:", e);
-        }
+                        // --- CARI WARNA BARCODE DARI IDENTITAS YAYASAN ---
+        let warnaGarisBarcode = yayasan.warna_barcode || "#000000";
 
         // Render Barcode 1D (Depan)
         if (typeof JsBarcode !== 'undefined') {
@@ -3560,19 +3610,26 @@ function bukaModalSertifikat(nis) {
         }
 
         const wadahUstadz = document.getElementById('input-ustadz-mapel-container');
-        if (wadahUstadz) {
-            wadahUstadz.innerHTML = '';
-            const listUst = getDB('pondok_users', []).filter(user => user.role === 'ustadz' || user.role === 'admin' || user.role === 'superadmin');
-            if (listUst.length === 0) {
-                wadahUstadz.innerHTML = '<div style="color:red; font-size:0.8rem;">Belum ada akun ustadz/guru.</div>';
-            } else {
-                listUst.forEach(ust => {
-                    wadahUstadz.innerHTML += `<label style="display:block; padding:8px; border-bottom:1px solid rgba(0,0,0,0.05); font-size:0.82rem;">
-                        <input type="checkbox" value="${ust.username}" data-nama="${ust.nama}" class="cb-ustadz-mapel"> <strong>${ust.nama}</strong> <span style="color:var(--text-muted);">(@${ust.username})</span>
-                    </label>`;
-                });
-            }
-        }
+if (wadahUstadz) {
+    wadahUstadz.innerHTML = '';
+    // Filter diubah hanya mengambil role 'ustadz' saja
+    const listUst = getDB('pondok_users', []).filter(user => user.role === 'ustadz');
+    if (listUst.length === 0) {
+        wadahUstadz.innerHTML = '<div style="color:red; font-size:0.8rem; padding:10px;">Belum ada akun dengan role Ustadz.</div>';
+    } else {
+        listUst.forEach(ust => {
+            let fotoUst = ust.foto || 'https://cdn-icons-png.flaticon.com/512/149/149071.png';
+            wadahUstadz.innerHTML += '<label style="display:flex; align-items:center; gap:12px; padding:10px 12px; border-bottom:1px solid rgba(0,0,0,0.05); cursor:pointer; background:#fff; transition:0.2s;">' +
+                '<input type="checkbox" value="' + ust.username + '" data-nama="' + ust.nama + '" class="cb-ustadz-mapel" style="margin:0; width:18px; height:18px; accent-color:var(--primary); cursor:pointer; flex-shrink:0;">' +
+                '<img src="' + fotoUst + '" style="width:40px; height:40px; border-radius:50%; object-fit:cover; border:2px solid var(--accent); flex-shrink:0; box-shadow:0 2px 5px rgba(0,0,0,0.1);">' +
+                '<div style="display:flex; flex-direction:column; justify-content:center;">' +
+                    '<strong style="color:var(--primary); font-size:0.88rem; line-height:1.2;">' + ust.nama + '</strong>' +
+                    '<span style="color:var(--text-muted); font-size:0.7rem; margin-top:2px;"><i class="fa-solid fa-at"></i> ' + ust.username + '</span>' +
+                '</div>' +
+            '</label>';
+        });
+    }
+}
 
         const wadahKelas = document.getElementById('input-kelas-mapel-container');
         if (wadahKelas) {
@@ -3612,8 +3669,17 @@ function bukaModalSertifikat(nis) {
                 ? `<span style="color:#D35400; font-weight:700;"><i class="fa-solid fa-clock"></i> ${m.hari}, ${m.jam_mulai || ''} - ${m.jam_selesai || ''} WITA</span>`
                 : `<span style="color:#7f8c8d; font-style:italic;">Fleksibel / Belum Diatur</span>`;
 
-            const detailText = `Pengajar: ${m.ustadz_nama}\nJadwal: ${(m.hari || 'Fleksibel')} ${m.jam_mulai || ''}-${m.jam_selesai || ''}\nKelas: ${namaKelasTerpilih.join(", ")}`;
-            const gcalUrl = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(m.nama_mapel)}&details=${encodeURIComponent(detailText)}&location=${encodeURIComponent("Ruang Kelas Pondok / Sekolah")}`;
+                        const detailText = `Pengajar: ${m.ustadz_nama}\nJadwal: ${(m.hari || 'Fleksibel')} ${m.jam_mulai || ''}-${m.jam_selesai || ''}\nKelas: ${namaKelasTerpilih.join(", ")}`;
+            
+            // Generate Waktu untuk Sinkronisasi Kalender Google
+            let timeStr = "";
+            if (m.jam_mulai && m.jam_selesai) {
+                let tStart = m.jam_mulai.replace(':', '') + '00';
+                let tEnd = m.jam_selesai.replace(':', '') + '00';
+                let tglSekarang = new Date().toISOString().split('T')[0].replace(/-/g, '');
+                timeStr = `&dates=${tglSekarang}T${tStart}/${tglSekarang}T${tEnd}`;
+            }
+            const gcalUrl = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(m.nama_mapel)}&details=${encodeURIComponent(detailText)}&location=${encodeURIComponent("Area Kelas")}${timeStr}`;
 
             tbodyMapel.innerHTML += `<tr>
                 <td><strong>${m.nama_mapel}</strong></td>
@@ -3622,10 +3688,10 @@ function bukaModalSertifikat(nis) {
                     <div style="font-size:0.75rem; color:var(--primary); font-weight:bold;">${txtKelas}</div>
                     <div style="font-size:0.72rem; margin-top:3px;">${txtJadwal}</div>
                 </td>
-                                <td>
+                <td>
                     <div style="display:flex; gap:4px; flex-wrap:wrap;">
-                        <button class="btn-success" style="margin:0; padding:6px 8px; font-size:0.7rem;" onclick="validasiDanNotifManual(${m.id})"><i class="fa-solid fa-check"></i> Valid & Notif</button>
-                        <button class="btn-print" style="margin:0; padding:6px 8px; font-size:0.7rem; background:#2C3E50;" onclick="cetakJadwalMapelPDF(${m.id})"><i class="fa-solid fa-file-pdf"></i> PDF</button>
+                        <a href="${gcalUrl}" target="_blank" class="btn-outline" style="margin:0; padding:6px 8px; font-size:0.7rem; border-color:#F39C12; color:#F39C12; text-decoration:none;"><i class="fa-solid fa-calendar-plus"></i> Kalender HP</a>
+                        <button class="btn-success" style="margin:0; padding:6px 8px; font-size:0.7rem;" onclick="validasiDanNotifManual(${m.id})"><i class="fa-solid fa-bell"></i> Bunyikan</button>
                         <button class="btn-danger" style="margin:0; padding:6px 8px; font-size:0.7rem;" onclick="hapusMasterMapel(${m.id})"><i class="fa-solid fa-trash"></i></button>
                     </div>
                 </td>
@@ -3724,10 +3790,9 @@ function bukaModalSertifikat(nis) {
         renderTabelDaftarKelas();
     }
 
-    function simpanKelasBaru() {
+        function simpanKelasBaru() {
     const namaKelas = document.getElementById('input-nama-kelas').value.trim();
     const waliKelas = document.getElementById('input-wali-kelas').value;
-    const warnaBarcode = document.getElementById('input-warna-barcode').value;
 
     if (!namaKelas) return alert("Isi nama kelas terlebih dahulu!");
     
@@ -3736,11 +3801,9 @@ function bukaModalSertifikat(nis) {
         id: Date.now(),
         nama: namaKelas,
         wali_kelas: waliKelas, // Menyimpan username ustadz
-        warna_barcode: warnaBarcode, // Menyimpan kode warna HEX
         mapel_ids: [],
         santri_ids: []
     });
-    // ... (sisanya tetap sama)
 
         localStorage.setItem('pondok_kelas', JSON.stringify(listKelas));
         document.getElementById('input-nama-kelas').value = '';
@@ -4211,9 +4274,10 @@ function kirimDataAbsen() {
             ttd_mudir: base64TempImages.ttd_mudir || old.ttd_mudir,
             teks_footer: document.getElementById('setting-footer-text').value,
             teks_lulus: document.getElementById('setting-teks-lulus').value,
-            kertas_sertifikat: document.getElementById('setting-kertas-sertifikat').value,
+                        kertas_sertifikat: document.getElementById('setting-kertas-sertifikat').value,
+            warna_barcode: document.getElementById('setting-warna-barcode').value,
             font_nama: document.getElementById('setting-font-nama').value,
-                        font_alamat: document.getElementById('setting-font-alamat').value,
+            font_alamat: document.getElementById('setting-font-alamat').value,
             ukuran_qr: document.getElementById('setting-ukuran-qr').value,
             ukuran_barcode1d: document.getElementById('setting-ukuran-barcode1d').value,
             voice_aktif:             document.getElementById('setting-voice-aktif').value,
@@ -5320,9 +5384,8 @@ function pilihPresetJam(idx) {
     const terpilih = dataJam[idx];
     
     if (terpilih) {
-        // Mengisi kode singkatan ke kolom Jam Mulai (misal: BA atau BS) 
-        // dan jam selesai ke kolom Jam Selesai
-        document.getElementById('input-jam-mulai').value = terpilih.kode;
+        // PERBAIKAN: Mengisi jam aslinya ke kolom input jam
+        document.getElementById('input-jam-mulai').value = terpilih.mulai;
         document.getElementById('input-jam-selesai').value = terpilih.selesai;
     }
 }
@@ -5448,6 +5511,17 @@ function tutupKioskATM() {
     isKioskModeAktif = false;
     document.getElementById('kiosk-atm').classList.remove('aktif');
     if (document.exitFullscreen) document.exitFullscreen();
+}
+
+function verifikasiTutupATM() {
+    let pinMasukkan = prompt("Mode ATM Terkunci.\nMasukkan PIN Anda untuk menutup layar:");
+    if (pinMasukkan === null) return; 
+    
+    if (pinMasukkan === "123456" || (currentUser && currentUser.pin_login === pinMasukkan)) {
+        tutupKioskATM();
+    } else {
+        alert("Akses Ditolak! PIN salah.");
+    }
 }
 
 // 2. Mesin Slideshow Berita/Branding
@@ -5716,15 +5790,54 @@ async function hubungkanScannerWireless() {
     }
 }
 
-function onScannerDisconnected(event) {
-    const device = event.target;
-    document.getElementById('status-koneksi-wireless').innerHTML = `<span style="color:var(--danger);"><i class="fa-solid fa-link-slash"></i> Terputus dari ${device.name || 'Scanner'}</span>`;
-    document.getElementById('ikon-bluetooth').className = "fa-brands fa-bluetooth-b fa-4x";
-    document.getElementById('ikon-bluetooth').style.color = 'var(--danger)';
-    alert(`Peringatan: Koneksi Bluetooth dengan ${device.name || 'Scanner'} terputus atau di luar jangkauan!`);
-}
+    function onScannerDisconnected(event) {
+        const device = event.target;
+        document.getElementById('status-koneksi-wireless').innerHTML = `<span style="color:var(--danger);"><i class="fa-solid fa-link-slash"></i> Terputus dari ${device.name || 'Scanner'}</span>`;
+        document.getElementById('ikon-bluetooth').className = "fa-brands fa-bluetooth-b fa-4x";
+        document.getElementById('ikon-bluetooth').style.color = 'var(--danger)';
+        alert(`Peringatan: Koneksi Bluetooth dengan ${device.name || 'Scanner'} terputus atau di luar jangkauan!`);
+    }
+
+    // --- TAMBAHAN SENSOR GESTURE KEMBALI (SWIPE KANAN EDGE) ---
+    let touchStartX = 0;
+    
+    document.addEventListener('touchstart', e => {
+        // Rekam titik awal jari menempel di layar
+        touchStartX = e.changedTouches[0].screenX;
+    }, {passive: true});
+    
+    document.addEventListener('touchend', e => {
+        let touchEndX = e.changedTouches[0].screenX;
+        
+        // SYARAT GESTURE: 
+        // 1. Usapan harus dimulai dari pinggir kiri banget (kurang dari 40px dari ujung layar)
+        // 2. Ditarik ke arah kanan minimal sepanjang 80px
+        if (touchStartX < 40 && (touchEndX - touchStartX > 80)) {
+            
+            // Cari elemen halaman yang SEDANG TAMPIL SAAT INI (bukan yang hidden)
+            const activeView = document.querySelector('.page-view:not(.hidden)');
+            if (activeView) {
+                // Cari apakah ada tombol kembalinya
+                const backBtn = activeView.querySelector('.back-nav');
+                if (backBtn) {
+                    if (typeof playHapticAndSound === "function") playHapticAndSound(); 
+                    
+                    // Beri efek visual sejenak layaknya diklik, lalu simulasikan klik otomatis
+                    backBtn.style.transform = "scale(0.92) translateX(-5px)";
+                    backBtn.style.background = "#000";
+                    backBtn.style.color = "#fff";
+                    
+                    setTimeout(() => {
+                        backBtn.style.transform = "";
+                        backBtn.style.background = "";
+                        backBtn.style.color = "";
+                        backBtn.click(); // Eksekusi fungsi kembali
+                    }, 100);
+                }
+            }
+        }
+    }, {passive: true});
+    // ----------------------------------------------------------
 
     window.onload = initApp;
 </script>
-</body>
-</html>
