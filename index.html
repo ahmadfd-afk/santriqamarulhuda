@@ -738,7 +738,7 @@
         <label style="font-size:0.8rem; display:flex; align-items:center; gap:6px;"><input type="checkbox" value="Minggu" class="cb-hari-mapel"> Minggu</label>
     </div>
 
-        <!-- PERBAIKAN: Dropdown Pilihan Cepat dari Logika Jam Singkatan -->
+            <!-- PERBAIKAN: Dropdown Pilihan Cepat dari Logika Jam Singkatan -->
     <div style="margin-top:12px;">
         <label style="color:var(--warning); margin-bottom:4px;">
             <i class="fa-solid fa-clock"></i> Pilih Preset Jam Singkatan (BA, BS, BM, dll):
@@ -749,11 +749,9 @@
     </div>
 
     <div style="display:flex; gap:8px;">
-        <div style="flex:1;"><label>Jam Mulai (Opsional)</label><input type="text" id="input-jam-mulai" placeholder="Cth: BA / 15:30"></div>
-        <div style="flex:1;"><label>Jam Selesai (Opsional)</label><input type="text" id="input-jam-selesai" placeholder="Cth: 16:30"></div>
+        <div style="flex:1;"><label>Jam Mulai (Opsional)</label><input type="time" id="input-jam-mulai" style="font-weight:bold;"></div>
+        <div style="flex:1;"><label>Jam Selesai (Opsional)</label><input type="time" id="input-jam-selesai" style="font-weight:bold;"></div>
     </div>
-</div>
-
 
 <!-- PERBAIKAN: Dropdown Ustadz -->
 <label style="color:var(--primary); margin-top:14px;"><i class="fa-solid fa-users"></i> Pilih Ustadz / Guru Pengajar (Bisa Lebih dari 1):</label>
@@ -811,7 +809,21 @@
 
                     <p style="font-size:0.75rem; color:var(--text-muted); margin-bottom:10px;">Buat kelas baru terlebih dahulu, lalu Anda dapat mengaturnya di pembuatan mata pelajaran di atas atau klik Edit Plotting di tabel bawah.</p>
                     <label>Nama Kelas / Forum</label><input type="text" id="input-nama-kelas" placeholder="Cth: Kelas 1-A / Takhassus">
-                    <button class="btn-primary" onclick="simpanKelasBaru()">BUAT & SIMPAN KELAS</button>
+
+<label style="color: var(--primary); margin-top: 10px;"><i class="fa-solid fa-user-tie"></i> Pilih Wali Kelas</label>
+<select id="input-wali-kelas" style="margin-bottom: 10px;">
+    <!-- Opsi akan diisi otomatis oleh JS renderTabelDaftarKelas -->
+</select>
+
+<label style="color: var(--primary);"><i class="fa-solid fa-palette"></i> Warna Barcode Kelas (Identitas)</label>
+<select id="input-warna-barcode" style="margin-bottom: 14px;">
+    <option value="#000000">Hitam (Default - Paling Aman)</option>
+    <option value="#04432A">Hijau Tua (Gelap)</option>
+    <option value="#8B0000">Merah Tua (Maroon)</option>
+    <option value="#00008B">Biru Tua (Navy)</option>
+</select>
+
+<button class="btn-primary" onclick="simpanKelasBaru()">BUAT & SIMPAN KELAS</button>
                 </div>
 
                 <div class="card">
@@ -2942,7 +2954,7 @@ document.getElementById('setting-kertas-sertifikat').value = data.kertas_sertifi
         alert(`Data "${target.nama}" berhasil dihapus.`);
     }
 
-    function renderTabelSantri() { 
+        function renderTabelSantri() { 
         let databaseSantri = getDB('pondok_santri', []);
         const aktifList = databaseSantri.filter(s => !s.is_alumni);
         const alumniList = databaseSantri.filter(s => s.is_alumni === true);
@@ -2961,6 +2973,9 @@ document.getElementById('setting-kertas-sertifikat').value = data.kertas_sertifi
         if(dataDitampilkan.length === 0) { 
             return elemenTbody.innerHTML = `<tr><td colspan="3" align="center">Belum ada data ${modeTampilanSantri === 'alumni' ? 'alumni' : 'santri aktif'}.</td></tr>`; 
         } 
+
+        // Panggil database kelas untuk mengecek siapa wali kelasnya
+        const dbKelas = getDB('pondok_kelas', []);
 
         dataDitampilkan.forEach(s => {
             if (modeTampilanSantri === 'alumni') {
@@ -2984,15 +2999,31 @@ document.getElementById('setting-kertas-sertifikat').value = data.kertas_sertifi
                     </td>
                 </tr>`;
             } else {
+                // Cari kelas dari santri ini
+                const kelasSantri = dbKelas.find(k => (k.santri_ids || []).includes(s.id));
+                
+                // Cek apakah user yang sedang login adalah wali kelas dari kelas santri ini
+                const isWaliKelas = kelasSantri && kelasSantri.wali_kelas === currentUser.username;
+                
+                // Tentukan hak akses (Bisa edit jika Superadmin, Admin, atau Wali Kelasnya sendiri)
+                const punyaAksesEdit = currentUser.role === 'superadmin' || currentUser.role === 'admin' || isWaliKelas;
+
+                // Tombol default yang bisa dilihat siapa saja
+                let htmlTombolAksi = `<button class="btn-print" style="margin:0; padding:6px; font-size:0.7rem;" onclick="prosesCetakIDCard('${s.nis}', 'santri')">Kartu</button>
+                                      <button class="btn-outline" style="margin:0; padding:6px; font-size:0.7rem; border-color:var(--info); color:var(--info);" onclick="bukaModalSertifikat('${s.nis}')">Sertifikat</button>`;
+
+                // Hanya render tombol Edit & Hapus jika punya akses
+                if (punyaAksesEdit) {
+                    htmlTombolAksi += `<button class="btn-warning" style="margin:0; padding:6px; font-size:0.7rem;" onclick="editSantriMode(${s.id})">Edit</button>
+                                       <button class="btn-danger" style="margin:0; padding:6px; font-size:0.7rem;" onclick="hapusSantri(${s.id})">Hapus</button>`;
+                }
+
                 elemenTbody.innerHTML += `<tr>
                     <td><strong>${s.nis}</strong><br><span style="font-size:0.65rem; color:var(--text-muted);">${s.kamar}</span></td>
                     <td>${s.nama}</td>
                     <td>
                         <div style="display:flex; gap:4px; flex-wrap:wrap; justify-content:flex-start;">
-                            <button class="btn-print" style="margin:0; padding:6px; font-size:0.7rem;" onclick="prosesCetakIDCard('${s.nis}', 'santri')">Kartu</button>
-                            <button class="btn-outline" style="margin:0; padding:6px; font-size:0.7rem; border-color:var(--info); color:var(--info);" onclick="bukaModalSertifikat('${s.nis}')">Sertifikat</button>
-                            <button class="btn-warning" style="margin:0; padding:6px; font-size:0.7rem;" onclick="editSantriMode(${s.id})">Edit</button>
-                            <button class="btn-danger" style="margin:0; padding:6px; font-size:0.7rem;" onclick="hapusSantri(${s.id})">Hapus</button>
+                            ${htmlTombolAksi}
                         </div>
                     </td>
                 </tr>`;
@@ -3230,7 +3261,7 @@ function bukaModalSertifikat(nis) {
         document.getElementById('id-card-modal').classList.remove('hidden'); 
     }
 
-        function terapkanKustomisasiLayoutIDCard(teksFooter, qrText) { 
+            function terapkanKustomisasiLayoutIDCard(teksFooter, qrText) { 
         const wadahQR = document.getElementById("card-qr"); 
         wadahQR.innerHTML = ''; 
         
@@ -3242,7 +3273,7 @@ function bukaModalSertifikat(nis) {
             footerEl.classList.add('hidden'); 
         } 
         
-               // Ambil ukuran dari pengaturan (default 60 jika kosong)
+        // Ambil ukuran dari pengaturan (default 60 jika kosong)
         const yayasan = getDB('pondok_yayasan', {});
         const sizeQR = parseInt(yayasan.ukuran_qr) || 60;
         const sizeFont = parseInt(yayasan.font_nama) || 13;
@@ -3256,7 +3287,29 @@ function bukaModalSertifikat(nis) {
         const sizeFontAlamat = parseInt(yayasan.font_alamat) || 9;
         document.getElementById('card-alamat').style.fontSize = sizeFontAlamat + 'px';
 
-                // Render Barcode 1D (Depan)
+        // --- CARI WARNA BARCODE DARI KELAS SANTRI ---
+        let warnaGarisBarcode = "#000000"; // Default Hitam
+        try {
+            let nisRawCek = qrText;
+            let parsed = JSON.parse(qrText); 
+            if(parsed.n) nisRawCek = parsed.n;
+            
+            const dbSantri = getDB('pondok_santri', []);
+            const santriObj = dbSantri.find(s => s.nis === nisRawCek);
+            
+            if (santriObj) {
+                const dbKelas = getDB('pondok_kelas', []);
+                const kls = dbKelas.find(k => (k.santri_ids || []).includes(santriObj.id));
+                // Jika kelas punya warna barcode kustom, gunakan warna tersebut
+                if (kls && kls.warna_barcode) {
+                    warnaGarisBarcode = kls.warna_barcode;
+                }
+            }
+        } catch(e) {
+            console.log("Gagal memproses warna barcode:", e);
+        }
+
+        // Render Barcode 1D (Depan)
         if (typeof JsBarcode !== 'undefined') {
             try {
                 let nisRaw = qrText;
@@ -3267,7 +3320,8 @@ function bukaModalSertifikat(nis) {
                     height: size1D,
                     displayValue: false,
                     margin: 10, /* White space ditambah */
-                    background: "transparent"
+                    background: "transparent",
+                    lineColor: warnaGarisBarcode // <-- Warna diterapkan di sini
                 });
             } catch(err) { console.log("Barcode error:", err); }
         }
@@ -3278,13 +3332,12 @@ function bukaModalSertifikat(nis) {
                 text: qrText, 
                 width: sizeQR, 
                 height: sizeQR, 
-                colorDark: "#000000", 
+                colorDark: warnaGarisBarcode, // <-- Warna QR diterapkan di sini
                 colorLight: "#ffffff", 
                 correctLevel: QRCode.CorrectLevel.L 
             }); 
         } 
     }
-
     function getStatistikIzin(nisSantri) { const histDB = getDB('pondok_history_izin', []); const riwayatSantri = histDB.filter(x => x.nis === nisSantri); let totalHari = 0; riwayatSantri.forEach(item => { totalHari += (parseInt(item.durasi_hari) || 1); }); return { total_kali: riwayatSantri.length, total_hari: totalHari }; }
 
     function startScannerIzin(mode = 'keluar') {
@@ -3670,16 +3723,23 @@ function bukaModalSertifikat(nis) {
     }
 
     function simpanKelasBaru() {
-        const namaKelas = document.getElementById('input-nama-kelas').value.trim();
-        if (!namaKelas) return alert("Isi nama kelas terlebih dahulu!");
-        
-        let listKelas = getDB('pondok_kelas', []);
-        listKelas.push({
-            id: Date.now(),
-            nama: namaKelas,
-            mapel_ids: [],
-            santri_ids: []
-        });
+    const namaKelas = document.getElementById('input-nama-kelas').value.trim();
+    const waliKelas = document.getElementById('input-wali-kelas').value;
+    const warnaBarcode = document.getElementById('input-warna-barcode').value;
+
+    if (!namaKelas) return alert("Isi nama kelas terlebih dahulu!");
+    
+    let listKelas = getDB('pondok_kelas', []);
+    listKelas.push({
+        id: Date.now(),
+        nama: namaKelas,
+        wali_kelas: waliKelas, // Menyimpan username ustadz
+        warna_barcode: warnaBarcode, // Menyimpan kode warna HEX
+        mapel_ids: [],
+        santri_ids: []
+    });
+    // ... (sisanya tetap sama)
+
         localStorage.setItem('pondok_kelas', JSON.stringify(listKelas));
         document.getElementById('input-nama-kelas').value = '';
         alert(`Kelas "${namaKelas}" berhasil dibuat!\nSilakan atur mata pelajaran yang dipelajarinya melalui form Master Mata Pelajaran di atas.`);
@@ -3688,29 +3748,47 @@ function bukaModalSertifikat(nis) {
     }
 
     function renderTabelDaftarKelas() {
-        const elemenTbodyKelas = document.getElementById('tabel-kelas-body');
-        if (!elemenTbodyKelas) return;
-        elemenTbodyKelas.innerHTML = '';
-        const databaseKelas = getDB('pondok_kelas', []);
-        const dbSantri = getDB('pondok_santri', []);
-        if (databaseKelas.length === 0) return elemenTbodyKelas.innerHTML = '<tr><td colspan="4" align="center">Belum ada kelas.</td></tr>';
-        
-        databaseKelas.forEach(kls => {
-            const santriAktifDiKelas = dbSantri.filter(s => !s.is_alumni && (kls.santri_ids || []).includes(s.id));
-            elemenTbodyKelas.innerHTML += `<tr>
-                <td><strong>${kls.nama}</strong></td>
-                <td>${(kls.mapel_ids || []).length} Mapel</td>
-                <td>${santriAktifDiKelas.length} Santri</td>
-                <td>
-                    <div style="display:flex; gap:6px; flex-wrap:wrap;">
-                        <button class="btn-print" style="margin:0; padding:6px 10px; font-size:0.75rem;" onclick="cetakJadwalPerKelas(${kls.id})"><i class="fa-solid fa-file-pdf"></i> Jadwal</button>
-                        <button class="btn-warning" style="margin:0; padding:6px 10px; font-size:0.75rem;" onclick="bukaModalPlottingKelas(${kls.id})"><i class="fa-solid fa-sliders"></i> Edit</button>
-                        <button class="btn-danger" style="margin:0; padding:6px 10px; font-size:0.75rem;" onclick="hapusKelasPermanen(${kls.id})"><i class="fa-solid fa-trash"></i></button>
-                    </div>
-                </td>
-            </tr>`;
+    // [TAMBAHAN] Isi dropdown Wali Kelas
+    const dropWali = document.getElementById('input-wali-kelas');
+    if (dropWali) {
+        dropWali.innerHTML = '<option value="">-- Tanpa Wali Kelas --</option>';
+        getDB('pondok_users', []).forEach(u => {
+            if (u.role === 'ustadz' || u.role === 'admin' || u.role === 'superadmin') {
+                dropWali.innerHTML += `<option value="${u.username}">${u.nama}</option>`;
+            }
         });
     }
+
+    const elemenTbodyKelas = document.getElementById('tabel-kelas-body');
+    if (!elemenTbodyKelas) return;
+    elemenTbodyKelas.innerHTML = '';
+    const databaseKelas = getDB('pondok_kelas', []);
+    const dbSantri = getDB('pondok_santri', []);
+    if (databaseKelas.length === 0) return elemenTbodyKelas.innerHTML = '<tr><td colspan="4" align="center">Belum ada kelas.</td></tr>';
+    
+    databaseKelas.forEach(kls => {
+        const santriAktifDiKelas = dbSantri.filter(s => !s.is_alumni && (kls.santri_ids || []).includes(s.id));
+        // Cari nama wali kelas berdasarkan username yang tersimpan
+        const objWali = getDB('pondok_users', []).find(u => u.username === kls.wali_kelas);
+        const namaWali = objWali ? objWali.nama : 'Belum Atur';
+
+        elemenTbodyKelas.innerHTML += `<tr>
+            <td>
+                <strong>${kls.nama}</strong><br>
+                <span style="font-size:0.7rem; color:var(--text-muted);">Wali: ${namaWali}</span>
+            </td>
+            <td>${(kls.mapel_ids || []).length} Mapel</td>
+            <td>${santriAktifDiKelas.length} Santri</td>
+            <td>
+                <div style="display:flex; gap:6px; flex-wrap:wrap;">
+                    <button class="btn-print" style="margin:0; padding:6px 10px; font-size:0.75rem;" onclick="cetakJadwalPerKelas(${kls.id})"><i class="fa-solid fa-file-pdf"></i> Jadwal</button>
+                    <button class="btn-warning" style="margin:0; padding:6px 10px; font-size:0.75rem;" onclick="bukaModalPlottingKelas(${kls.id})"><i class="fa-solid fa-sliders"></i> Edit</button>
+                    <button class="btn-danger" style="margin:0; padding:6px 10px; font-size:0.75rem;" onclick="hapusKelasPermanen(${kls.id})"><i class="fa-solid fa-trash"></i></button>
+                </div>
+            </td>
+        </tr>`;
+    });
+}
 
     function bukaModalPlottingKelas(idKelas) {
         const kls = getDB('pondok_kelas', []).find(k => k.id == idKelas);
@@ -4518,6 +4596,7 @@ async function sinkronisasiKeCloud() {
             absensi: gabungDataArray(getDB('pondok_absensi', []), dataCloud.absensi, 'id_sesi'),
             kelas: gabungDataArray(getDB('pondok_kelas', []), dataCloud.kelas, 'id'),
             mapel: gabungDataArray(getDB('pondok_master_mapel', []), dataCloud.mapel, 'id'),
+            bank_mapel: dataCloud.bank_mapel ? Array.from(new Set([...getDB('pondok_bank_mapel', []), ...dataCloud.bank_mapel])) : getDB('pondok_bank_mapel', []),
             evaluasi: gabungDataArray(getDB('pondok_evaluasi', []), dataCloud.evaluasi, 'nis'),
             tagihan: gabungDataArray(getDB('pondok_tagihan_denda', []), dataCloud.tagihan, 'id_tagihan'),
             tabungan: gabungDataArray(getDB('pondok_tabungan', []), dataCloud.tabungan, 'id'),
@@ -4609,6 +4688,7 @@ async function tarikDataDariSupabase() {
             if (data.absensi) localStorage.setItem('pondok_absensi', JSON.stringify(data.absensi));
             if (data.kelas) localStorage.setItem('pondok_kelas', JSON.stringify(data.kelas));
             if (data.mapel) localStorage.setItem('pondok_master_mapel', JSON.stringify(data.mapel));
+            if (data.bank_mapel) localStorage.setItem('pondok_bank_mapel', JSON.stringify(data.bank_mapel));
             if (data.evaluasi) localStorage.setItem('pondok_evaluasi', JSON.stringify(data.evaluasi));
             if (data.tagihan) localStorage.setItem('pondok_tagihan_denda', JSON.stringify(data.tagihan));
             if (data.tabungan) localStorage.setItem('pondok_tabungan', JSON.stringify(data.tabungan)); // <-- DITAMBAHKAN
@@ -5238,9 +5318,8 @@ function pilihPresetJam(idx) {
     const terpilih = dataJam[idx];
     
     if (terpilih) {
-        // Mengisi kode singkatan ke kolom Jam Mulai (misal: BA atau BS) 
-        // dan jam selesai ke kolom Jam Selesai
-        document.getElementById('input-jam-mulai').value = terpilih.kode;
+        // PERBAIKAN: Memasukkan jam aslinya ke input time, bukan kodenya
+        document.getElementById('input-jam-mulai').value = terpilih.mulai;
         document.getElementById('input-jam-selesai').value = terpilih.selesai;
     }
 }
