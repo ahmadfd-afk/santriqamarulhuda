@@ -4470,32 +4470,69 @@ function kirimDataAbsen() {
         }
     }
 
-        async function sinkronisasiKeCloud() {
+        // 1. FUNGSI BANTUAN UNTUK MENGGABUNGKAN DATA BERDASARKAN ID
+function gabungDataArray(arrayLokal, arrayCloud, primaryKey) {
+    if (!arrayCloud || !Array.isArray(arrayCloud)) return arrayLokal || [];
+    if (!arrayLokal || !Array.isArray(arrayLokal)) return arrayCloud || [];
+    
+    let mapData = new Map();
+    
+    // Masukkan data dari Cloud dulu
+    arrayCloud.forEach(item => {
+        if (item[primaryKey]) mapData.set(item[primaryKey], item);
+    });
+    
+    // Timpa/Tambahkan dengan data Lokal (Lokal di HP pengirim dianggap yang paling update)
+    arrayLokal.forEach(item => {
+        if (item[primaryKey]) mapData.set(item[primaryKey], item);
+    });
+    
+    return Array.from(mapData.values());
+}
+
+// 2. FUNGSI SINKRONISASI BARU
+async function sinkronisasiKeCloud() {
     if (!supabaseConfig.url || !supabaseConfig.key) {
         return alert("Konfigurasi URL & Key Supabase belum diisi di menu Database!");
     }
     const btn = document.getElementById('btn-sync-cloud');
-    if (btn) btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> MENGIRIM KE CLOUD...';
+    if (btn) btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> SINKRONISASI & MENGGABUNGKAN...';
 
     try {
-        // PAYLOAD FULL BACKUP (DIPERBARUI DENGAN DATA TABUNGAN)
-        const payload = {
-            santri: getDB('pondok_santri', []),
-            absensi: getDB('pondok_absensi', []),
-            kelas: getDB('pondok_kelas', []),
-            mapel: getDB('pondok_master_mapel', []),
-            evaluasi: getDB('pondok_evaluasi', []),
-            tagihan: getDB('pondok_tagihan_denda', []),
-            tabungan: getDB('pondok_tabungan', []), // <-- DITAMBAHKAN AGAR BISA DIBACA WALI SANTRI
-            izin_aktif: getDB('pondok_izin_aktif', []),
-            history_izin: getDB('pondok_history_izin', []),
+        // LANGKAH A: Tarik data terbaru dari Cloud
+        let dataCloud = {};
+        const resCloud = await fetch(`${supabaseConfig.url}/rest/v1/backup_lms?id=eq.1&select=data_json`, {
+            headers: {
+                'apikey': supabaseConfig.key,
+                'Authorization': `Bearer ${supabaseConfig.key}`
+            }
+        });
+        const rows = await resCloud.json();
+        if (rows && rows.length > 0 && rows[0].data_json) {
+            dataCloud = rows[0].data_json;
+        }
+
+        // LANGKAH B: Gabungkan data Lokal dengan data Cloud
+        const payloadMerged = {
+            santri: gabungDataArray(getDB('pondok_santri', []), dataCloud.santri, 'id'),
+            absensi: gabungDataArray(getDB('pondok_absensi', []), dataCloud.absensi, 'id_sesi'),
+            kelas: gabungDataArray(getDB('pondok_kelas', []), dataCloud.kelas, 'id'),
+            mapel: gabungDataArray(getDB('pondok_master_mapel', []), dataCloud.mapel, 'id'),
+            evaluasi: gabungDataArray(getDB('pondok_evaluasi', []), dataCloud.evaluasi, 'nis'),
+            tagihan: gabungDataArray(getDB('pondok_tagihan_denda', []), dataCloud.tagihan, 'id_tagihan'),
+            tabungan: gabungDataArray(getDB('pondok_tabungan', []), dataCloud.tabungan, 'id'),
+            izin_aktif: gabungDataArray(getDB('pondok_izin_aktif', []), dataCloud.izin_aktif, 'id'),
+            history_izin: gabungDataArray(getDB('pondok_history_izin', []), dataCloud.history_izin, 'id'),
+            users: gabungDataArray(getDB('pondok_users', []), dataCloud.users, 'username'),
+            
+            // Pengaturan yayasan dipertahankan menggunakan data admin yang sedang menekan tombol
             yayasan: getDB('pondok_yayasan', {}),
-            users: getDB('pondok_users', []),
             akses: getDB('pondok_akses', {}),
             gps: getDB('pondok_gps', {}),
             setting_keuangan: getDB('pondok_setting_keuangan', {})
         };
 
+        // LANGKAH C: Kirim data yang sudah digabung kembali ke Cloud
         const response = await fetch(`${supabaseConfig.url}/rest/v1/backup_lms?id=eq.1`, {
             method: 'PATCH',
             headers: {
@@ -4504,12 +4541,29 @@ function kirimDataAbsen() {
                 'Authorization': `Bearer ${supabaseConfig.key}`,
                 'Prefer': 'return=representation'
             },
-            body: JSON.stringify({ data_json: payload, updated_at: new Date().toISOString() })
+            body: JSON.stringify({ data_json: payloadMerged, updated_at: new Date().toISOString() })
         });
 
         if (response.ok) {
-            alert("Berhasil mengunggah dan menyinkronkan SELURUH DATA & PENGATURAN ke Cloud!");
+            // LANGKAH D: Simpan hasil gabungan ke HP lokal agar ikut ter-update
+            localStorage.setItem('pondok_santri', JSON.stringify(payloadMerged.santri));
+            localStorage.setItem('pondok_absensi', JSON.stringify(payloadMerged.absensi));
+            localStorage.setItem('pondok_kelas', JSON.stringify(payloadMerged.kelas));
+            localStorage.setItem('pondok_master_mapel', JSON.stringify(payloadMerged.mapel));
+            localStorage.setItem('pondok_evaluasi', JSON.stringify(payloadMerged.evaluasi));
+            localStorage.setItem('pondok_tagihan_denda', JSON.stringify(payloadMerged.tagihan));
+            localStorage.setItem('pondok_tabungan', JSON.stringify(payloadMerged.tabungan));
+            localStorage.setItem('pondok_izin_aktif', JSON.stringify(payloadMerged.izin_aktif));
+            localStorage.setItem('pondok_history_izin', JSON.stringify(payloadMerged.history_izin));
+            localStorage.setItem('pondok_users', JSON.stringify(payloadMerged.users));
+            
+            alert("Sinkronisasi Sukses! Data Anda dan admin lain telah saling melengkapi.");
+            
+            // Segarkan UI tabel jika sedang dibuka
+            if (typeof renderTabelSantri === 'function') renderTabelSantri();
+            if (typeof renderTabelDaftarKelas === 'function') renderTabelDaftarKelas();
         } else {
+            // Fallback jika baris ID = 1 ternyata terhapus / kosong di Supabase
             await fetch(`${supabaseConfig.url}/rest/v1/backup_lms`, {
                 method: 'POST',
                 headers: {
@@ -4517,11 +4571,12 @@ function kirimDataAbsen() {
                     'apikey': supabaseConfig.key,
                     'Authorization': `Bearer ${supabaseConfig.key}`
                 },
-                body: JSON.stringify({ id: 1, data_json: payload, updated_at: new Date().toISOString() })
+                body: JSON.stringify({ id: 1, data_json: payloadMerged, updated_at: new Date().toISOString() })
             });
-            alert("Berhasil membuat rekam cadangan baru di Cloud!");
+            alert("Berhasil membuat rekam cadangan sinkronisasi baru di Cloud!");
         }
     } catch (err) {
+        console.error(err);
         alert("Gagal koneksi ke server Cloud. Periksa jaringan internet kamu.");
     } finally {
         if (btn) btn.innerHTML = '<i class="fa-solid fa-cloud-arrow-up"></i> KIRIM DATA KE CLOUD (SYNC MANUAL)';
