@@ -1796,14 +1796,15 @@ body {
             /* =================================================== */
             
         /* TAMBAHKAN KODE INI AGAR BACKGROUND TIDAK BOCOR SAAT PRINT */
-                .id-card-wrapper { 
+                      .id-card-wrapper { 
             position: relative !important; 
             overflow: hidden !important; 
             background: #ffffff;
             border-radius: 14px;
             box-sizing: border-box;
-            page-break-inside: avoid !important; /* Mencegah kartu terpotong */
-            break-inside: avoid !important;      /* Mencegah kartu terpotong (browser modern) */
+            border: 1px solid #ccc !important; /* Tambahan frame border agar presisi di kertas */
+            page-break-inside: avoid !important;
+            break-inside: avoid !important;
         }
         
         .id-card-wrapper.portrait { width: 204px; height: 324px; max-height: 324px; }
@@ -1855,8 +1856,8 @@ body {
         .id-qr-depan { width: 65px !important; display: flex; align-items: center; justify-content: center; margin: 0; background: transparent !important;}
         .id-card-wrapper.portrait .id-qr-depan { margin: 6px auto 0 auto; width: auto !important; max-width: 90% !important; }
         
-        #sisi-belakang-kartu { position: relative !important; z-index: 10 !important; }
-        .id-back-content { position: relative !important; z-index: 10 !important; background-color: #ffffff !important; }
+                #sisi-belakang-kartu { position: relative !important; z-index: 10 !important; }
+        .id-back-content { position: relative !important; z-index: 10 !important; background-color: transparent !important; } /* Diubah ke transparan agar ornamen warna belakang muncul */
         
         /* PERBAIKAN: QR Rata Tengah Sempurna untuk Portrait Belakang */
         .id-card-wrapper.portrait .id-back-content { flex-direction: column !important; align-items: center !important; justify-content: center !important; }
@@ -2005,10 +2006,14 @@ body {
         containerTemp.remove();
     }, 600);
 }
-    function cetakKolektifF4Belakang(orientasi = 'portrait') {
+        function cetakKolektifF4Belakang(orientasi = 'portrait') {
         let databaseSantri = getDB('pondok_santri', []).filter(s => !s.is_alumni); 
         if (databaseSantri.length === 0) return alert("Belum ada data santri aktif.");
         const yayasan = getDB('pondok_yayasan', {});
+        
+        // Menarik custom background gambar (wallpaper) jika diatur oleh pengguna
+        let bgCardStyle = yayasan.bg_idcard ? `background-image: url('${yayasan.bg_idcard}');` : ''; 
+        
         const teksTertib = yayasan.tata_tertib || "1. Wajib menjaga tata tertib...";
         const daftarPoin = teksTertib.split('\n').filter(baris => baris.trim() !== '');
         const formatTertib = daftarPoin.map(baris => `<div class="poin-tertib">${baris}</div>`).join('');
@@ -2017,27 +2022,23 @@ body {
         databaseSantri.forEach((santri) => {
             let qrPayload = JSON.stringify({ n: santri.nis, u: supabaseConfig.url || "", k: supabaseConfig.key || "" });
             htmlKartuKolektif += `
-                <div class="id-card-wrapper portrait">
+                <div class="id-card-wrapper portrait" style="${bgCardStyle}">
                     <div id="sisi-belakang-kartu" style="height:100%; display:flex; flex-direction:column;">
-                        <div class="id-header" style="padding:6px; background:linear-gradient(135deg, var(--primary), var(--primary-light));">
-                            <h4 style="font-size:0.75rem; margin:0; text-transform: uppercase; color:white; text-align:center;">SISTEM MONITORING SANTRI</h4>
+                        <div class="id-header" style="padding:12px 10px 4px 10px; background:transparent; text-align:center;">
+                            <h4 style="font-size:0.75rem; margin:0; text-transform:uppercase; color:white; font-weight:bold; letter-spacing:0.5px; text-shadow:1px 1px 3px rgba(0,0,0,0.4);">SISTEM MONITORING SANTRI</h4>
                         </div>
-                        <div class="id-back-content" style="display:flex; flex-direction:column; padding:10px; flex:1; background:rgba(255, 255, 255, 0.9); text-align:center;">
-                            <div class="id-back-left" style="width:100%; flex:1;">
-                                <div class="id-back-title" style="font-size:0.75rem; font-weight:bold; color:var(--primary); border-bottom:1px solid #ccc; margin-bottom:4px;">${yayasan.pondok || 'INSTANSI'}</div>
-                                <div class="id-back-rules" style="font-size: 0.55rem; text-align:left;">${formatTertib}</div>
+                        <div class="id-back-content" style="display:flex; flex-direction:column; padding:10px; flex:1; background:transparent; text-align:center;">
+                            <div class="id-back-left" style="width:100%; flex:1; text-align:left;">
+                                <div class="id-back-title" style="font-size:0.75rem; font-weight:bold; color:var(--primary); border-bottom:1px solid var(--primary); margin-bottom:4px; text-align:center;">${yayasan.pondok || 'INSTANSI'}</div>
+                                <div class="id-back-rules" style="font-size:0.55rem; text-align:left; color:#111; font-weight:bold;">${formatTertib}</div>
                             </div>
-                            <div class="id-back-right" style="width:100%; border-top:1px dashed #999; padding-top:15px; display:flex; flex-direction:column; justify-content:center; align-items:center; gap:10px;">
-    <div class="id-qr-back" id="qr-back-${santri.nis}" data-payload='${qrPayload}' style="width:65px; height:65px; min-width:65px; padding:2px; border:2px solid var(--primary); background:#fff; border-radius:6px; display:flex; justify-content:center; align-items:center;"></div>
-    <div class="id-back-ttd" style="text-align:center; font-size:0.6rem; color:var(--primary); font-weight:bold; width:100%;">
-        <div>Mengetahui,</div>
-        ${yayasan.ttd_mudir ? `<img src="${yayasan.ttd_mudir}" style="height:30px; margin:4px auto; display:block;">` : '<div style="height:30px;"></div>'}
-        <div>${yayasan.mudir || 'Pimpinan'}</div>
-    </div>
-</div>
-
-
-                                <div class="id-qr-back" id="qr-back-${santri.nis}" data-payload='${qrPayload}' style="width:55px; height:55px; min-width:55px; padding:2px; border:2px solid var(--primary); background:#fff; border-radius:6px; display:flex; justify-content:center; align-items:center;"></div>
+                            <div class="id-back-right" style="width:100%; border-top:1px dashed #999; padding-top:10px; display:flex; flex-direction:row; justify-content:space-between; align-items:center; gap:8px;">
+                                <div class="id-back-ttd" style="text-align:center; font-size:0.55rem; color:var(--primary); font-weight:bold; flex:1;">
+                                    <div>Mengetahui,</div>
+                                    ${yayasan.ttd_mudir ? `<img src="${yayasan.ttd_mudir}" style="height:30px; margin:4px auto; display:block;">` : '<div style="height:30px;"></div>'}
+                                    <div>${yayasan.mudir || 'Pimpinan'}</div>
+                                </div>
+                                <div class="id-qr-back" id="qr-back-${santri.nis}" data-payload='${qrPayload}' style="width:60px; height:60px; min-width:60px; padding:2px; border:2px solid var(--primary); background:#fff; border-radius:6px; display:flex; justify-content:center; align-items:center;"></div>
                             </div>
                         </div>
                     </div>
@@ -2046,10 +2047,10 @@ body {
         htmlKartuKolektif += `</div>`;
         
         const containerTemp = document.createElement('div'); 
-containerTemp.style.position = 'absolute'; 
-containerTemp.style.left = '-9999px'; 
-containerTemp.style.top = '-9999px'; 
-document.body.appendChild(containerTemp); 
+        containerTemp.style.position = 'absolute'; 
+        containerTemp.style.left = '-9999px'; 
+        containerTemp.style.top = '-9999px'; 
+        document.body.appendChild(containerTemp); 
 
         containerTemp.innerHTML = htmlKartuKolektif;
         
@@ -2073,6 +2074,7 @@ document.body.appendChild(containerTemp);
             containerTemp.remove();
         }, 600);
     }
+
 
     function cetakRekapSantriPDF() {
         let databaseSantri = getDB('pondok_santri', []).filter(s => modeTampilanSantri === 'alumni' ? s.is_alumni : !s.is_alumni); 
