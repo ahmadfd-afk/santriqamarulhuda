@@ -1777,15 +1777,27 @@ body {
         html, body {
             margin: 0; padding: 0; width: 100%; background: #fff !important; color: #000;
         }
-        /* ... (BIARKAN CSS TABEL DAN SERTIFIKAT TETAP SEPERTI ASLINYA) ... */
-        
-        .id-card-wrapper {
-            width: 324px; height: 204px; max-height: 204px;
-            background-color: rgba(255, 255, 255, 0.35) !important; 
-            backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); 
-            border: 1px solid rgba(255, 255, 255, 0.6); border-radius: 14px; 
-            overflow: hidden; position: relative; display: flex; flex-direction: column; page-break-inside: avoid;
-        }
+                    /* =================================================== */
+            /* KODE PERBAIKAN: CSS TABEL UNTUK CETAK PDF/PRINT     */
+            /* =================================================== */
+            table { 
+                width: 100%; 
+                border-collapse: collapse; 
+                margin-bottom: 15px; 
+                font-size: 11px; 
+            }
+            table th, table td { 
+                border: 1px solid #000; 
+                padding: 6px 8px; 
+                text-align: left;
+            }
+            table th { 
+                background-color: var(--primary) !important; 
+                color: white !important; 
+                font-weight: bold; 
+                text-align: center; 
+            }
+            /* =================================================== */
         .id-card-wrapper.portrait { width: 204px; height: 324px; max-height: 324px; }
         
         .id-card-wrapper::before {
