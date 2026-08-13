@@ -98,22 +98,7 @@
         .btn-success { background: var(--success); color: white; border: none; padding: 10px 14px; border-radius: 10px; width: auto; font-size: 0.82rem; margin-top: 0; }
         .btn-print { background: #1D1D1F; color: white; border: none; padding: 10px 14px; border-radius: 10px; width: auto; font-size: 0.82rem; margin-top: 0; }
         .btn-warning { background: var(--warning); color: white; border: none; padding: 10px 14px; border-radius: 10px; width: auto; font-size: 0.82rem; margin-top: 0; }
-                .back-nav { 
-            display: inline-flex; align-items: center; gap: 10px; 
-            background: rgba(255, 255, 255, 0.85); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
-            color: var(--primary); font-weight: 800; margin-bottom: 20px; cursor: pointer; 
-            padding: 10px 20px; font-size: 0.9rem; border-radius: 30px;
-            box-shadow: 0 8px 20px rgba(0,0,0,0.08); border: 1px solid rgba(255,255,255,1);
-            transition: 0.2s all ease;
-        }
-        .back-nav:active {
-            transform: scale(0.92) translateX(-5px);
-            background: #000000 !important;
-            color: #ffffff !important;
-            border-color: #000000 !important;
-        }
-        .back-nav i { font-size: 1.15rem; }
-
+        .back-nav { display: flex; align-items: center; gap: 10px; color: var(--primary); font-weight: 700; margin-bottom: 20px; cursor: pointer; padding: 10px 0; font-size: 0.95rem; }
         table { width: 100%; border-collapse: separate; border-spacing: 0; margin-bottom: 15px; font-size: 0.8rem; }
         th, td { padding: 10px 8px; text-align: left; border-bottom: 1px solid rgba(0,0,0,0.06); }
         th { background-color: var(--primary); color: white; font-weight: 600; position: sticky; top: 0; z-index: 5; }
@@ -448,27 +433,8 @@
     body * { visibility: hidden; }
     #area-cetak-thermal, #area-cetak-thermal * { visibility: visible; }
     #area-cetak-thermal { position: absolute; left: 0; top: 0; width: 58mm; padding: 0; margin: 0; }
-        @page { size: 58mm auto; margin: 0mm; }
+    @page { size: 58mm auto; margin: 0mm; }
 }
-
-/* --- TAMBAHAN EFEK MENU HITAM & KILAT --- */
-.nav-item:active { 
-    color: #000000 !important; 
-    transform: scale(0.9) !important; 
-    transition: 0.1s all ease !important;
-}
-.nav-item.active { 
-    color: #000000 !important; 
-    font-weight: 800; 
-    transform: translateY(-2px); 
-}
-.btn-outline:active { 
-    background: #000000 !important; 
-    color: #ffffff !important; 
-    border-color: #000000 !important; 
-    transform: scale(0.95); 
-}
-/* -------------------------------------- */
     </style>
 </head>
 <body>
@@ -646,13 +612,17 @@
                 </div>
                 
                 <div class="card">
-                    <div style="display: flex; flex-direction: column; margin-bottom: 14px; gap:10px;">
-                        <div style="display:flex; justify-content:space-between; align-items:center;">
-                            <h3 id="title-db-santri" style="color: var(--primary); margin: 0;">Database Santri Aktif</h3>
-                            <button type="button" id="btn-toggle-tabel-santri" class="btn-outline" onclick="toggleTampilanTabelSantri()" style="width:auto; padding:6px 12px; margin:0; font-size:0.75rem; border-color:var(--primary);">
-                                <i class="fa-solid fa-eye-slash" id="icon-toggle-tabel"></i> Sembunyikan
-                            </button>
-                        </div>
+                    <div style="display:flex; justify-content:space-between; align-items:center;">
+    <h3 id="title-db-santri" style="color: var(--primary); margin: 0;">Database Santri Aktif</h3>
+    <button type="button" id="btn-toggle-tabel-santri" class="btn-outline" onclick="toggleTampilanTabelSantri()" style="width:auto; padding:6px 12px; margin:0; font-size:0.75rem; border-color:var(--primary);">
+        <i class="fa-solid fa-eye" id="icon-toggle-tabel"></i> Tampilkan Daftar
+    </button>
+</div>
+<!-- ... tombol cetak dsb ... -->
+<!-- WADAH SCROLL DITAMBAHKAN CLASS 'hidden' -->
+<div id="wadah-scroll-santri" class="wadah-scroll-santri hidden">
+    <table>
+
                                                 <div style="display:flex; gap:8px;">
                             <div style="display: flex; gap: 4px; flex: 1; flex-wrap: wrap;">
     <button class="btn-primary" onclick="cetakKolektifF4Gabung('portrait')" style="margin: 0; padding: 12px 6px; font-size: 0.72rem; background: var(--info); flex: 1; min-width:100px;">
@@ -740,27 +710,27 @@
                     </div>
                                         <p style="font-size:0.75rem; color:var(--text-muted); margin-bottom:10px;">Buat mata pelajaran dan tentukan ustadz/guru penanggung jawabnya (bisa lebih dari satu), lalu centang kelas mana saja yang mempelajarinya.</p>
                     
-                                        <!-- PERBAIKAN: <!-- PERBAIKAN: BANK MATA PELAJARAN MULTIPLE CHECKBOX DROPDOWN -->
-<label style="color:var(--primary); margin-top:10px;"><i class="fa-solid fa-layer-group"></i> 1. Pilih Dari Bank Mata Pelajaran</label>
-<div style="display:flex; gap:8px; margin-bottom:10px;">
-    <input type="text" id="input-tambah-bank-mapel" placeholder="Ketik mapel baru (cth: Fiqih)..." style="margin:0; flex:1;">
-    <button type="button" class="btn-outline" style="margin:0; width:auto; border-color:var(--info); color:var(--info); padding:10px;" onclick="tambahBankMapel()">
-        <i class="fa-solid fa-plus"></i> Tambah Baru
-    </button>
-</div>
+                                        <!-- PERBAIKAN: BANK MATA PELAJARAN MULTIPLE CHECKBOX -->
+                    <label style="color:var(--primary); margin-top:10px;"><i class="fa-solid fa-layer-group"></i> 1. Pilih Mata Pelajaran (Bank Mapel):</label>
+                    
+                    <div class="custom-select-wrapper">
+                        <div class="custom-select-btn" onclick="document.getElementById('wadah-bank-mapel').classList.toggle('show')">
+                            Klik untuk Pilih Mapel... <i class="fa-solid fa-chevron-down"></i>
+                        </div>
+                        <div id="wadah-bank-mapel" class="custom-select-content"></div>
+                    </div>
 
-<div class="custom-select-wrapper">
-    <div class="custom-select-btn" onclick="document.getElementById('wadah-bank-mapel').classList.toggle('show')" style="border: 1px solid var(--info); color: var(--info);">
-        Klik untuk Menampilkan Mapel... <i class="fa-solid fa-chevron-down"></i>
-    </div>
-    <!-- KODE PERBAIKAN: Hapus display:flex inline agar bisa disembunyikan/ditampilkan -->
-    <div id="wadah-bank-mapel" class="custom-select-content" style="max-height: 220px; padding: 10px;">
-        <!-- Checkbox Mapel dari Bank dirender via JS -->
-    </div>
-</div>
-<!-- AKHIR PERBAIKAN BANK MAPEL -->
+                    <div style="display:flex; gap:8px; margin-bottom:14px; margin-top:5px;">
+                        <input type="text" id="input-tambah-bank-mapel" placeholder="Ketik mapel baru jika belum ada..." style="margin:0; flex:1; font-size: 0.8rem; padding: 10px;">
+                        <button type="button" class="btn-outline" style="margin:0; width:auto; border-color:var(--info); color:var(--info); padding:10px; font-size: 0.8rem;" onclick="tambahBankMapel()">
+                            <i class="fa-solid fa-plus"></i> Tambah
+                        </button>
+                    </div>
+                    <!-- AKHIR PERBAIKAN BANK MAPEL -->
 
-<label style="cursor:pointer; display:flex; align-items:center; gap:8px; color:var(--primary); margin-top:14px;">
+                    <!-- AKHIR PERBAIKAN BANK MAPEL -->
+                    
+                   <label style="cursor:pointer; display:flex; align-items:center; gap:8px; color:var(--primary); margin-top:14px;">
     <input type="checkbox" id="input-opsi-jadwal" onchange="toggleFormJadwalMapel()" style="width:18px; height:18px; margin:0;">
     <span>Atur Jadwal Hari & Jam (Opsional)</span>
 </label>
@@ -778,7 +748,7 @@
         <label style="font-size:0.8rem; display:flex; align-items:center; gap:6px;"><input type="checkbox" value="Minggu" class="cb-hari-mapel"> Minggu</label>
     </div>
 
-    <!-- PERBAIKAN: Dropdown Pilihan Cepat dari Logika Jam Singkatan -->
+        <!-- PERBAIKAN: Dropdown Pilihan Cepat dari Logika Jam Singkatan -->
     <div style="margin-top:12px;">
         <label style="color:var(--warning); margin-bottom:4px;">
             <i class="fa-solid fa-clock"></i> Pilih Preset Jam Singkatan (BA, BS, BM, dll):
@@ -792,9 +762,10 @@
         <div style="flex:1;"><label>Jam Mulai (Opsional)</label><input type="text" id="input-jam-mulai" placeholder="Cth: BA / 15:30"></div>
         <div style="flex:1;"><label>Jam Selesai (Opsional)</label><input type="text" id="input-jam-selesai" placeholder="Cth: 16:30"></div>
     </div>
-</div>        
+</div>
 
-<!-- PERBAIKAN: Dropdown Ustadz (Mengembalikan yang hilang) -->
+
+<!-- PERBAIKAN: Dropdown Ustadz -->
 <label style="color:var(--primary); margin-top:14px;"><i class="fa-solid fa-users"></i> Pilih Ustadz / Guru Pengajar (Bisa Lebih dari 1):</label>
 <div class="custom-select-wrapper">
     <div class="custom-select-btn" onclick="document.getElementById('input-ustadz-mapel-container').classList.toggle('show')">
@@ -825,18 +796,18 @@
                     </div>
                 </div>
 
-                                <!-- ⬇️ TAMBAHKAN KOTAK INI DI SINI ⬇️ -->
+                                <!-- ⬇️ SETTING LOGIKA JAM (DIBUAT BISA DIKLIK/DITUTUP AGAR RAPI) ⬇️ -->
                 <div class="card card-premium" style="border-left-color: var(--warning);">
-                    <div style="display:flex; justify-content:space-between; align-items:center; cursor:pointer;" onclick="document.getElementById('panel-jam-singkatan').classList.toggle('hidden')">
+                    <div style="display:flex; justify-content:space-between; align-items:center; cursor:pointer;" onclick="document.getElementById('area-setting-jam-singkatan').classList.toggle('hidden')">
                         <h3 style="margin: 0; color: var(--warning);"><i class="fa-solid fa-clock"></i> Setting Logika Jam Singkatan</h3>
                         <i class="fa-solid fa-chevron-down" style="color:var(--warning);"></i>
                     </div>
                     
-                    <div id="panel-jam-singkatan" class="hidden" style="margin-top: 14px; border-top: 1px dashed rgba(0,0,0,0.1); padding-top: 14px;">
-                        <p style="font-size:0.75rem; color:var(--text-muted); margin-bottom:10px;">Definisikan jam aktual untuk singkatan seperti BS (Ba'da Subuh) agar pengingat jadwal dan absensi otomatis berfungsi.</p>
+                    <div id="area-setting-jam-singkatan" class="hidden" style="margin-top:14px;">
+                        <p style="font-size:0.75rem; color:var(--text-muted); margin-bottom:10px;">Definisikan jam aktual untuk singkatan seperti BS (Ba'da Subuh) atau BM.</p>
                         
                         <div style="display:flex; gap:8px; margin-bottom:10px; flex-wrap: wrap;">
-                            <input type="text" id="input-kode-jam" placeholder="Kode (BS)" style="flex:1; min-width:80px; margin:0;">
+                            <input type="text" id="input-kode-jam" placeholder="Kode (Cth: BS)" style="flex:1; min-width:80px; margin:0;">
                             <input type="time" id="input-waktu-mulai-jam" style="flex:1; min-width:90px; margin:0;" title="Jam Mulai">
                             <input type="time" id="input-waktu-selesai-jam" style="flex:1; min-width:90px; margin:0;" title="Jam Selesai">
                             <button type="button" class="btn-warning" style="margin:0; padding:10px 14px; width:auto;" onclick="tambahJamKustom()">
@@ -849,18 +820,20 @@
                 </div>
                 <!-- ⬆️ SAMPAI SINI ⬆️ -->
 
+
                 <div class="card card-premium">
                     <h3 style="margin-bottom: 14px; color: var(--primary);"><i class="fa-solid fa-layer-group"></i> Buat Kelas / Forum Baru</h3>
 
                     <p style="font-size:0.75rem; color:var(--text-muted); margin-bottom:10px;">Buat kelas baru terlebih dahulu, lalu Anda dapat mengaturnya di pembuatan mata pelajaran di atas atau klik Edit Plotting di tabel bawah.</p>
-                    <label>Nama Kelas / Forum</label><input type="text" id="input-nama-kelas" placeholder="Cth: Kelas 1-A / Takhassus">
+                                        <label>Nama Kelas / Forum</label><input type="text" id="input-nama-kelas" placeholder="Cth: Kelas 1-A / Takhassus">
+                    
+                    <label style="color: var(--primary); margin-top: 10px;"><i class="fa-solid fa-user-tie"></i> Pilih Wali Kelas (Opsional)</label>
+                    <select id="input-wali-kelas" style="margin-bottom: 14px;">
+                        <option value="">-- Tanpa Wali Kelas --</option>
+                    </select>
 
-<label style="color: var(--primary); margin-top: 10px;"><i class="fa-solid fa-user-tie"></i> Pilih Wali Kelas</label>
-<select id="input-wali-kelas" style="margin-bottom: 10px;">
-    <!-- Opsi akan diisi otomatis oleh JS renderTabelDaftarKelas -->
-</select>
+                    <button class="btn-primary" onclick="simpanKelasBaru()">BUAT & SIMPAN KELAS</button>
 
-<button class="btn-primary" onclick="simpanKelasBaru()">BUAT & SIMPAN KELAS</button>
                 </div>
 
                 <div class="card">
@@ -1047,15 +1020,7 @@
 <label style="color: var(--primary);"><i class="fa-solid fa-barcode"></i> Tinggi Barcode 1D Depan (px)</label>
 <input type="number" id="setting-ukuran-barcode1d" placeholder="Rekomendasi: 25 - 40">
 
-<label style="color: var(--primary);"><i class="fa-solid fa-palette"></i> Warna Barcode 1D & QR (Semua Kartu)</label>
-<select id="setting-warna-barcode" style="margin-bottom: 14px;">
-    <option value="#000000">Hitam (Default - Paling Aman)</option>
-    <option value="#04432A">Hijau Tua (Gelap)</option>
-    <option value="#8B0000">Merah Tua (Maroon)</option>
-    <option value="#00008B">Biru Tua (Navy)</option>
-</select>
 <label>Teks Keputusan Kelulusan Sertifikat</label><input type="text" id="setting-teks-lulus" placeholder="Telah mengikuti proses belajar dan dinyatakan:">
-
 <!-- TAMBAHAN PILIHAN KERTAS -->
 <label style="color: var(--danger);"><i class="fa-solid fa-scroll"></i> Ukuran Kertas Cetak Sertifikat</label>
 <select id="setting-kertas-sertifikat">
@@ -1523,10 +1488,7 @@
                 <h3 style="margin: 0;">Silakan Scan Kartu ID Anda</h3>
             </div>
             
-                        <button style="position: absolute; top: 15px; right: 15px; background: transparent; border: none; color: rgba(255,255,255,0.15); font-size: 2rem; cursor: pointer; z-index: 99999; padding: 15px;" onclick="verifikasiTutupATM()">
-                <i class="fa-solid fa-xmark"></i>
-            </button>
-
+            <button class="btn-danger" style="position: absolute; top: 20px; right: 20px; width: auto; padding: 10px 20px; border-radius: 12px; background: rgba(255,59,48,0.5); backdrop-filter: blur(5px);" onclick="tutupKioskATM()">X Tutup Kiosk</button>
         </div>
     </div>
 
@@ -1603,32 +1565,10 @@
 
     }
 
-        let currentUser = null, html5QrcodeScanner = null, scannerLoginData = null, scannerIzin = null;
+    let currentUser = null, html5QrcodeScanner = null, scannerLoginData = null, scannerIzin = null;
     let modeScannerIzinAktif = 'keluar';
     let base64TempImages = { logo: '', bg_login: '', bg_idcard: '', ttd_mudir: '' }, tempFotoSantriBase64 = ''; 
     let tempFotoPegawaiBase64 = '', tempSelfFotoBase64 = '';
-
-    // --- TAMBAHAN FUNGSI GETAR & SUARA BIP ---
-    function playHapticAndSound() {
-        if (navigator.vibrate) navigator.vibrate(40);
-        try {
-            const AudioContext = window.AudioContext || window.webkitAudioContext;
-            if (AudioContext) {
-                const ctx = new AudioContext();
-                const osc = ctx.createOscillator();
-                const gainNode = ctx.createGain();
-                osc.type = 'sine';
-                osc.frequency.setValueAtTime(800, ctx.currentTime);
-                gainNode.gain.setValueAtTime(0.1, ctx.currentTime);
-                gainNode.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.1);
-                osc.connect(gainNode);
-                gainNode.connect(ctx.destination);
-                osc.start();
-                osc.stop(ctx.currentTime + 0.1);
-            }
-        } catch (e) { console.log("Audio Error:", e); }
-    }
-    // -----------------------------------------
     
                 const defaultAkses = { 
         superadmin: ['view-santri', 'view-evaluasi', 'view-izin', 'view-rekap', 'view-kelas', 'view-absen', 'view-scanner-wireless', 'view-keuangan', 'view-tabungan', 'view-paguyuban', 'view-yayasan', 'view-lokasi', 'view-hak-akses', 'view-pengguna', 'view-database'], 
@@ -2599,9 +2539,9 @@ function cetakLaporanPDF() {
             if (modified) localStorage.setItem('pondok_master_mapel', JSON.stringify(listM));
         }
 
-        if (!localStorage.getItem('pondok_kelas')) {
+                if (!localStorage.getItem('pondok_kelas')) {
             localStorage.setItem('pondok_kelas', JSON.stringify([
-                { id: 201, nama: "Kelas 1-A / Reguler", mapel_ids: [101, 102], santri_ids: [] }
+                { id: 201, nama: "Kelas 1-A / Reguler", mapel_ids: [101, 102], santri_ids: [], wali_kelas: "" }
             ]));
         } else {
             let listK = getDB('pondok_kelas', []);
@@ -2609,9 +2549,11 @@ function cetakLaporanPDF() {
             listK.forEach(k => {
                 if (!k.mapel_ids) { k.mapel_ids = []; modified = true; }
                 if (!k.santri_ids) { k.santri_ids = []; modified = true; }
+                if (typeof k.wali_kelas === 'undefined') { k.wali_kelas = ""; modified = true; }
             });
             if (modified) localStorage.setItem('pondok_kelas', JSON.stringify(listK));
         }
+
         
         if (!localStorage.getItem('pondok_gps')) {
             localStorage.setItem('pondok_gps', JSON.stringify({
@@ -2752,7 +2694,7 @@ function cetakLaporanPDF() {
         if(lastTab === 'view-santri') { switchTabSantri('aktif'); renderDropdownKelasSantri(); }
         if(lastTab === 'view-evaluasi') renderDropdownKelasEvaluasi();
         if(lastTab === 'view-izin') renderTabelIzinAktif();
-        if(lastTab === 'view-kelas') { renderMasterMapel(); renderTabelDaftarKelas(); renderJamKustom(); }    
+                if(lastTab === 'view-kelas') { renderMasterMapel(); renderTabelDaftarKelas(); renderJamKustom(); renderDropdownWaliKelas(); }    
                if (lastTab === 'view-absen') startAnalisisGPSUstadz(); 
         if (lastTab === 'view-scanner-wireless') { document.getElementById('input-dummy-wireless').focus(); document.getElementById('input-dummy-wireless').value = ''; }
 
@@ -2795,8 +2737,7 @@ function cetakLaporanPDF() {
                 document.getElementById('setting-teks-lulus').value = data.teks_lulus || ""; 
                 
 document.getElementById('setting-kertas-sertifikat').value = data.kertas_sertifikat || "A4";
-document.getElementById('setting-warna-barcode').value = data.warna_barcode || "#000000";
-document.getElementById('setting-font-nama').value = data.font_nama || "13";
+               
                document.getElementById('setting-font-nama').value = data.font_nama || "13";
                document.getElementById('setting-font-alamat').value = data.font_alamat || "9";
 
@@ -2831,8 +2772,8 @@ document.getElementById('setting-font-nama').value = data.font_nama || "13";
         if (currentUser) { localStorage.setItem('pondok_active_user', JSON.stringify(currentUser)); localStorage.setItem('pondok_active_tab', 'view-dashboard'); document.getElementById('login-error').classList.add('hidden'); masukKeSistemSetelahLogin(); } else { document.getElementById('login-error').classList.remove('hidden'); } 
     }
     
-        function prosesLogout() { playHapticAndSound(); localStorage.removeItem('pondok_active_user'); localStorage.removeItem('pondok_active_tab'); location.reload(); }
-    function switchTab(viewId) { playHapticAndSound(); document.querySelectorAll('.page-view').forEach(el => el.classList.add('hidden')); document.getElementById(viewId).classList.remove('hidden'); localStorage.setItem('pondok_active_tab', viewId); bukaFungsiTabSesuaiTujuan(viewId); }
+    function prosesLogout() { localStorage.removeItem('pondok_active_user'); localStorage.removeItem('pondok_active_tab'); location.reload(); }
+    function switchTab(viewId) { document.querySelectorAll('.page-view').forEach(el => el.classList.add('hidden')); document.getElementById(viewId).classList.remove('hidden'); localStorage.setItem('pondok_active_tab', viewId); bukaFungsiTabSesuaiTujuan(viewId); }
     function openSubMenu(id) { switchTab(id); } function closeSubMenu() { if(html5QrcodeScanner) html5QrcodeScanner.stop(); if(scannerIzin) scannerIzin.stop(); switchTab('view-dashboard'); }
     
     function renderMenuBerdasarkanAkses() { 
@@ -3025,7 +2966,7 @@ document.getElementById('setting-font-nama').value = data.font_nama || "13";
         alert(`Data "${target.nama}" berhasil dihapus.`);
     }
 
-        function renderTabelSantri() { 
+    function renderTabelSantri() { 
         let databaseSantri = getDB('pondok_santri', []);
         const aktifList = databaseSantri.filter(s => !s.is_alumni);
         const alumniList = databaseSantri.filter(s => s.is_alumni === true);
@@ -3044,9 +2985,6 @@ document.getElementById('setting-font-nama').value = data.font_nama || "13";
         if(dataDitampilkan.length === 0) { 
             return elemenTbody.innerHTML = `<tr><td colspan="3" align="center">Belum ada data ${modeTampilanSantri === 'alumni' ? 'alumni' : 'santri aktif'}.</td></tr>`; 
         } 
-
-        // Panggil database kelas untuk mengecek siapa wali kelasnya
-        const dbKelas = getDB('pondok_kelas', []);
 
         dataDitampilkan.forEach(s => {
             if (modeTampilanSantri === 'alumni') {
@@ -3070,31 +3008,15 @@ document.getElementById('setting-font-nama').value = data.font_nama || "13";
                     </td>
                 </tr>`;
             } else {
-                // Cari kelas dari santri ini
-                const kelasSantri = dbKelas.find(k => (k.santri_ids || []).includes(s.id));
-                
-                // Cek apakah user yang sedang login adalah wali kelas dari kelas santri ini
-                const isWaliKelas = kelasSantri && kelasSantri.wali_kelas === currentUser.username;
-                
-                // Tentukan hak akses (Bisa edit jika Superadmin, Admin, atau Wali Kelasnya sendiri)
-                const punyaAksesEdit = currentUser.role === 'superadmin' || currentUser.role === 'admin' || isWaliKelas;
-
-                // Tombol default yang bisa dilihat siapa saja
-                let htmlTombolAksi = `<button class="btn-print" style="margin:0; padding:6px; font-size:0.7rem;" onclick="prosesCetakIDCard('${s.nis}', 'santri')">Kartu</button>
-                                      <button class="btn-outline" style="margin:0; padding:6px; font-size:0.7rem; border-color:var(--info); color:var(--info);" onclick="bukaModalSertifikat('${s.nis}')">Sertifikat</button>`;
-
-                // Hanya render tombol Edit & Hapus jika punya akses
-                if (punyaAksesEdit) {
-                    htmlTombolAksi += `<button class="btn-warning" style="margin:0; padding:6px; font-size:0.7rem;" onclick="editSantriMode(${s.id})">Edit</button>
-                                       <button class="btn-danger" style="margin:0; padding:6px; font-size:0.7rem;" onclick="hapusSantri(${s.id})">Hapus</button>`;
-                }
-
                 elemenTbody.innerHTML += `<tr>
                     <td><strong>${s.nis}</strong><br><span style="font-size:0.65rem; color:var(--text-muted);">${s.kamar}</span></td>
                     <td>${s.nama}</td>
                     <td>
                         <div style="display:flex; gap:4px; flex-wrap:wrap; justify-content:flex-start;">
-                            ${htmlTombolAksi}
+                            <button class="btn-print" style="margin:0; padding:6px; font-size:0.7rem;" onclick="prosesCetakIDCard('${s.nis}', 'santri')">Kartu</button>
+                            <button class="btn-outline" style="margin:0; padding:6px; font-size:0.7rem; border-color:var(--info); color:var(--info);" onclick="bukaModalSertifikat('${s.nis}')">Sertifikat</button>
+                            <button class="btn-warning" style="margin:0; padding:6px; font-size:0.7rem;" onclick="editSantriMode(${s.id})">Edit</button>
+                            <button class="btn-danger" style="margin:0; padding:6px; font-size:0.7rem;" onclick="hapusSantri(${s.id})">Hapus</button>
                         </div>
                     </td>
                 </tr>`;
@@ -3332,7 +3254,7 @@ function bukaModalSertifikat(nis) {
         document.getElementById('id-card-modal').classList.remove('hidden'); 
     }
 
-            function terapkanKustomisasiLayoutIDCard(teksFooter, qrText) { 
+        function terapkanKustomisasiLayoutIDCard(teksFooter, qrText) { 
         const wadahQR = document.getElementById("card-qr"); 
         wadahQR.innerHTML = ''; 
         
@@ -3344,7 +3266,7 @@ function bukaModalSertifikat(nis) {
             footerEl.classList.add('hidden'); 
         } 
         
-        // Ambil ukuran dari pengaturan (default 60 jika kosong)
+               // Ambil ukuran dari pengaturan (default 60 jika kosong)
         const yayasan = getDB('pondok_yayasan', {});
         const sizeQR = parseInt(yayasan.ukuran_qr) || 60;
         const sizeFont = parseInt(yayasan.font_nama) || 13;
@@ -3358,10 +3280,7 @@ function bukaModalSertifikat(nis) {
         const sizeFontAlamat = parseInt(yayasan.font_alamat) || 9;
         document.getElementById('card-alamat').style.fontSize = sizeFontAlamat + 'px';
 
-                        // --- CARI WARNA BARCODE DARI IDENTITAS YAYASAN ---
-        let warnaGarisBarcode = yayasan.warna_barcode || "#000000";
-
-        // Render Barcode 1D (Depan)
+                // Render Barcode 1D (Depan)
         if (typeof JsBarcode !== 'undefined') {
             try {
                 let nisRaw = qrText;
@@ -3372,8 +3291,7 @@ function bukaModalSertifikat(nis) {
                     height: size1D,
                     displayValue: false,
                     margin: 10, /* White space ditambah */
-                    background: "transparent",
-                    lineColor: warnaGarisBarcode // <-- Warna diterapkan di sini
+                    background: "transparent"
                 });
             } catch(err) { console.log("Barcode error:", err); }
         }
@@ -3384,12 +3302,13 @@ function bukaModalSertifikat(nis) {
                 text: qrText, 
                 width: sizeQR, 
                 height: sizeQR, 
-                colorDark: warnaGarisBarcode, // <-- Warna QR diterapkan di sini
+                colorDark: "#000000", 
                 colorLight: "#ffffff", 
                 correctLevel: QRCode.CorrectLevel.L 
             }); 
-                } 
+        } 
     }
+
     function getStatistikIzin(nisSantri) { const histDB = getDB('pondok_history_izin', []); const riwayatSantri = histDB.filter(x => x.nis === nisSantri); let totalHari = 0; riwayatSantri.forEach(item => { totalHari += (parseInt(item.durasi_hari) || 1); }); return { total_kali: riwayatSantri.length, total_hari: totalHari }; }
 
     function startScannerIzin(mode = 'keluar') {
@@ -3590,43 +3509,47 @@ function bukaModalSertifikat(nis) {
     }
 
         function renderMasterMapel() {
-        // PERBAIKAN: Render Bank Mapel Checkbox
-        const wadahBank = document.getElementById('wadah-bank-mapel');
-        if (wadahBank) {
-            wadahBank.innerHTML = '';
-            const bank = getDB('pondok_bank_mapel', []);
-            if (bank.length === 0) {
-                wadahBank.innerHTML = '<span style="color:red; font-size:0.8rem; font-style:italic;">Bank mapel kosong. Tambahkan lewat kolom di atas.</span>';
-            } else {
-                bank.forEach((nama, idx) => {
-                    wadahBank.innerHTML += `
-                    <div style="display:flex; align-items:center; background:#fff; padding:6px 12px; border-radius:20px; border:1px solid #ccc; gap:8px; box-shadow:0 2px 5px rgba(0,0,0,0.05);">
-                        <input type="checkbox" value="${nama}" class="cb-bank-mapel" id="cb_bank_${idx}" style="margin:0; width:16px; height:16px; cursor:pointer;">
-                        <label for="cb_bank_${idx}" style="margin:0; font-size:0.75rem; cursor:pointer; font-weight:600; color:var(--primary);">${nama}</label>
-                        <i class="fa-solid fa-times-circle" style="color:var(--danger); font-size:0.85rem; cursor:pointer; margin-left:4px;" onclick="hapusBankMapel('${nama}')"></i>
-                    </div>`;
-                });
-            }
-        }
+        // --- REPLACE BAGIAN WADAH BANK MAPEL ---
+const wadahBank = document.getElementById('wadah-bank-mapel');
+if (wadahBank) {
+    wadahBank.innerHTML = '';
+    const bank = getDB('pondok_bank_mapel', []);
+    if (bank.length === 0) {
+        wadahBank.innerHTML = '<div style="color:red; font-size:0.8rem; padding:10px;">Bank mapel kosong. Tambahkan di atas.</div>';
+    } else {
+        bank.forEach((nama, idx) => {
+            wadahBank.innerHTML += `
+            <label style="display:flex; align-items:center; justify-content:space-between; padding:10px; border-bottom:1px solid rgba(0,0,0,0.05); font-size:0.85rem; cursor:pointer;">
+                <div style="display:flex; align-items:center; gap:10px;">
+                    <input type="checkbox" value="${nama}" class="cb-bank-mapel" style="width:18px; height:18px; margin:0; cursor:pointer;">
+                    <strong>${nama}</strong>
+                </div>
+                <i class="fa-solid fa-times-circle" style="color:var(--danger); font-size:1.1rem; cursor:pointer;" onclick="hapusBankMapel('${nama}'); event.preventDefault();"></i>
+            </label>`;
+        });
+    }
+}
 
-        const wadahUstadz = document.getElementById('input-ustadz-mapel-container');
+// --- REPLACE BAGIAN WADAH USTADZ ---
+const wadahUstadz = document.getElementById('input-ustadz-mapel-container');
 if (wadahUstadz) {
     wadahUstadz.innerHTML = '';
-    // Filter diubah hanya mengambil role 'ustadz' saja
+    // FILTER HANYA ROLE USTADZ SAJA
     const listUst = getDB('pondok_users', []).filter(user => user.role === 'ustadz');
     if (listUst.length === 0) {
-        wadahUstadz.innerHTML = '<div style="color:red; font-size:0.8rem; padding:10px;">Belum ada akun dengan role Ustadz.</div>';
+        wadahUstadz.innerHTML = '<div style="color:red; font-size:0.8rem; padding:10px;">Belum ada akun ustadz.</div>';
     } else {
         listUst.forEach(ust => {
-            let fotoUst = ust.foto || 'https://cdn-icons-png.flaticon.com/512/149/149071.png';
-            wadahUstadz.innerHTML += '<label style="display:flex; align-items:center; gap:12px; padding:10px 12px; border-bottom:1px solid rgba(0,0,0,0.05); cursor:pointer; background:#fff; transition:0.2s;">' +
-                '<input type="checkbox" value="' + ust.username + '" data-nama="' + ust.nama + '" class="cb-ustadz-mapel" style="margin:0; width:18px; height:18px; accent-color:var(--primary); cursor:pointer; flex-shrink:0;">' +
-                '<img src="' + fotoUst + '" style="width:40px; height:40px; border-radius:50%; object-fit:cover; border:2px solid var(--accent); flex-shrink:0; box-shadow:0 2px 5px rgba(0,0,0,0.1);">' +
-                '<div style="display:flex; flex-direction:column; justify-content:center;">' +
-                    '<strong style="color:var(--primary); font-size:0.88rem; line-height:1.2;">' + ust.nama + '</strong>' +
-                    '<span style="color:var(--text-muted); font-size:0.7rem; margin-top:2px;"><i class="fa-solid fa-at"></i> ' + ust.username + '</span>' +
-                '</div>' +
-            '</label>';
+            // TAMPILAN CHECKBOX DENGAN FOTO
+            wadahUstadz.innerHTML += `
+            <label style="display:flex; align-items:center; gap:12px; padding:10px; border-bottom:1px solid rgba(0,0,0,0.05); font-size:0.85rem; cursor:pointer;">
+                <input type="checkbox" value="${ust.username}" data-nama="${ust.nama}" class="cb-ustadz-mapel" style="width:18px; height:18px; margin:0; cursor:pointer;">
+                <img src="${ust.foto || 'https://cdn-icons-png.flaticon.com/512/149/149071.png'}" style="width:35px; height:35px; border-radius:50%; object-fit:cover; border:2px solid var(--accent);">
+                <div style="flex:1;">
+                    <strong>${ust.nama}</strong><br>
+                    <span style="font-size:0.7rem; color:var(--text-muted);">@${ust.username}</span>
+                </div>
+            </label>`;
         });
     }
 }
@@ -3669,17 +3592,8 @@ if (wadahUstadz) {
                 ? `<span style="color:#D35400; font-weight:700;"><i class="fa-solid fa-clock"></i> ${m.hari}, ${m.jam_mulai || ''} - ${m.jam_selesai || ''} WITA</span>`
                 : `<span style="color:#7f8c8d; font-style:italic;">Fleksibel / Belum Diatur</span>`;
 
-                        const detailText = `Pengajar: ${m.ustadz_nama}\nJadwal: ${(m.hari || 'Fleksibel')} ${m.jam_mulai || ''}-${m.jam_selesai || ''}\nKelas: ${namaKelasTerpilih.join(", ")}`;
-            
-            // Generate Waktu untuk Sinkronisasi Kalender Google
-            let timeStr = "";
-            if (m.jam_mulai && m.jam_selesai) {
-                let tStart = m.jam_mulai.replace(':', '') + '00';
-                let tEnd = m.jam_selesai.replace(':', '') + '00';
-                let tglSekarang = new Date().toISOString().split('T')[0].replace(/-/g, '');
-                timeStr = `&dates=${tglSekarang}T${tStart}/${tglSekarang}T${tEnd}`;
-            }
-            const gcalUrl = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(m.nama_mapel)}&details=${encodeURIComponent(detailText)}&location=${encodeURIComponent("Area Kelas")}${timeStr}`;
+            const detailText = `Pengajar: ${m.ustadz_nama}\nJadwal: ${(m.hari || 'Fleksibel')} ${m.jam_mulai || ''}-${m.jam_selesai || ''}\nKelas: ${namaKelasTerpilih.join(", ")}`;
+            const gcalUrl = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(m.nama_mapel)}&details=${encodeURIComponent(detailText)}&location=${encodeURIComponent("Ruang Kelas Pondok / Sekolah")}`;
 
             tbodyMapel.innerHTML += `<tr>
                 <td><strong>${m.nama_mapel}</strong></td>
@@ -3688,10 +3602,10 @@ if (wadahUstadz) {
                     <div style="font-size:0.75rem; color:var(--primary); font-weight:bold;">${txtKelas}</div>
                     <div style="font-size:0.72rem; margin-top:3px;">${txtJadwal}</div>
                 </td>
-                <td>
+                                <td>
                     <div style="display:flex; gap:4px; flex-wrap:wrap;">
-                        <a href="${gcalUrl}" target="_blank" class="btn-outline" style="margin:0; padding:6px 8px; font-size:0.7rem; border-color:#F39C12; color:#F39C12; text-decoration:none;"><i class="fa-solid fa-calendar-plus"></i> Kalender HP</a>
-                        <button class="btn-success" style="margin:0; padding:6px 8px; font-size:0.7rem;" onclick="validasiDanNotifManual(${m.id})"><i class="fa-solid fa-bell"></i> Bunyikan</button>
+                        <button class="btn-success" style="margin:0; padding:6px 8px; font-size:0.7rem;" onclick="validasiDanNotifManual(${m.id})"><i class="fa-solid fa-check"></i> Valid & Notif</button>
+                        <button class="btn-print" style="margin:0; padding:6px 8px; font-size:0.7rem; background:#2C3E50;" onclick="cetakJadwalMapelPDF(${m.id})"><i class="fa-solid fa-file-pdf"></i> PDF</button>
                         <button class="btn-danger" style="margin:0; padding:6px 8px; font-size:0.7rem;" onclick="hapusMasterMapel(${m.id})"><i class="fa-solid fa-trash"></i></button>
                     </div>
                 </td>
@@ -3790,70 +3704,85 @@ if (wadahUstadz) {
         renderTabelDaftarKelas();
     }
 
-        function simpanKelasBaru() {
-    const namaKelas = document.getElementById('input-nama-kelas').value.trim();
-    const waliKelas = document.getElementById('input-wali-kelas').value;
-
-    if (!namaKelas) return alert("Isi nama kelas terlebih dahulu!");
-    
-    let listKelas = getDB('pondok_kelas', []);
-    listKelas.push({
-        id: Date.now(),
-        nama: namaKelas,
-        wali_kelas: waliKelas, // Menyimpan username ustadz
-        mapel_ids: [],
-        santri_ids: []
-    });
-
+   function simpanKelasBaru() {
+        const namaKelas = document.getElementById('input-nama-kelas').value.trim();
+        if (!namaKelas) return alert("Isi nama kelas terlebih dahulu!");
+        
+        let listKelas = getDB('pondok_kelas', []);
+        listKelas.push({
+            id: Date.now(),
+            nama: namaKelas,
+            mapel_ids: [],
+            santri_ids: []
+        });
         localStorage.setItem('pondok_kelas', JSON.stringify(listKelas));
         document.getElementById('input-nama-kelas').value = '';
         alert(`Kelas "${namaKelas}" berhasil dibuat!\nSilakan atur mata pelajaran yang dipelajarinya melalui form Master Mata Pelajaran di atas.`);
         renderMasterMapel();
         renderTabelDaftarKelas();
     }
-
-    function renderTabelDaftarKelas() {
-    // [TAMBAHAN] Isi dropdown Wali Kelas
-    const dropWali = document.getElementById('input-wali-kelas');
-    if (dropWali) {
-        dropWali.innerHTML = '<option value="">-- Tanpa Wali Kelas --</option>';
-        getDB('pondok_users', []).forEach(u => {
-            if (u.role === 'ustadz' || u.role === 'admin' || u.role === 'superadmin') {
-                dropWali.innerHTML += `<option value="${u.username}">${u.nama}</option>`;
-            }
+    function renderDropdownWaliKelas() {
+        const sel = document.getElementById('input-wali-kelas');
+        if (!sel) return;
+        sel.innerHTML = '<option value="">-- Tanpa Wali Kelas --</option>';
+        // Ambil data ustadz dari akun pengguna
+        const listUst = getDB('pondok_users', []).filter(u => u.role === 'ustadz');
+        listUst.forEach(u => {
+            sel.innerHTML += `<option value="${u.nama}">${u.nama}</option>`;
         });
     }
 
-    const elemenTbodyKelas = document.getElementById('tabel-kelas-body');
-    if (!elemenTbodyKelas) return;
-    elemenTbodyKelas.innerHTML = '';
-    const databaseKelas = getDB('pondok_kelas', []);
-    const dbSantri = getDB('pondok_santri', []);
-    if (databaseKelas.length === 0) return elemenTbodyKelas.innerHTML = '<tr><td colspan="4" align="center">Belum ada kelas.</td></tr>';
-    
-    databaseKelas.forEach(kls => {
-        const santriAktifDiKelas = dbSantri.filter(s => !s.is_alumni && (kls.santri_ids || []).includes(s.id));
-        // Cari nama wali kelas berdasarkan username yang tersimpan
-        const objWali = getDB('pondok_users', []).find(u => u.username === kls.wali_kelas);
-        const namaWali = objWali ? objWali.nama : 'Belum Atur';
+    function simpanKelasBaru() {
+        const namaKelas = document.getElementById('input-nama-kelas').value.trim();
+        const waliKelas = document.getElementById('input-wali-kelas').value;
+        if (!namaKelas) return alert("Isi nama kelas terlebih dahulu!");
+        
+        let listKelas = getDB('pondok_kelas', []);
+        listKelas.push({
+            id: Date.now(),
+            nama: namaKelas,
+            mapel_ids: [],
+            santri_ids: [],
+            wali_kelas: waliKelas // MENYIMPAN DATA WALI KELAS
+        });
+        localStorage.setItem('pondok_kelas', JSON.stringify(listKelas));
+        
+        document.getElementById('input-nama-kelas').value = '';
+        document.getElementById('input-wali-kelas').value = '';
+        alert(`Kelas "${namaKelas}" berhasil dibuat!\nSilakan atur mata pelajaran yang dipelajarinya melalui form Master Mata Pelajaran di atas.`);
+        
+        renderMasterMapel();
+        renderTabelDaftarKelas();
+    }
 
-        elemenTbodyKelas.innerHTML += `<tr>
-            <td>
-                <strong>${kls.nama}</strong><br>
-                <span style="font-size:0.7rem; color:var(--text-muted);">Wali: ${namaWali}</span>
-            </td>
-            <td>${(kls.mapel_ids || []).length} Mapel</td>
-            <td>${santriAktifDiKelas.length} Santri</td>
-            <td>
-                <div style="display:flex; gap:6px; flex-wrap:wrap;">
-                    <button class="btn-print" style="margin:0; padding:6px 10px; font-size:0.75rem;" onclick="cetakJadwalPerKelas(${kls.id})"><i class="fa-solid fa-file-pdf"></i> Jadwal</button>
-                    <button class="btn-warning" style="margin:0; padding:6px 10px; font-size:0.75rem;" onclick="bukaModalPlottingKelas(${kls.id})"><i class="fa-solid fa-sliders"></i> Edit</button>
-                    <button class="btn-danger" style="margin:0; padding:6px 10px; font-size:0.75rem;" onclick="hapusKelasPermanen(${kls.id})"><i class="fa-solid fa-trash"></i></button>
-                </div>
-            </td>
-        </tr>`;
-    });
-}
+    function renderTabelDaftarKelas() {
+        const elemenTbodyKelas = document.getElementById('tabel-kelas-body');
+        if (!elemenTbodyKelas) return;
+        elemenTbodyKelas.innerHTML = '';
+        const databaseKelas = getDB('pondok_kelas', []);
+        const dbSantri = getDB('pondok_santri', []);
+        if (databaseKelas.length === 0) return elemenTbodyKelas.innerHTML = '<tr><td colspan="4" align="center">Belum ada kelas.</td></tr>';
+        
+                databaseKelas.forEach(kls => {
+            const santriAktifDiKelas = dbSantri.filter(s => !s.is_alumni && (kls.santri_ids || []).includes(s.id));
+            elemenTbodyKelas.innerHTML += `<tr>
+                <td>
+                    <strong>${kls.nama}</strong><br>
+                    <span style="font-size:0.7rem; color:var(--text-muted);"><i class="fa-solid fa-user-tie"></i> Wali: ${kls.wali_kelas || 'Belum Diatur'}</span>
+                </td>
+                <td>${(kls.mapel_ids || []).length} Mapel</td>
+
+                <td>${santriAktifDiKelas.length} Santri</td>
+                <td>
+                    <div style="display:flex; gap:6px; flex-wrap:wrap;">
+                        <button class="btn-print" style="margin:0; padding:6px 10px; font-size:0.75rem;" onclick="cetakJadwalPerKelas(${kls.id})"><i class="fa-solid fa-file-pdf"></i> Jadwal</button>
+                        <button class="btn-warning" style="margin:0; padding:6px 10px; font-size:0.75rem;" onclick="bukaModalPlottingKelas(${kls.id})"><i class="fa-solid fa-sliders"></i> Edit</button>
+                        <button class="btn-danger" style="margin:0; padding:6px 10px; font-size:0.75rem;" onclick="hapusKelasPermanen(${kls.id})"><i class="fa-solid fa-trash"></i></button>
+                    </div>
+                </td>
+            </tr>`;
+        });
+    }
 
     function bukaModalPlottingKelas(idKelas) {
         const kls = getDB('pondok_kelas', []).find(k => k.id == idKelas);
@@ -4274,10 +4203,9 @@ function kirimDataAbsen() {
             ttd_mudir: base64TempImages.ttd_mudir || old.ttd_mudir,
             teks_footer: document.getElementById('setting-footer-text').value,
             teks_lulus: document.getElementById('setting-teks-lulus').value,
-                        kertas_sertifikat: document.getElementById('setting-kertas-sertifikat').value,
-            warna_barcode: document.getElementById('setting-warna-barcode').value,
+            kertas_sertifikat: document.getElementById('setting-kertas-sertifikat').value,
             font_nama: document.getElementById('setting-font-nama').value,
-            font_alamat: document.getElementById('setting-font-alamat').value,
+                        font_alamat: document.getElementById('setting-font-alamat').value,
             ukuran_qr: document.getElementById('setting-ukuran-qr').value,
             ukuran_barcode1d: document.getElementById('setting-ukuran-barcode1d').value,
             voice_aktif:             document.getElementById('setting-voice-aktif').value,
@@ -4662,7 +4590,6 @@ async function sinkronisasiKeCloud() {
             absensi: gabungDataArray(getDB('pondok_absensi', []), dataCloud.absensi, 'id_sesi'),
             kelas: gabungDataArray(getDB('pondok_kelas', []), dataCloud.kelas, 'id'),
             mapel: gabungDataArray(getDB('pondok_master_mapel', []), dataCloud.mapel, 'id'),
-            bank_mapel: dataCloud.bank_mapel ? Array.from(new Set([...getDB('pondok_bank_mapel', []), ...dataCloud.bank_mapel])) : getDB('pondok_bank_mapel', []),
             evaluasi: gabungDataArray(getDB('pondok_evaluasi', []), dataCloud.evaluasi, 'nis'),
             tagihan: gabungDataArray(getDB('pondok_tagihan_denda', []), dataCloud.tagihan, 'id_tagihan'),
             tabungan: gabungDataArray(getDB('pondok_tabungan', []), dataCloud.tabungan, 'id'),
@@ -4754,7 +4681,6 @@ async function tarikDataDariSupabase() {
             if (data.absensi) localStorage.setItem('pondok_absensi', JSON.stringify(data.absensi));
             if (data.kelas) localStorage.setItem('pondok_kelas', JSON.stringify(data.kelas));
             if (data.mapel) localStorage.setItem('pondok_master_mapel', JSON.stringify(data.mapel));
-            if (data.bank_mapel) localStorage.setItem('pondok_bank_mapel', JSON.stringify(data.bank_mapel));
             if (data.evaluasi) localStorage.setItem('pondok_evaluasi', JSON.stringify(data.evaluasi));
             if (data.tagihan) localStorage.setItem('pondok_tagihan_denda', JSON.stringify(data.tagihan));
             if (data.tabungan) localStorage.setItem('pondok_tabungan', JSON.stringify(data.tabungan)); // <-- DITAMBAHKAN
@@ -5384,11 +5310,12 @@ function pilihPresetJam(idx) {
     const terpilih = dataJam[idx];
     
     if (terpilih) {
-        // PERBAIKAN: Mengisi jam aslinya ke kolom input jam
+        // PERBAIKAN: Mengambil jam aktual (mulai), BUKAN kode string "BS" nya
         document.getElementById('input-jam-mulai').value = terpilih.mulai;
         document.getElementById('input-jam-selesai').value = terpilih.selesai;
     }
 }
+
 
 function tambahJamKustom() {
     const kode = document.getElementById('input-kode-jam').value.trim().toUpperCase();
@@ -5511,17 +5438,6 @@ function tutupKioskATM() {
     isKioskModeAktif = false;
     document.getElementById('kiosk-atm').classList.remove('aktif');
     if (document.exitFullscreen) document.exitFullscreen();
-}
-
-function verifikasiTutupATM() {
-    let pinMasukkan = prompt("Mode ATM Terkunci.\nMasukkan PIN Anda untuk menutup layar:");
-    if (pinMasukkan === null) return; 
-    
-    if (pinMasukkan === "123456" || (currentUser && currentUser.pin_login === pinMasukkan)) {
-        tutupKioskATM();
-    } else {
-        alert("Akses Ditolak! PIN salah.");
-    }
 }
 
 // 2. Mesin Slideshow Berita/Branding
@@ -5790,54 +5706,32 @@ async function hubungkanScannerWireless() {
     }
 }
 
-    function onScannerDisconnected(event) {
-        const device = event.target;
-        document.getElementById('status-koneksi-wireless').innerHTML = `<span style="color:var(--danger);"><i class="fa-solid fa-link-slash"></i> Terputus dari ${device.name || 'Scanner'}</span>`;
-        document.getElementById('ikon-bluetooth').className = "fa-brands fa-bluetooth-b fa-4x";
-        document.getElementById('ikon-bluetooth').style.color = 'var(--danger)';
-        alert(`Peringatan: Koneksi Bluetooth dengan ${device.name || 'Scanner'} terputus atau di luar jangkauan!`);
+function onScannerDisconnected(event) {
+    const device = event.target;
+    document.getElementById('status-koneksi-wireless').innerHTML = `<span style="color:var(--danger);"><i class="fa-solid fa-link-slash"></i> Terputus dari ${device.name || 'Scanner'}</span>`;
+    document.getElementById('ikon-bluetooth').className = "fa-brands fa-bluetooth-b fa-4x";
+    document.getElementById('ikon-bluetooth').style.color = 'var(--danger)';
+    alert(`Peringatan: Koneksi Bluetooth dengan ${device.name || 'Scanner'} terputus atau di luar jangkauan!`);
+}
+function stopScannerIzin() {
+    if (scannerIzin) {
+        scannerIzin.stop().then(() => {
+            document.getElementById('qr-reader-izin').style.display = 'none';
+            document.getElementById('btn-stop-camera-izin').style.display = 'none';
+            scannerIzin = null;
+        }).catch((err) => {
+            console.log("Gagal menutup kamera izin:", err);
+            // Fallback jika library nyangkut
+            document.getElementById('qr-reader-izin').style.display = 'none';
+            document.getElementById('btn-stop-camera-izin').style.display = 'none';
+        });
+    } else {
+        document.getElementById('qr-reader-izin').style.display = 'none';
+        document.getElementById('btn-stop-camera-izin').style.display = 'none';
     }
-
-    // --- TAMBAHAN SENSOR GESTURE KEMBALI (SWIPE KANAN EDGE) ---
-    let touchStartX = 0;
-    
-    document.addEventListener('touchstart', e => {
-        // Rekam titik awal jari menempel di layar
-        touchStartX = e.changedTouches[0].screenX;
-    }, {passive: true});
-    
-    document.addEventListener('touchend', e => {
-        let touchEndX = e.changedTouches[0].screenX;
-        
-        // SYARAT GESTURE: 
-        // 1. Usapan harus dimulai dari pinggir kiri banget (kurang dari 40px dari ujung layar)
-        // 2. Ditarik ke arah kanan minimal sepanjang 80px
-        if (touchStartX < 40 && (touchEndX - touchStartX > 80)) {
-            
-            // Cari elemen halaman yang SEDANG TAMPIL SAAT INI (bukan yang hidden)
-            const activeView = document.querySelector('.page-view:not(.hidden)');
-            if (activeView) {
-                // Cari apakah ada tombol kembalinya
-                const backBtn = activeView.querySelector('.back-nav');
-                if (backBtn) {
-                    if (typeof playHapticAndSound === "function") playHapticAndSound(); 
-                    
-                    // Beri efek visual sejenak layaknya diklik, lalu simulasikan klik otomatis
-                    backBtn.style.transform = "scale(0.92) translateX(-5px)";
-                    backBtn.style.background = "#000";
-                    backBtn.style.color = "#fff";
-                    
-                    setTimeout(() => {
-                        backBtn.style.transform = "";
-                        backBtn.style.background = "";
-                        backBtn.style.color = "";
-                        backBtn.click(); // Eksekusi fungsi kembali
-                    }, 100);
-                }
-            }
-        }
-    }, {passive: true});
-    // ----------------------------------------------------------
+}
 
     window.onload = initApp;
 </script>
+</body>
+</html>
