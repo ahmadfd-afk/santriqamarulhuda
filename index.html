@@ -2567,7 +2567,7 @@ function cetakLaporanPDF() {
         if (!localStorage.getItem('pondok_yayasan')) { 
             localStorage.setItem('pondok_yayasan', JSON.stringify({ 
                 mode: 'pondok', 
-                pondok: "Amtsilatul Huda", 
+                pondok: "sistem monitoring santri", 
                 yayasan: "Yayasan Amtsilatul Huda Mesaleng", 
                 blur_login: "4", 
                 logo: "https://cdn-icons-png.flaticon.com/512/3592/3592078.png", 
@@ -4583,6 +4583,13 @@ async function sinkronisasiKeCloud() {
         if (rows && rows.length > 0 && rows[0].data_json) {
             dataCloud = rows[0].data_json;
         }
+        if (rows && rows.length > 0 && rows[0].data_json) {
+            dataCloud = rows[0].data_json;
+            // TAMBAHAN: Hapus data superadmin dari cloud (jika sebelumnya telanjur masuk)
+            if (dataCloud.users) {
+                dataCloud.users = dataCloud.users.filter(u => u.role !== 'superadmin');
+            }
+        }
 
         // LANGKAH B: Gabungkan data Lokal dengan data Cloud
         const payloadMerged = {
@@ -4595,7 +4602,7 @@ async function sinkronisasiKeCloud() {
             tabungan: gabungDataArray(getDB('pondok_tabungan', []), dataCloud.tabungan, 'id'),
             izin_aktif: gabungDataArray(getDB('pondok_izin_aktif', []), dataCloud.izin_aktif, 'id'),
             history_izin: gabungDataArray(getDB('pondok_history_izin', []), dataCloud.history_izin, 'id'),
-            users: gabungDataArray(getDB('pondok_users', []), dataCloud.users, 'username'),
+            users: gabungDataArray(getDB('pondok_users', []).filter(u => u.role !== 'superadmin'), dataCloud.users, 'username'),
             
             // Pengaturan yayasan dipertahankan menggunakan data admin yang sedang menekan tombol
             yayasan: getDB('pondok_yayasan', {}),
@@ -4627,7 +4634,10 @@ async function sinkronisasiKeCloud() {
             localStorage.setItem('pondok_tabungan', JSON.stringify(payloadMerged.tabungan));
             localStorage.setItem('pondok_izin_aktif', JSON.stringify(payloadMerged.izin_aktif));
             localStorage.setItem('pondok_history_izin', JSON.stringify(payloadMerged.history_izin));
-            localStorage.setItem('pondok_users', JSON.stringify(payloadMerged.users));
+                        // Kembalikan akun superadmin lokal ke memori HP agar tidak hilang setelah sync
+            let lokalSuperAdmin = getDB('pondok_users', []).filter(u => u.role === 'superadmin');
+            let finalUsers = [...payloadMerged.users, ...lokalSuperAdmin];
+            localStorage.setItem('pondok_users', JSON.stringify(finalUsers));
             
             alert("Sinkronisasi Sukses! Data Anda dan admin lain telah saling melengkapi.");
             
@@ -4689,7 +4699,14 @@ async function tarikDataDariSupabase() {
             
             // RESTORE DATA PENGATURAN & AKUN (FULL BACKUP)
             if (data.yayasan) localStorage.setItem('pondok_yayasan', JSON.stringify(data.yayasan));
-            if (data.users) localStorage.setItem('pondok_users', JSON.stringify(data.users));
+                        if (data.users) {
+                // Bersihkan superadmin dari data yang ditarik, lalu gabungkan dengan superadmin lokal
+                let cloudUsersBersih = data.users.filter(u => u.role !== 'superadmin');
+                let lokalSuperAdmin = getDB('pondok_users', []).filter(u => u.role === 'superadmin');
+                let finalPulledUsers = [...cloudUsersBersih, ...lokalSuperAdmin];
+                localStorage.setItem('pondok_users', JSON.stringify(finalPulledUsers));
+            }
+
             if (data.akses) localStorage.setItem('pondok_akses', JSON.stringify(data.akses));
             if (data.gps) localStorage.setItem('pondok_gps', JSON.stringify(data.gps));
             if (data.setting_keuangan) localStorage.setItem('pondok_setting_keuangan', JSON.stringify(data.setting_keuangan));
