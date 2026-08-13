@@ -1796,12 +1796,14 @@ body {
             /* =================================================== */
             
         /* TAMBAHKAN KODE INI AGAR BACKGROUND TIDAK BOCOR SAAT PRINT */
-        .id-card-wrapper { 
+                .id-card-wrapper { 
             position: relative !important; 
             overflow: hidden !important; 
             background: #ffffff;
             border-radius: 14px;
             box-sizing: border-box;
+            page-break-inside: avoid !important; /* Mencegah kartu terpotong */
+            break-inside: avoid !important;      /* Mencegah kartu terpotong (browser modern) */
         }
         
         .id-card-wrapper.portrait { width: 204px; height: 324px; max-height: 324px; }
@@ -2025,9 +2027,7 @@ body {
                                 <div class="id-back-title" style="font-size:0.75rem; font-weight:bold; color:var(--primary); border-bottom:1px solid #ccc; margin-bottom:4px;">${yayasan.pondok || 'INSTANSI'}</div>
                                 <div class="id-back-rules" style="font-size: 0.55rem; text-align:left;">${formatTertib}</div>
                             </div>
-                            <div class="id-back-right" style="width:100%; border-top:1px dashed #999; padding-top:8px; display:flex; flex-direction:row; justify-content:space-between; align-items:center; gap:5px;">
-                                // GANTI BAGIAN id-back-right DI DALAM cetakKolektifF4Belakang
-<div class="id-back-right" style="width:100%; border-top:1px dashed #999; padding-top:15px; display:flex; flex-direction:column; justify-content:center; align-items:center; gap:10px;">
+                            <div class="id-back-right" style="width:100%; border-top:1px dashed #999; padding-top:15px; display:flex; flex-direction:column; justify-content:center; align-items:center; gap:10px;">
     <div class="id-qr-back" id="qr-back-${santri.nis}" data-payload='${qrPayload}' style="width:65px; height:65px; min-width:65px; padding:2px; border:2px solid var(--primary); background:#fff; border-radius:6px; display:flex; justify-content:center; align-items:center;"></div>
     <div class="id-back-ttd" style="text-align:center; font-size:0.6rem; color:var(--primary); font-weight:bold; width:100%;">
         <div>Mengetahui,</div>
@@ -2035,6 +2035,7 @@ body {
         <div>${yayasan.mudir || 'Pimpinan'}</div>
     </div>
 </div>
+
 
                                 <div class="id-qr-back" id="qr-back-${santri.nis}" data-payload='${qrPayload}' style="width:55px; height:55px; min-width:55px; padding:2px; border:2px solid var(--primary); background:#fff; border-radius:6px; display:flex; justify-content:center; align-items:center;"></div>
                             </div>
