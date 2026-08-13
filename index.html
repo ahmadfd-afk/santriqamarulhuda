@@ -469,58 +469,9 @@
     transform: scale(0.95); 
 }
 /* -------------------------------------- */
-/* --- MENCEGAH BENTROK GESTURE BAWAAN OS/BROWSER --- */
-body {
-    overscroll-behavior-x: none !important; /* Memblokir swipe-to-go-back bawaan sistem */
-}
-/* -------------------------------------------------- */
-/* ANIMASI SPLASH & STAGGERED */
-#splash-screen {
-    position: fixed; inset: 0; background: linear-gradient(135deg, var(--primary), var(--primary-light));
-    z-index: 9999999; display: flex; align-items: center; justify-content: center;
-    transition: opacity 0.6s ease, visibility 0.6s ease;
-}
-.pulse-logo { width: 110px; animation: pulse 1.5s infinite; border-radius: 50%; box-shadow: 0 0 20px rgba(255,255,255,0.2); }
-@keyframes pulse {
-    0% { transform: scale(0.95); opacity: 0.8; }
-    50% { transform: scale(1.05); opacity: 1; }
-    100% { transform: scale(0.95); opacity: 0.8; }
-}
-
-@keyframes staggeredFadeIn {
-    from { opacity: 0; transform: translateY(20px); }
-    to { opacity: 1; transform: translateY(0); }
-}
-.stagger-1 { animation: staggeredFadeIn 0.6s cubic-bezier(0.25, 1, 0.5, 1) forwards; opacity: 0; animation-delay: 0.1s; }
-.stagger-2 { animation: staggeredFadeIn 0.6s cubic-bezier(0.25, 1, 0.5, 1) forwards; opacity: 0; animation-delay: 0.25s; }
-.stagger-3 { animation: staggeredFadeIn 0.6s cubic-bezier(0.25, 1, 0.5, 1) forwards; opacity: 0; animation-delay: 0.4s; }
-
-/* BADGE OFFLINE */
-/* Ganti menjadi CSS baru ini: */
-.badge-koneksi {
-    position: fixed; 
-    bottom: 85px; /* Jarak pas di atas bar menu bawah */
-    right: 18px; 
-    font-size: 0.65rem; 
-    padding: 4px 8px; 
-    border-radius: 12px; 
-    font-weight: bold; 
-    z-index: 1001; 
-    transition: 0.3s;
-    box-shadow: 0 4px 10px rgba(0,0,0,0.2); /* Tambahan shadow agar lebih terlihat */
-}
-
-.koneksi-online { background: rgba(52, 199, 89, 0.2); color: #E8F8F5; border: 1px solid rgba(52, 199, 89, 0.5); }
-.koneksi-offline { background: rgba(255, 149, 0, 0.9); color: white; border: 1px solid #fff; animation: pulse 2s infinite;}
-
     </style>
 </head>
 <body>
-    <div id="splash-screen" style="flex-direction: column; gap: 15px;">
-    <img src="icon-512.png" id="splash-logo" class="pulse-logo" alt="Loading">
-    <h2 id="splash-title" style="color: white; font-size: 1.2rem; font-weight: bold; text-align: center; text-shadow: 0 2px 5px rgba(0,0,0,0.3);">Memuat...</h2>
-</div>
-    <!-- Elemen app-container tetap di bawah ini -->
 
 <div class="app-container" id="main-app-container">
     <header id="app-header" class="hidden">
@@ -574,7 +525,7 @@ body {
         <div id="view-login" class="page-view login-wrapper" style="background-image: url('https://images.unsplash.com/photo-1519817650390-28a59b20892c?q=80&w=1000&auto=format&fit=crop');">
             <div class="login-overlay"></div>
             <div class="card glass-card-login">
-                                   <div class="stagger-1" style="text-align: center; margin-bottom: 14px;">
+                <div style="text-align: center; margin-bottom: 14px;">
                     <img src="icon-512.png" id="login-logo" style="width: 110px; height: 110px; border-radius: 50%; border: 3px solid var(--accent); padding: 5px; background: rgba(255,255,255,0.85); backdrop-filter: blur(10px); box-shadow: 0 4px 15px rgba(0,0,0,0.3);" alt="Logo">
                     <h2 style="font-weight: 800; margin-top:8px;" id="login-pondok-name">Sistem Monitoring</h2>
                     <p style="color: rgba(255,255,255,0.8); font-size: 0.72rem; margin-top: 2px;">Silakan masuk untuk melanjutkan</p>
@@ -584,7 +535,7 @@ body {
                     Kredensial atau PIN Salah!
                 </div>
 
-                <div class="stagger-2" style="display:flex; gap:8px; margin-bottom: 12px; justify-content:center;">
+                <div style="display:flex; gap:8px; margin-bottom: 12px; justify-content:center;">
                     <button type="button" id="tab-btn-pin" class="btn-primary" style="margin:0; padding:8px 12px; font-size:0.75rem; border-radius:15px; width:auto;" onclick="switchModeLogin('pin')">
                         <i class="fa-solid fa-key"></i> Mode PIN
                     </button>
@@ -593,12 +544,12 @@ body {
                     </button>
                 </div>
 
-                <div id="login-area-pin" class="stagger-3">
+                <div id="login-area-pin">
                     <input type="password" inputmode="numeric" pattern="[0-9]*" id="login-pin-input" maxlength="6" placeholder="Masukkan PIN 4-6 Angka..." style="text-align: center; font-weight: bold; letter-spacing: 4px; font-size: 1.1rem;">
                     <button class="btn-primary" onclick="prosesLoginPIN()" style="font-size: 0.88rem; padding: 12px; border-radius: 12px; margin-top: 5px;">MASUK DENGAN PIN</button>
                 </div>
 
-                <div id="login-area-user" class="hidden stagger-3">
+                <div id="login-area-user" class="hidden">
                     <input type="text" id="login-username" placeholder="Masukkan Username...">
                     <input type="password" id="login-password" placeholder="Masukkan Password...">
                     <button class="btn-primary" onclick="prosesLogin()" style="font-size: 0.88rem; padding: 12px; border-radius: 12px; margin-top: 5px;">MASUK SISTEM</button>
@@ -1730,24 +1681,16 @@ body {
     const yayasanConfig = getDB('pondok_yayasan', {});
     const ukuranKertasDinamic = yayasanConfig.kertas_sertifikat || 'A4';
     
-    // KODE PERBAIKAN: Ambil variabel warna aktif dari aplikasi untuk dikirim ke print
-    const rootStyles = getComputedStyle(document.documentElement);
-    const varPrimary = rootStyles.getPropertyValue('--primary').trim() || '#04432A';
-    const varPrimaryLight = rootStyles.getPropertyValue('--primary-light').trim() || '#0B6B46';
-    const varAccent = rootStyles.getPropertyValue('--accent').trim() || '#D4AF37';
-
     const iframeLama = document.getElementById('iframe-pencetakan-aman');
     if (iframeLama) iframeLama.remove();
     
     const iframe = document.createElement('iframe'); 
     iframe.id = 'iframe-pencetakan-aman'; 
-    
-    // KODE PERBAIKAN: Jangan posisikan di bottom/right, ini penyebab hasil print lari ke pojok!
     iframe.style.position = 'fixed'; 
-    iframe.style.top = '-10000px'; 
-    iframe.style.left = '-10000px'; 
-    iframe.style.width = '100vw'; 
-    iframe.style.height = '100vh'; 
+    iframe.style.right = '0'; 
+    iframe.style.bottom = '0'; 
+    iframe.style.width = '0'; 
+    iframe.style.height = '0'; 
     iframe.style.border = '0'; 
     document.body.appendChild(iframe);
     
@@ -1759,14 +1702,9 @@ body {
     <meta charset="utf-8">
     <title>Cetak Dokumen</title>
     <style>
-        :root {
-            --primary: ${varPrimary};
-            --primary-light: ${varPrimaryLight};
-            --accent: ${varAccent};
-        }
         @page {
             size: ${ukuranKertasDinamic} ${orientasiHalaman === 'landscape' ? 'landscape' : 'portrait'};
-            margin: 8mm; 
+            margin: 8mm; /* Margin dipadatkan agar tidak memicu halaman ke-2 */
         }
         * {
             -webkit-print-color-adjust: exact !important;
@@ -1774,44 +1712,139 @@ body {
             box-sizing: border-box !important;
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
         }
-                html, body {
-            margin: 0; padding: 0; width: 100%; background: #fff !important; color: #000;
-        }
-                    /* =================================================== */
-            /* KODE PERBAIKAN: CSS TABEL UNTUK CETAK PDF/PRINT     */
-            /* =================================================== */
-            table { 
-                width: 100%; 
-                border-collapse: collapse; 
-                margin-bottom: 15px; 
-                font-size: 11px; 
-            }
-            /* ... kode tabel lainnya ... */
-            table th { 
-                background-color: var(--primary) !important; 
-                color: white !important; 
-                font-weight: bold; 
-                text-align: center; 
-            }
-            /* =================================================== */
-            
-        /* TAMBAHKAN KODE INI AGAR BACKGROUND TIDAK BOCOR SAAT PRINT */
-                      .id-card-wrapper { 
-            position: relative !important; 
-            overflow: hidden !important; 
-            background: #ffffff;
-            border-radius: 14px;
-            box-sizing: border-box;
-            border: 1px solid #ccc !important; /* Tambahan frame border agar presisi di kertas */
-            page-break-inside: avoid !important;
-            break-inside: avoid !important;
+        html, body {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            background: #fff !important;
+            color: #000;
         }
         
-        .id-card-wrapper.portrait { width: 204px; height: 324px; max-height: 324px; }
+        /* ATURAN TABEL AGAR RAPI & TIDAK TERPOTONG JELEK */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 12px;
+            font-size: 11px;
+            page-break-inside: auto;
+        }
+        tr {
+            page-break-inside: avoid;
+            page-break-after: auto;
+        }
+        th, td {
+            border: 1px solid #000;
+            padding: 6px 8px;
+            text-align: left;
+            vertical-align: middle;
+        }
+        th {
+            background-color: #e0e0e0 !important;
+            font-weight: bold;
+        }
+        
+        /* CSS SERTIFIKAT - DIKUNCI PAS 1 LEMBAR A4 (TIDAK JADI 2 HALAMAN) */
+        .sertifikat-wrapper {
+            width: 100%;
+            height: ${orientasiHalaman === 'landscape' ? '188mm' : '275mm'};
+            max-height: ${orientasiHalaman === 'landscape' ? '188mm' : '275mm'};
+            background-color: #fff;
+            background-size: cover;
+            background-position: center;
+            border: 8px solid #04432A;
+            padding: 16px 24px;
+            text-align: center;
+            font-family: 'Times New Roman', serif;
+            position: relative;
+            margin: 0 auto;
+            color: #111;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            overflow: hidden;
+            page-break-inside: avoid;
+            page-break-after: avoid;
+        }
+        .sertifikat-header img {
+            width: 70px;
+            height: 70px;
+            margin-bottom: 4px;
+        }
+        .sertifikat-title {
+            font-size: 1.8rem;
+            font-weight: bold;
+            color: #04432A;
+            text-transform: uppercase;
+            margin-bottom: 2px;
+            letter-spacing: 2px;
+        }
+        .sertifikat-subtitle {
+            font-size: 0.95rem;
+            color: #333;
+            margin-bottom: 10px;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            font-weight: bold;
+        }
+        .sertifikat-body {
+            font-size: 1.05rem;
+            line-height: 1.5;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+        .sertifikat-name {
+            font-size: 2.1rem;
+            font-weight: bold;
+            font-style: italic;
+            color: #000;
+            border-bottom: 2px solid #ccc;
+            display: inline-block;
+            padding: 0 20px;
+            margin: 8px auto;
+            text-transform: uppercase;
+        }
+        .sertifikat-predikat {
+            font-size: 1.25rem;
+            font-weight: bold;
+            color: #D4AF37;
+            margin: 8px 0;
+        }
+        .sertifikat-footer {
+            margin-top: 10px;
+            display: flex;
+            justify-content: flex-end;
+            padding-right: 30px;
+            text-align: center;
+        }
+        .sertifikat-ttd img {
+            max-height: 50px;
+            margin: 4px auto;
+            display: block;
+        }
 
+                                /* CSS ID CARD & LAINNYA */
+        :root {
+            --primary: #04432A;
+            --primary-light: #0B6B46;
+            --accent: #D4AF37;
+        }
+
+        .id-card-wrapper {
+            width: 324px; height: 204px; max-height: 204px;
+            /* Efek Liquid Glass & Border yang dipertahankan untuk print */
+            background-color: rgba(255, 255, 255, 0.35) !important; 
+            backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); 
+            border: 1px solid rgba(255, 255, 255, 0.6); border-radius: 14px; 
+            overflow: hidden; position: relative; box-shadow: 0 15px 35px rgba(0,0,0,0.2); 
+            display: flex; flex-direction: column; page-break-inside: avoid;
+        }
+        .id-card-wrapper.portrait { width: 204px; height: 324px; max-height: 324px; }
         
         .id-card-wrapper::before {
             content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 50%;
+            /* Mempertahankan Gradasi Warna */
             background: linear-gradient(135deg, var(--primary), var(--primary-light)) !important;
             clip-path: polygon(0 0, 100% 0, 100% 45%, 0% 100%); z-index: 0;
         }
@@ -1824,48 +1857,117 @@ body {
         }
         .id-card-wrapper.portrait::after { height: 42%; clip-path: polygon(0 0, 100% 0, 100% 70%, 0% 105%); }
 
-        /* PERBAIKAN: Layout Simetris & Rata Tengah Untuk Depan (Landscape) */
         .id-header {
             background: transparent !important; color: white !important; border: none !important;
-            padding: 12px 14px 4px 14px; text-align: center; display: flex; align-items: center; justify-content: center; gap: 10px; z-index: 1; position: relative;
+            padding: 12px 14px 8px 14px; text-align: left; display: flex; align-items: center; justify-content: flex-start; gap: 10px; z-index: 1; position: relative;
         }
-        .id-card-wrapper.portrait .id-header { flex-direction: column; padding: 12px 10px 4px 10px; gap: 4px; }
+        .id-card-wrapper.portrait .id-header { flex-direction: column; padding: 12px 10px 4px 10px; gap: 4px; text-align: center; }
         
-        .id-header img { width: 32px; height: 32px; border-radius: 50%; background: rgba(255,255,255,0.95) !important; padding: 3px; object-fit: contain; }
+        .id-header img { width: 32px; height: 32px; border-radius: 50%; background: rgba(255,255,255,0.95) !important; padding: 3px; object-fit: contain; box-shadow: 0 4px 10px rgba(0,0,0,0.15); }
         .id-header h4 { font-size: 0.85rem; margin: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 220px; text-shadow: 1px 1px 3px rgba(0,0,0,0.4); }
         .id-header p { font-size: 0.55rem; color: #F4E29F !important; margin: 0; text-shadow: 1px 1px 2px rgba(0,0,0,0.4); }
 
         .id-body {
-            padding: 6px 14px 12px 14px; display: flex; gap: 8px; background: transparent !important;
-            flex: 1; position: relative; align-items: center; justify-content: space-between; overflow: hidden; z-index: 1;
+            padding: 6px 14px 12px 14px; display: flex; gap: 12px; background: transparent !important;
+            flex: 1; position: relative; align-items: center; overflow: hidden; z-index: 1;
         }
         .id-card-wrapper.portrait .id-body { flex-direction: column; align-items: center; justify-content: flex-start; gap: 4px; padding: 4px 10px 25px 10px; }
         
-        .id-photo { width: 65px; height: 85px; object-fit: cover; border: 2px solid rgba(255,255,255,0.9); border-radius: 10px; flex-shrink: 0; }
+        .id-photo { width: 65px; height: 85px; object-fit: cover; border: 2px solid rgba(255,255,255,0.9); border-radius: 10px; background: #eee; flex-shrink: 0; box-shadow: 0 4px 10px rgba(0,0,0,0.15); }
         .id-card-wrapper.portrait .id-photo { width: 60px; height: 75px; margin-top: 0; }
 
         .id-details {
-            flex: 1; font-size: 0.65rem; line-height: 1.4; color: #111; font-weight: bold; text-align: center; overflow: hidden;
-            background: transparent !important; padding: 0 2px; border: none; display: flex; flex-direction: column; align-items: center; justify-content: center;
+            flex: 1; font-size: 0.65rem; line-height: 1.4; color: #111; font-weight: bold; text-align: left; overflow: hidden;
+            background: transparent !important; padding: 0 2px; border: none; border-radius: 0; box-shadow: none;
         }
-        .id-card-wrapper.portrait .id-details { width: 100%; }
-        .id-details strong { color: var(--primary) !important; font-size: 0.85rem; display: block; margin-bottom: 2px; text-transform: uppercase; }
+        .id-card-wrapper.portrait .id-details { text-align: center; width: 100%; }
+        .id-details strong { color: var(--primary) !important; font-size: 0.85rem; display: block; margin-bottom: 2px; border-bottom: none; text-transform: uppercase; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
-        .id-footer-custom { background: rgba(4, 67, 42, 0.85) !important; backdrop-filter: blur(5px); color: white !important; text-align: center; font-size: 0.6rem; padding: 4px; font-weight: bold; width: 100%; z-index: 10; position: absolute; bottom: 0; left: 0; border-top: 1px solid rgba(255,255,255,0.3); }
+                .id-footer-custom { background: rgba(4, 67, 42, 0.85) !important; backdrop-filter: blur(5px); color: white !important; text-align: center; font-size: 0.6rem; padding: 4px; font-weight: bold; width: 100%; z-index: 10; position: absolute; bottom: 0; left: 0; border-top: 1px solid rgba(255,255,255,0.3); }
         
-        .id-qr-depan { width: 65px !important; display: flex; align-items: center; justify-content: center; margin: 0; background: transparent !important;}
+        /* Barcode 1D Print Dibuat Auto */
+        .id-qr-depan { width: auto !important; height: auto !important; min-width: 60px; padding: 3px; background: white !important; border-radius: 8px; display: flex; align-items: center; justify-content: center; margin-left: auto; box-shadow: 0 4px 12px rgba(0,0,0,0.15); }
         .id-card-wrapper.portrait .id-qr-depan { margin: 6px auto 0 auto; width: auto !important; max-width: 90% !important; }
         
-                #sisi-belakang-kartu { position: relative !important; z-index: 10 !important; }
-        .id-back-content { position: relative !important; z-index: 10 !important; background-color: transparent !important; } /* Diubah ke transparan agar ornamen warna belakang muncul */
+        /* KODE PERBAIKAN: Memaksa teks belakang di atas ornamen gambar */
+        #sisi-belakang-kartu {
+            position: relative !important;
+            z-index: 10 !important;
+        }
+        .id-back-content {
+            position: relative !important;
+            z-index: 10 !important;
+            background-color: #ffffff !important;
+        }
         
-        /* PERBAIKAN: QR Rata Tengah Sempurna untuk Portrait Belakang */
-        .id-card-wrapper.portrait .id-back-content { flex-direction: column !important; align-items: center !important; justify-content: center !important; }
-        .id-card-wrapper.portrait .id-back-left { display: none !important; /* Disembunyikan agar QR murni rata tengah di portrait */ }
-        .id-card-wrapper.portrait .id-back-right { border: none !important; padding: 0 !important; width: 100% !important; flex-direction: column !important; justify-content: center !important; align-items: center !important; gap: 12px !important; }
+        /* KODE PERBAIKAN: Meluruskan Posisi Kartu Belakang Print Mode Portrait */
+        .id-card-wrapper.portrait .id-back-content { flex-direction: column !important; text-align: center !important; }
+        .id-card-wrapper.portrait .id-back-left { text-align: left !important; align-items: stretch !important; width: 100% !important; }
+        .id-card-wrapper.portrait .id-back-title, .id-card-wrapper.portrait .id-back-ttd { text-align: center !important; }
+        .id-card-wrapper.portrait .id-back-right { border-left: none !important; border-top: 1px dashed #999 !important; padding-left: 0 !important; padding-top: 8px !important; width: 100% !important; margin-top: auto !important; flex-direction: row !important; justify-content: space-between !important; }
 
-        .kolektif-grid-gabung { display: flex; flex-wrap: wrap; justify-content: center; gap: 12px; padding-bottom: 15px; }
-        /* ... (BIARKAN CSS SURAT IZIN TETAP SEPERTI ASLINYA) ... */
+        
+           .kolektif-grid-gabung {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 12px;
+            padding-bottom: 15px;
+        }
+
+        
+        .surat-izin-box {
+            border: 2px solid #04432A;
+            padding: 25px;
+            border-radius: 8px;
+            background: #fff;
+            color: #111;
+            font-size: 13px;
+            line-height: 1.6;
+        }
+        .surat-header {
+            text-align: center;
+            border-bottom: 3px double #04432A;
+            padding-bottom: 12px;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+        }
+        .surat-header img { width: 48px; height: 48px; object-fit: contain; }
+        .surat-header-text h3 {
+            color: #04432A;
+            margin: 0;
+            font-size: 17px;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+        .surat-no {
+            text-align: center;
+            font-weight: bold;
+            font-size: 14px;
+            text-decoration: underline;
+            margin-bottom: 15px;
+            color: #04432A;
+        }
+        .evaluasi-izin-box {
+            background: #f8f9fa;
+            border: 1px solid #D4AF37;
+            border-left: 4px solid #04432A;
+            padding: 10px 14px;
+            border-radius: 6px;
+            margin: 12px 0;
+            font-size: 12px;
+        }
+        .surat-ttd-grid {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 35px;
+            text-align: center;
+            font-size: 12px;
+            font-weight: bold;
+        }
     </style>
     </head>
     <body>${htmlIsiKonten}</body>
@@ -1873,8 +1975,12 @@ body {
     doc.close();
     
     setTimeout(() => { 
-        try { iframe.contentWindow.focus(); iframe.contentWindow.print(); } 
-        catch(err) { alert("Fitur Print dipicu melalui dialog browser."); } 
+        try { 
+            iframe.contentWindow.focus(); 
+            iframe.contentWindow.print(); 
+        } catch(err) { 
+            alert("Fitur Print dipicu melalui dialog browser."); 
+        } 
     }, 800);
 }
 
@@ -1972,11 +2078,7 @@ body {
         alamatEl.style.fontSize = sizeFontAlamatPrint + 'px';
     });
 
-            // KODE PERBAIKAN: Looping menggunakan JsBarcode, bukan QRCode
-    
-    // 1. TAMBAHKAN VARIABEL WARNA DI SINI
-    const warnaGarisBarcode = dataYayasan.warna_barcode || "#000000";
-
+        // KODE PERBAIKAN: Looping menggunakan JsBarcode, bukan QRCode
     databaseSantri.forEach(santri => {
         const wadahBarcode = containerTemp.querySelector(`#barcode-gabung-${santri.nis}`);
         if (wadahBarcode && typeof JsBarcode !== 'undefined') {
@@ -1987,12 +2089,12 @@ body {
                     height: size1DPrint,
                     displayValue: false,
                     margin: 10, /* Margin ditambah (white space) mempercepat scan */
-                    background: "transparent",
-                    lineColor: warnaGarisBarcode /* 2. MASUKKAN WARNA KE DALAM PARAMETER INI */
+                    background: "transparent"
                 });
             } catch(err) { console.log("Barcode error:", err); }
         }
     });
+
 
     setTimeout(() => { 
         const canvases = containerTemp.querySelectorAll('canvas');
@@ -2006,14 +2108,10 @@ body {
         containerTemp.remove();
     }, 600);
 }
-        function cetakKolektifF4Belakang(orientasi = 'portrait') {
+    function cetakKolektifF4Belakang(orientasi = 'portrait') {
         let databaseSantri = getDB('pondok_santri', []).filter(s => !s.is_alumni); 
         if (databaseSantri.length === 0) return alert("Belum ada data santri aktif.");
         const yayasan = getDB('pondok_yayasan', {});
-        
-        // Menarik custom background gambar (wallpaper) jika diatur oleh pengguna
-        let bgCardStyle = yayasan.bg_idcard ? `background-image: url('${yayasan.bg_idcard}');` : ''; 
-        
         const teksTertib = yayasan.tata_tertib || "1. Wajib menjaga tata tertib...";
         const daftarPoin = teksTertib.split('\n').filter(baris => baris.trim() !== '');
         const formatTertib = daftarPoin.map(baris => `<div class="poin-tertib">${baris}</div>`).join('');
@@ -2022,23 +2120,23 @@ body {
         databaseSantri.forEach((santri) => {
             let qrPayload = JSON.stringify({ n: santri.nis, u: supabaseConfig.url || "", k: supabaseConfig.key || "" });
             htmlKartuKolektif += `
-                <div class="id-card-wrapper portrait" style="${bgCardStyle}">
+                <div class="id-card-wrapper portrait">
                     <div id="sisi-belakang-kartu" style="height:100%; display:flex; flex-direction:column;">
-                        <div class="id-header" style="padding:12px 10px 4px 10px; background:transparent; text-align:center;">
-                            <h4 style="font-size:0.75rem; margin:0; text-transform:uppercase; color:white; font-weight:bold; letter-spacing:0.5px; text-shadow:1px 1px 3px rgba(0,0,0,0.4);">SISTEM MONITORING SANTRI</h4>
+                        <div class="id-header" style="padding:6px; background:linear-gradient(135deg, var(--primary), var(--primary-light));">
+                            <h4 style="font-size:0.75rem; margin:0; text-transform: uppercase; color:white; text-align:center;">SISTEM MONITORING SANTRI</h4>
                         </div>
-                        <div class="id-back-content" style="display:flex; flex-direction:column; padding:10px; flex:1; background:transparent; text-align:center;">
-                            <div class="id-back-left" style="width:100%; flex:1; text-align:left;">
-                                <div class="id-back-title" style="font-size:0.75rem; font-weight:bold; color:var(--primary); border-bottom:1px solid var(--primary); margin-bottom:4px; text-align:center;">${yayasan.pondok || 'INSTANSI'}</div>
-                                <div class="id-back-rules" style="font-size:0.55rem; text-align:left; color:#111; font-weight:bold;">${formatTertib}</div>
+                        <div class="id-back-content" style="display:flex; flex-direction:column; padding:10px; flex:1; background:rgba(255, 255, 255, 0.9); text-align:center;">
+                            <div class="id-back-left" style="width:100%; flex:1;">
+                                <div class="id-back-title" style="font-size:0.75rem; font-weight:bold; color:var(--primary); border-bottom:1px solid #ccc; margin-bottom:4px;">${yayasan.pondok || 'INSTANSI'}</div>
+                                <div class="id-back-rules" style="font-size: 0.55rem; text-align:left;">${formatTertib}</div>
                             </div>
-                            <div class="id-back-right" style="width:100%; border-top:1px dashed #999; padding-top:10px; display:flex; flex-direction:row; justify-content:space-between; align-items:center; gap:8px;">
-                                <div class="id-back-ttd" style="text-align:center; font-size:0.55rem; color:var(--primary); font-weight:bold; flex:1;">
+                            <div class="id-back-right" style="width:100%; border-top:1px dashed #999; padding-top:8px; display:flex; flex-direction:row; justify-content:space-between; align-items:center; gap:5px;">
+                                <div class="id-back-ttd" style="text-align:left; font-size:0.5rem; color:var(--primary); font-weight:bold; width:50%;">
                                     <div>Mengetahui,</div>
-                                    ${yayasan.ttd_mudir ? `<img src="${yayasan.ttd_mudir}" style="height:30px; margin:4px auto; display:block;">` : '<div style="height:30px;"></div>'}
+                                    ${yayasan.ttd_mudir ? `<img src="${yayasan.ttd_mudir}" style="height:25px; margin:2px 0; display:block;">` : '<div style="height:25px;"></div>'}
                                     <div>${yayasan.mudir || 'Pimpinan'}</div>
                                 </div>
-                                <div class="id-qr-back" id="qr-back-${santri.nis}" data-payload='${qrPayload}' style="width:60px; height:60px; min-width:60px; padding:2px; border:2px solid var(--primary); background:#fff; border-radius:6px; display:flex; justify-content:center; align-items:center;"></div>
+                                <div class="id-qr-back" id="qr-back-${santri.nis}" data-payload='${qrPayload}' style="width:55px; height:55px; min-width:55px; padding:2px; border:2px solid var(--primary); background:#fff; border-radius:6px; display:flex; justify-content:center; align-items:center;"></div>
                             </div>
                         </div>
                     </div>
@@ -2047,11 +2145,8 @@ body {
         htmlKartuKolektif += `</div>`;
         
         const containerTemp = document.createElement('div'); 
-        containerTemp.style.position = 'absolute'; 
-        containerTemp.style.left = '-9999px'; 
-        containerTemp.style.top = '-9999px'; 
+        containerTemp.style.position = 'fixed'; containerTemp.style.right = '200vw'; 
         document.body.appendChild(containerTemp); 
-
         containerTemp.innerHTML = htmlKartuKolektif;
         
         const sizeQRPrint = parseInt(yayasan.ukuran_qr) || 60;
@@ -2074,7 +2169,6 @@ body {
             containerTemp.remove();
         }, 600);
     }
-
 
     function cetakRekapSantriPDF() {
         let databaseSantri = getDB('pondok_santri', []).filter(s => modeTampilanSantri === 'alumni' ? s.is_alumni : !s.is_alumni); 
@@ -2558,49 +2652,12 @@ function cetakLaporanPDF() {
 
         loadIdentitasApp();
 
-                const savedSession = localStorage.getItem('pondok_active_user');
+        const savedSession = localStorage.getItem('pondok_active_user');
         if (savedSession) { currentUser = getDB('pondok_active_user', null); if(currentUser && currentUser.role) { masukKeSistemSetelahLogin(false); } }
         
         // Mulai PWA Watchdog untuk mendeteksi jadwal & pengingat secara permanen
         mulaiWatchdogJadwal();
-
-        // 2. IMPROVEMENT: Matikan Splash Screen perlahan saat semua sudah siap
-        setTimeout(() => {
-            const splash = document.getElementById('splash-screen');
-            if (splash) {
-                splash.style.opacity = '0';
-                setTimeout(() => splash.remove(), 600);
-            }
-        }, 1200);
-
-        // 3. IMPROVEMENT: Pantau Status Internet (Online/Offline)
-        window.addEventListener('online', updateOnlineStatus);
-        window.addEventListener('offline', updateOnlineStatus);
-        updateOnlineStatus(); // Eksekusi saat inisialisasi awal
     }
-
-    // Fungsi Deteksi Status Internet
-    function updateOnlineStatus() {
-        let badge = document.getElementById('badge-koneksi-status');
-        if (!badge) {
-            badge = document.createElement('div');
-            badge.id = 'badge-koneksi-status';
-            badge.className = 'badge-koneksi';
-            const targetContainer = document.querySelector('.header-top');
-            if(targetContainer) targetContainer.appendChild(badge);
-        }
-        
-        if (navigator.onLine) {
-            badge.className = 'badge-koneksi koneksi-online';
-            badge.innerText = 'Mode: Online';
-            setTimeout(() => badge.style.opacity = '0', 3000); // Hilang sendiri kalau aman
-        } else {
-            badge.style.opacity = '1';
-            badge.className = 'badge-koneksi koneksi-offline';
-            badge.innerText = 'MODE OFFLINE';
-        }
-    }
-
 
     // ═══ PWA WATCHDOG ENGINE (PERMANEN MUTLAK) ═══
     function mulaiWatchdogJadwal() {
@@ -2676,47 +2733,19 @@ function cetakLaporanPDF() {
     }
 }
 
-        function masukKeSistemSetelahLogin(playSuara = true) {
-    document.getElementById('header-user-name').innerText = currentUser.nama || "User";
-    document.getElementById('header-user-photo').src = currentUser.foto || "https://cdn-icons-png.flaticon.com/512/149/149071.png";
-    document.getElementById('dropdown-user-role').innerText = currentUser.role.toUpperCase();
+    function masukKeSistemSetelahLogin(playSuara = true) {
+        document.getElementById('header-user-name').innerText = currentUser.nama || "User";
+        document.getElementById('header-user-photo').src = currentUser.foto || "https://cdn-icons-png.flaticon.com/512/149/149071.png";
+        document.getElementById('dropdown-user-role').innerText = currentUser.role.toUpperCase();
 
-    // 1. IMPROVEMENT: Sapaan Waktu Kontekstual & Personal
-    const jamSkrg = new Date().getHours();
-    let sapaan = "Selamat Malam,";
-    if (jamSkrg >= 3 && jamSkrg < 10) sapaan = "Selamat Pagi,";
-    else if (jamSkrg >= 10 && jamSkrg < 15) sapaan = "Selamat Siang,";
-    else if (jamSkrg >= 15 && jamSkrg < 18) sapaan = "Selamat Sore,";
-    
-    const sapaanEl = document.getElementById('greeting-text');
-    if (sapaanEl) sapaanEl.innerText = sapaan;
-
-    terapkanTemaBerdasarkanRole(currentUser.role);
-    document.getElementById('view-login').classList.add('hidden'); 
-    document.getElementById('app-header').classList.remove('hidden'); 
-    document.getElementById('dashboard-wrapper').classList.remove('hidden'); 
-    document.getElementById('app-nav').classList.remove('hidden');
-
-    renderMenuBerdasarkanAkses();
-    if (playSuara) { setTimeout(jalankanSapaanSuara, 300); }
-    
-    // --- PENGAMAN TAB ANTI-BLANK ---
-    const lastTab = localStorage.getItem('pondok_active_tab') || 'view-dashboard';
-    document.querySelectorAll('.page-view').forEach(el => el.classList.add('hidden'));
-    
-    const targetTab = document.getElementById(lastTab);
-// Cek apakah tab yang tersimpan benar-benar ada di dalam HTML
-if (targetTab && lastTab !== 'view-login') {
-    targetTab.classList.remove('hidden');
-    if (lastTab !== 'view-dashboard') bukaFungsiTabSesuaiTujuan(lastTab);
-} else {
-    // Jika gagal / tidak ada, paksa kembali ke dashboard utama
-    document.getElementById('view-dashboard').classList.remove('hidden');
-    localStorage.setItem('pondok_active_tab', 'view-dashboard');
-}
-
-        document.getElementById('view-dashboard').classList.remove('hidden');
-        localStorage.setItem('pondok_active_tab', 'view-dashboard');
+        terapkanTemaBerdasarkanRole(currentUser.role);
+        document.getElementById('view-login').classList.add('hidden'); document.getElementById('app-header').classList.remove('hidden'); document.getElementById('dashboard-wrapper').classList.remove('hidden'); document.getElementById('app-nav').classList.remove('hidden');
+        renderMenuBerdasarkanAkses();
+        if (playSuara) { setTimeout(jalankanSapaanSuara, 300); }
+        const lastTab = localStorage.getItem('pondok_active_tab') || 'view-dashboard';
+        document.querySelectorAll('.page-view').forEach(el => el.classList.add('hidden'));
+        if (lastTab === 'view-dashboard' || lastTab === 'view-login') document.getElementById('view-dashboard').classList.remove('hidden');
+        else { document.getElementById(lastTab).classList.remove('hidden'); bukaFungsiTabSesuaiTujuan(lastTab); }
     }
 
         function bukaFungsiTabSesuaiTujuan(lastTab) {
@@ -2741,58 +2770,52 @@ if (targetTab && lastTab !== 'view-login') {
     }
 
     function loadIdentitasApp() {
-    const data = getDB('pondok_yayasan', null);
-    if(data) {
-        terapkanModeAplikasi(data.mode || 'pondok');
-        if(document.getElementById('login-pondok-name')) document.getElementById('login-pondok-name').innerText = data.pondok || "Sistem Monitoring";
-        if(document.getElementById('yayasan-name-pondok')) document.getElementById('yayasan-name-pondok').innerText = data.pondok || "Sistem Manajemen";
-        if(document.getElementById('yayasan-name-legal')) document.getElementById('yayasan-name-legal').innerText = data.yayasan || "Sistem Instansi";
-        
-        let validLogo = (data.logo && data.logo.trim() !== "") ? data.logo : "https://cdn-icons-png.flaticon.com/512/3592/3592078.png";
-        if(document.getElementById('login-logo')) document.getElementById('login-logo').src = validLogo;
-        if(document.getElementById('header-logo')) document.getElementById('header-logo').src = validLogo;
-        
-        // --- LOGIKA SPLASH SCREEN ---
-        if(document.getElementById('splash-logo')) document.getElementById('splash-logo').src = validLogo;
-        if(document.getElementById('splash-title')) document.getElementById('splash-title').innerText = data.pondok || "Sistem Monitoring";
-        // ----------------------------
-        
-        let validBg = (data.bg_login && data.bg_login.trim() !== "") ? data.bg_login : "https://images.unsplash.com/photo-1519817650390-28a59b20892c?q=80&w=1000&auto=format&fit=crop";
-        if(document.getElementById('view-login')) document.getElementById('view-login').style.backgroundImage = `url('${validBg}')`;
-        
-        let tingkatBlur = data.blur_login !== undefined ? data.blur_login : "4";
-        const overlay = document.querySelector('.login-overlay'); if(overlay) { overlay.style.backdropFilter = `blur(${tingkatBlur}px)`; overlay.style.webkitBackdropFilter = `blur(${tingkatBlur}px)`; }
-
-        if(document.getElementById('input-nama-pondok-edit')) {
-            document.getElementById('setting-app-mode').value = data.mode || 'pondok'; 
-            document.getElementById('input-nama-pondok-edit').value = data.pondok || ""; 
-            document.getElementById('input-yayasan-edit').value = data.yayasan || ""; 
-            document.getElementById('input-mudir-edit').value = data.mudir || ''; 
-            document.getElementById('input-alamat-edit').value = data.alamat || ''; 
-            document.getElementById('setting-footer-text').value = data.teks_footer || ""; 
-            document.getElementById('setting-teks-lulus').value = data.teks_lulus || ""; 
+        const data = getDB('pondok_yayasan', null);
+        if(data) {
+            terapkanModeAplikasi(data.mode || 'pondok');
+            if(document.getElementById('login-pondok-name')) document.getElementById('login-pondok-name').innerText = data.pondok || "Sistem Monitoring";
+            if(document.getElementById('yayasan-name-pondok')) document.getElementById('yayasan-name-pondok').innerText = data.pondok || "Sistem Manajemen";
+            if(document.getElementById('yayasan-name-legal')) document.getElementById('yayasan-name-legal').innerText = data.yayasan || "Sistem Instansi";
+            let validLogo = (data.logo && data.logo.trim() !== "") ? data.logo : "https://cdn-icons-png.flaticon.com/512/3592/3592078.png";
+            if(document.getElementById('login-logo')) document.getElementById('login-logo').src = validLogo;
+            if(document.getElementById('header-logo')) document.getElementById('header-logo').src = validLogo;
+            let validBg = (data.bg_login && data.bg_login.trim() !== "") ? data.bg_login : "https://images.unsplash.com/photo-1519817650390-28a59b20892c?q=80&w=1000&auto=format&fit=crop";
+            if(document.getElementById('view-login')) document.getElementById('view-login').style.backgroundImage = `url('${validBg}')`;
             
-            document.getElementById('setting-kertas-sertifikat').value = data.kertas_sertifikat || "A4";
-            document.getElementById('setting-warna-barcode').value = data.warna_barcode || "#000000";
-            document.getElementById('setting-font-nama').value = data.font_nama || "13";
-            document.getElementById('setting-font-alamat').value = data.font_alamat || "9";
+            let tingkatBlur = data.blur_login !== undefined ? data.blur_login : "4";
+            const overlay = document.querySelector('.login-overlay'); if(overlay) { overlay.style.backdropFilter = `blur(${tingkatBlur}px)`; overlay.style.webkitBackdropFilter = `blur(${tingkatBlur}px)`; }
 
-            document.getElementById('setting-ukuran-qr').value = data.ukuran_qr || "60";
-            document.getElementById('setting-ukuran-barcode1d').value = data.ukuran_barcode1d || "30";
-            document.getElementById('setting-voice-aktif').value = data.voice_aktif || "1"; 
-            document.getElementById('setting-voice-teks').value = data.voice_teks || ""; 
-            document.getElementById('setting-tata-tertib').value = data.tata_tertib || ""; 
-            document.getElementById('setting-izin-judul').value = data.izin_judul || ""; 
-            document.getElementById('setting-izin-catatan').value = data.izin_catatan || ""; 
-            document.getElementById('setting-blur-login').value = tingkatBlur;
-            document.getElementById('setting-pwa-notif-aktif').value = data.pwa_notif_aktif || "1";
-            document.getElementById('setting-pwa-notif-teks').value = data.pwa_notif_teks || "Waktunya mengajar mata pelajaran {mapel} di kelas {kelas}.";
-            document.getElementById('setting-teks-berita').value = data.teks_berita || "";
+            if(document.getElementById('input-nama-pondok-edit')) {
+                document.getElementById('setting-app-mode').value = data.mode || 'pondok'; 
+                document.getElementById('input-nama-pondok-edit').value = data.pondok || ""; 
+                document.getElementById('input-yayasan-edit').value = data.yayasan || ""; 
+                document.getElementById('input-mudir-edit').value = data.mudir || ''; 
+                document.getElementById('input-alamat-edit').value = data.alamat || ''; 
+                document.getElementById('setting-footer-text').value = data.teks_footer || ""; 
+                document.getElementById('setting-teks-lulus').value = data.teks_lulus || ""; 
+                
+document.getElementById('setting-kertas-sertifikat').value = data.kertas_sertifikat || "A4";
+document.getElementById('setting-warna-barcode').value = data.warna_barcode || "#000000";
+document.getElementById('setting-font-nama').value = data.font_nama || "13";
+               document.getElementById('setting-font-nama').value = data.font_nama || "13";
+               document.getElementById('setting-font-alamat').value = data.font_alamat || "9";
 
-            if(data.ttd_mudir) { base64TempImages.ttd_mudir = data.ttd_mudir; document.getElementById('ttd-preview-yayasan').src = data.ttd_mudir; document.getElementById('ttd-preview-yayasan').style.display = 'block'; }
+                document.getElementById('setting-ukuran-qr').value = data.ukuran_qr || "60";
+                document.getElementById('setting-ukuran-barcode1d').value = data.ukuran_barcode1d || "30";
+                 document.getElementById('setting-voice-aktif').value = data.voice_aktif || "1"; 
+                document.getElementById('setting-voice-teks').value = data.voice_teks || ""; 
+                document.getElementById('setting-tata-tertib').value = data.tata_tertib || ""; 
+                document.getElementById('setting-izin-judul').value = data.izin_judul || ""; 
+                document.getElementById('setting-izin-catatan').value = data.izin_catatan || ""; 
+                document.getElementById('setting-blur-login').value = tingkatBlur;
+                document.getElementById('setting-pwa-notif-aktif').value = data.pwa_notif_aktif || "1";
+                document.getElementById('setting-pwa-notif-teks').value = data.pwa_notif_teks || "Waktunya mengajar mata pelajaran {mapel} di kelas {kelas}.";
+                document.getElementById('setting-teks-berita').value = data.teks_berita || "";
+
+                if(data.ttd_mudir) { base64TempImages.ttd_mudir = data.ttd_mudir; document.getElementById('ttd-preview-yayasan').src = data.ttd_mudir; document.getElementById('ttd-preview-yayasan').style.display = 'block'; }
+            }
         }
     }
-}
 
     function kompresiGambar(fileImage, maxLebar, callbackSelesai) {
         if(!fileImage) return callbackSelesai(''); const readerData = new FileReader(); readerData.readAsDataURL(fileImage);
@@ -5775,28 +5798,31 @@ async function hubungkanScannerWireless() {
         alert(`Peringatan: Koneksi Bluetooth dengan ${device.name || 'Scanner'} terputus atau di luar jangkauan!`);
     }
 
-        // --- TAMBAHAN SENSOR GESTURE KEMBALI (ANTI-BENTROK OS) ---
+    // --- TAMBAHAN SENSOR GESTURE KEMBALI (SWIPE KANAN EDGE) ---
     let touchStartX = 0;
     
     document.addEventListener('touchstart', e => {
+        // Rekam titik awal jari menempel di layar
         touchStartX = e.changedTouches[0].screenX;
     }, {passive: true});
     
     document.addEventListener('touchend', e => {
         let touchEndX = e.changedTouches[0].screenX;
         
-        // SYARAT GESTURE BARU: 
-        // 1. touchStartX > 15 : Jangan mulai murni dari casing/ujung (mencegah curi gesture OS)
-        // 2. touchStartX < 120: Tetap harus di area kiri layar
-        // 3. Ditarik ke kanan minimal sejauh 70px
-        if (touchStartX > 15 && touchStartX < 120 && (touchEndX - touchStartX > 70)) {
+        // SYARAT GESTURE: 
+        // 1. Usapan harus dimulai dari pinggir kiri banget (kurang dari 40px dari ujung layar)
+        // 2. Ditarik ke arah kanan minimal sepanjang 80px
+        if (touchStartX < 40 && (touchEndX - touchStartX > 80)) {
             
+            // Cari elemen halaman yang SEDANG TAMPIL SAAT INI (bukan yang hidden)
             const activeView = document.querySelector('.page-view:not(.hidden)');
             if (activeView) {
+                // Cari apakah ada tombol kembalinya
                 const backBtn = activeView.querySelector('.back-nav');
                 if (backBtn) {
                     if (typeof playHapticAndSound === "function") playHapticAndSound(); 
                     
+                    // Beri efek visual sejenak layaknya diklik, lalu simulasikan klik otomatis
                     backBtn.style.transform = "scale(0.92) translateX(-5px)";
                     backBtn.style.background = "#000";
                     backBtn.style.color = "#fff";
@@ -5805,12 +5831,13 @@ async function hubungkanScannerWireless() {
                         backBtn.style.transform = "";
                         backBtn.style.background = "";
                         backBtn.style.color = "";
-                        backBtn.click(); 
+                        backBtn.click(); // Eksekusi fungsi kembali
                     }, 100);
                 }
             }
         }
     }, {passive: true});
-    // ---------------------------------------------------------
+    // ----------------------------------------------------------
+
     window.onload = initApp;
 </script>
