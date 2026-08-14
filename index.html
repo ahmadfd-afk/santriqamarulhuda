@@ -4757,7 +4757,8 @@ async function sinkronisasiKeCloud() {
             izin_aktif: gabungDataArray(getDB('pondok_izin_aktif', []), dataCloud.izin_aktif, 'id'),
             history_izin: gabungDataArray(getDB('pondok_history_izin', []), dataCloud.history_izin, 'id'),
             users: gabungDataArray(getDB('pondok_users', []).filter(u => u.role !== 'superadmin'), dataCloud.users, 'username'),
-            
+            jam_kustom: gabungDataArray(getDB('pondok_jam_kustom', []), dataCloud.jam_kustom, 'kode'),
+            bank_mapel: [...new Set([...(getDB('pondok_bank_mapel', [])), ...(dataCloud.bank_mapel || [])])],
             // Pengaturan yayasan dipertahankan menggunakan data admin yang sedang menekan tombol
             yayasan: getDB('pondok_yayasan', {}),
             akses: getDB('pondok_akses', {}),
@@ -4850,7 +4851,8 @@ async function tarikDataDariSupabase() {
             if (data.tabungan) localStorage.setItem('pondok_tabungan', JSON.stringify(data.tabungan)); // <-- DITAMBAHKAN
             if (data.izin_aktif) localStorage.setItem('pondok_izin_aktif', JSON.stringify(data.izin_aktif));
             if (data.history_izin) localStorage.setItem('pondok_history_izin', JSON.stringify(data.history_izin));
-            
+            if (data.jam_kustom) localStorage.setItem('pondok_jam_kustom', JSON.stringify(data.jam_kustom));
+            if (data.bank_mapel) localStorage.setItem('pondok_bank_mapel', JSON.stringify(data.bank_mapel));
             // RESTORE DATA PENGATURAN & AKUN (FULL BACKUP)
             if (data.yayasan) localStorage.setItem('pondok_yayasan', JSON.stringify(data.yayasan));
                         if (data.users) {
