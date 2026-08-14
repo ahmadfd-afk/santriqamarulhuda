@@ -1,11 +1,15 @@
 // SMS PWA Service Worker v2.0
-const CACHE = 'sms-v3';
+const CACHE = 'sms-v4'; // <-- Ubah versi ini agar HP otomatis mengunduh pembaruan
 const ASSETS = [
   './', './index.html', './manifest.json',
   './icon-192.png', './icon-512.png', './icon-180.png',
   './icon-maskable-512.png',
   'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css',
-  'https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js'
+  
+  // Masukkan file library lokal Anda di sini:
+  './qrcode.min.js',
+  './html5-qrcode.min.js',
+  './JsBarcode.all.min.js'
 ];
 
 self.addEventListener('install', e => {
