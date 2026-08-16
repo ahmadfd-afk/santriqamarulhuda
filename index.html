@@ -4724,100 +4724,138 @@ async function sinkronisasiKeCloud() {
     const btn = document.getElementById('btn-sync-cloud');
     if (btn) btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> SINKRONISASI & MENGGABUNGKAN...';
 
-    try {
-        // LANGKAH A: Tarik data terbaru dari Cloud
-        let dataCloud = {};
-        const resCloud = await fetch(`${supabaseConfig.url}/rest/v1/backup_lms?id=eq.1&select=data_json`, {
-            headers: {
-                'apikey': supabaseConfig.key,
-                'Authorization': `Bearer ${supabaseConfig.key}`
-            }
-        });
-        const rows = await resCloud.json();
-        if (rows && rows.length > 0 && rows[0].data_json) {
-            dataCloud = rows[0].data_json;
-        }
-        if (rows && rows.length > 0 && rows[0].data_json) {
-            dataCloud = rows[0].data_json;
-            // TAMBAHAN: Hapus data superadmin dari cloud (jika sebelumnya telanjur masuk)
-            if (dataCloud.users) {
-                dataCloud.users = dataCloud.users.filter(u => u.role !== 'superadmin');
-            }
-        }
+    // Batas maksimal percobaan ulang otomatis jika ada tabrakan (Auto-Retry)
+    let maxRetries = 3; 
+    let attempt = 0;
+    let syncSuccess = false;
 
-        // LANGKAH B: Gabungkan data Lokal dengan data Cloud
-        const payloadMerged = {
-            santri: gabungDataArray(getDB('pondok_santri', []), dataCloud.santri, 'id'),
-            absensi: gabungDataArray(getDB('pondok_absensi', []), dataCloud.absensi, 'id_sesi'),
-            kelas: gabungDataArray(getDB('pondok_kelas', []), dataCloud.kelas, 'id'),
-            mapel: gabungDataArray(getDB('pondok_master_mapel', []), dataCloud.mapel, 'id'),
-            evaluasi: gabungDataArray(getDB('pondok_evaluasi', []), dataCloud.evaluasi, 'nis'),
-            tagihan: gabungDataArray(getDB('pondok_tagihan_denda', []), dataCloud.tagihan, 'id_tagihan'),
-            tabungan: gabungDataArray(getDB('pondok_tabungan', []), dataCloud.tabungan, 'id'),
-            izin_aktif: gabungDataArray(getDB('pondok_izin_aktif', []), dataCloud.izin_aktif, 'id'),
-            history_izin: gabungDataArray(getDB('pondok_history_izin', []), dataCloud.history_izin, 'id'),
-            users: gabungDataArray(getDB('pondok_users', []).filter(u => u.role !== 'superadmin'), dataCloud.users, 'username'),
-            jam_kustom: gabungDataArray(getDB('pondok_jam_kustom', []), dataCloud.jam_kustom, 'kode'),
-            bank_mapel: [...new Set([...(getDB('pondok_bank_mapel', [])), ...(dataCloud.bank_mapel || [])])],
-            // Pengaturan yayasan dipertahankan menggunakan data admin yang sedang menekan tombol
-            yayasan: getDB('pondok_yayasan', {}),
-            akses: getDB('pondok_akses', {}),
-            gps: getDB('pondok_gps', {}),
-            setting_keuangan: getDB('pondok_setting_keuangan', {})
-        };
-
-        // LANGKAH C: Kirim data yang sudah digabung kembali ke Cloud
-        const response = await fetch(`${supabaseConfig.url}/rest/v1/backup_lms?id=eq.1`, {
-            method: 'PATCH',
-            headers: {
-                'Content-Type': 'application/json',
-                'apikey': supabaseConfig.key,
-                'Authorization': `Bearer ${supabaseConfig.key}`,
-                'Prefer': 'return=representation'
-            },
-            body: JSON.stringify({ data_json: payloadMerged, updated_at: new Date().toISOString() })
-        });
-
-        if (response.ok) {
-            // LANGKAH D: Simpan hasil gabungan ke HP lokal agar ikut ter-update
-            localStorage.setItem('pondok_santri', JSON.stringify(payloadMerged.santri));
-            localStorage.setItem('pondok_absensi', JSON.stringify(payloadMerged.absensi));
-            localStorage.setItem('pondok_kelas', JSON.stringify(payloadMerged.kelas));
-            localStorage.setItem('pondok_master_mapel', JSON.stringify(payloadMerged.mapel));
-            localStorage.setItem('pondok_evaluasi', JSON.stringify(payloadMerged.evaluasi));
-            localStorage.setItem('pondok_tagihan_denda', JSON.stringify(payloadMerged.tagihan));
-            localStorage.setItem('pondok_tabungan', JSON.stringify(payloadMerged.tabungan));
-            localStorage.setItem('pondok_izin_aktif', JSON.stringify(payloadMerged.izin_aktif));
-            localStorage.setItem('pondok_history_izin', JSON.stringify(payloadMerged.history_izin));
-                        // Kembalikan akun superadmin lokal ke memori HP agar tidak hilang setelah sync
-            let lokalSuperAdmin = getDB('pondok_users', []).filter(u => u.role === 'superadmin');
-            let finalUsers = [...payloadMerged.users, ...lokalSuperAdmin];
-            localStorage.setItem('pondok_users', JSON.stringify(finalUsers));
+    while (attempt < maxRetries && !syncSuccess) {
+        attempt++;
+        try {
+            // LANGKAH A: Tarik data terbaru beserta penanda waktu (updated_at) dari Cloud
+            let dataCloud = {};
+            let cloudUpdatedAt = null; 
             
-            alert("Sinkronisasi Sukses! Data Anda dan admin lain telah saling melengkapi.");
+            const resCloud = await fetch(`${supabaseConfig.url}/rest/v1/backup_lms?id=eq.1&select=data_json,updated_at`, {
+                headers: {
+                    'apikey': supabaseConfig.key,
+                    'Authorization': `Bearer ${supabaseConfig.key}`
+                }
+            });
+            const rows = await resCloud.json();
             
-            // Segarkan UI tabel jika sedang dibuka
-            if (typeof renderTabelSantri === 'function') renderTabelSantri();
-            if (typeof renderTabelDaftarKelas === 'function') renderTabelDaftarKelas();
-        } else {
-            // Fallback jika baris ID = 1 ternyata terhapus / kosong di Supabase
-            await fetch(`${supabaseConfig.url}/rest/v1/backup_lms`, {
-                method: 'POST',
+            if (rows && rows.length > 0) {
+                if (rows[0].data_json) {
+                    dataCloud = rows[0].data_json;
+                    if (dataCloud.users) {
+                        dataCloud.users = dataCloud.users.filter(u => u.role !== 'superadmin');
+                    }
+                }
+                cloudUpdatedAt = rows[0].updated_at; 
+            }
+
+            // LANGKAH B: Gabungkan data Lokal dengan data Cloud
+            const payloadMerged = {
+                santri: gabungDataArray(getDB('pondok_santri', []), dataCloud.santri, 'id'),
+                absensi: gabungDataArray(getDB('pondok_absensi', []), dataCloud.absensi, 'id_sesi'),
+                kelas: gabungDataArray(getDB('pondok_kelas', []), dataCloud.kelas, 'id'),
+                mapel: gabungDataArray(getDB('pondok_master_mapel', []), dataCloud.mapel, 'id'),
+                evaluasi: gabungDataArray(getDB('pondok_evaluasi', []), dataCloud.evaluasi, 'nis'),
+                tagihan: gabungDataArray(getDB('pondok_tagihan_denda', []), dataCloud.tagihan, 'id_tagihan'),
+                tabungan: gabungDataArray(getDB('pondok_tabungan', []), dataCloud.tabungan, 'id'),
+                izin_aktif: gabungDataArray(getDB('pondok_izin_aktif', []), dataCloud.izin_aktif, 'id'),
+                history_izin: gabungDataArray(getDB('pondok_history_izin', []), dataCloud.history_izin, 'id'),
+                users: gabungDataArray(getDB('pondok_users', []).filter(u => u.role !== 'superadmin'), dataCloud.users, 'username'),
+                
+                // --- PENAMBAHAN DATA BARU DARI FILE TERBARU ---
+                jam_kustom: gabungDataArray(getDB('pondok_jam_kustom', []), dataCloud.jam_kustom, 'kode'),
+                // Karena bank_mapel hanya kumpulan teks string biasa, gabungkan memakai Set agar tidak ganda:
+                bank_mapel: [...new Set([...getDB('pondok_bank_mapel', []), ...(dataCloud.bank_mapel || [])])], 
+                
+                yayasan: getDB('pondok_yayasan', {}),
+                akses: getDB('pondok_akses', {}),
+                gps: getDB('pondok_gps', {}),
+                setting_keuangan: getDB('pondok_setting_keuangan', {})
+            };
+
+            const waktuKirim = new Date().toISOString();
+
+            // LANGKAH C: Kirim kembali ke Cloud dengan Syarat Waktu (Optimistic Locking)
+            let patchUrl = `${supabaseConfig.url}/rest/v1/backup_lms?id=eq.1`;
+            if (cloudUpdatedAt) {
+                // Syarat mutlak: Jangan timpa data jika ada Device lain yang mendahului detik pengiriman ini
+                patchUrl += `&updated_at=eq.${cloudUpdatedAt}`;
+            }
+
+            const response = await fetch(patchUrl, {
+                method: 'PATCH',
                 headers: {
                     'Content-Type': 'application/json',
                     'apikey': supabaseConfig.key,
-                    'Authorization': `Bearer ${supabaseConfig.key}`
+                    'Authorization': `Bearer ${supabaseConfig.key}`,
+                    'Prefer': 'return=representation' 
                 },
-                body: JSON.stringify({ id: 1, data_json: payloadMerged, updated_at: new Date().toISOString() })
+                body: JSON.stringify({ data_json: payloadMerged, updated_at: waktuKirim })
             });
-            alert("Berhasil membuat rekam cadangan sinkronisasi baru di Cloud!");
+
+            const patchResult = await response.json();
+
+            // LANGKAH D: Validasi Status Pengiriman
+            if (response.ok && patchResult.length > 0) {
+                syncSuccess = true;
+                
+                // --- SIMPAN KEMBALI KE PENYIMPANAN LOKAL HP ---
+                localStorage.setItem('pondok_santri', JSON.stringify(payloadMerged.santri));
+                localStorage.setItem('pondok_absensi', JSON.stringify(payloadMerged.absensi));
+                localStorage.setItem('pondok_kelas', JSON.stringify(payloadMerged.kelas));
+                localStorage.setItem('pondok_master_mapel', JSON.stringify(payloadMerged.mapel));
+                localStorage.setItem('pondok_evaluasi', JSON.stringify(payloadMerged.evaluasi));
+                localStorage.setItem('pondok_tagihan_denda', JSON.stringify(payloadMerged.tagihan));
+                localStorage.setItem('pondok_tabungan', JSON.stringify(payloadMerged.tabungan));
+                localStorage.setItem('pondok_izin_aktif', JSON.stringify(payloadMerged.izin_aktif));
+                localStorage.setItem('pondok_history_izin', JSON.stringify(payloadMerged.history_izin));
+                
+                // Simpan fitur baru
+                localStorage.setItem('pondok_jam_kustom', JSON.stringify(payloadMerged.jam_kustom));
+                localStorage.setItem('pondok_bank_mapel', JSON.stringify(payloadMerged.bank_mapel));
+                
+                let lokalSuperAdmin = getDB('pondok_users', []).filter(u => u.role === 'superadmin');
+                let finalUsers = [...payloadMerged.users, ...lokalSuperAdmin];
+                localStorage.setItem('pondok_users', JSON.stringify(finalUsers));
+                
+                alert("Data berhasil terakumulasi & sinkronisasi dengan Cloud!");
+                
+                if (typeof renderTabelSantri === 'function') renderTabelSantri();
+                if (typeof renderTabelDaftarKelas === 'function') renderTabelDaftarKelas();
+                
+            } else if (response.status === 404 || patchResult.length === 0) {
+                if (!cloudUpdatedAt) {
+                    await fetch(`${supabaseConfig.url}/rest/v1/backup_lms`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'apikey': supabaseConfig.key,
+                            'Authorization': `Bearer ${supabaseConfig.key}`
+                        },
+                        body: JSON.stringify({ id: 1, data_json: payloadMerged, updated_at: waktuKirim })
+                    });
+                    syncSuccess = true;
+                    alert("Berhasil membuat rekam cadangan sinkronisasi baru di Cloud!");
+                } else {
+                    console.warn(`Bentrok pengiriman terdeteksi! Mengulang penarikan dan penggabungan data... (Percobaan ${attempt}/${maxRetries})`);
+                    if (attempt === maxRetries) {
+                        alert("Server sibuk menerima data dari perangkat lain. Silakan coba tekan Kirim lagi.");
+                    }
+                }
+            }
+        } catch (err) {
+            console.error(err);
+            alert("Gagal koneksi ke server Cloud. Periksa jaringan internet kamu.");
+            break; 
         }
-    } catch (err) {
-        console.error(err);
-        alert("Gagal koneksi ke server Cloud. Periksa jaringan internet kamu.");
-    } finally {
-        if (btn) btn.innerHTML = '<i class="fa-solid fa-cloud-arrow-up"></i> KIRIM DATA KE CLOUD (SYNC MANUAL)';
     }
+    
+    if (btn) btn.innerHTML = '<i class="fa-solid fa-cloud-arrow-up"></i> KIRIM DATA KE CLOUD (SYNC MANUAL)';
 }
 
 async function tarikDataDariSupabase() {
@@ -4848,15 +4886,18 @@ async function tarikDataDariSupabase() {
             if (data.mapel) localStorage.setItem('pondok_master_mapel', JSON.stringify(data.mapel));
             if (data.evaluasi) localStorage.setItem('pondok_evaluasi', JSON.stringify(data.evaluasi));
             if (data.tagihan) localStorage.setItem('pondok_tagihan_denda', JSON.stringify(data.tagihan));
-            if (data.tabungan) localStorage.setItem('pondok_tabungan', JSON.stringify(data.tabungan)); // <-- DITAMBAHKAN
+            if (data.tabungan) localStorage.setItem('pondok_tabungan', JSON.stringify(data.tabungan)); 
             if (data.izin_aktif) localStorage.setItem('pondok_izin_aktif', JSON.stringify(data.izin_aktif));
             if (data.history_izin) localStorage.setItem('pondok_history_izin', JSON.stringify(data.history_izin));
+            
+            // --- RESTORE FITUR DATA BARU ---
             if (data.jam_kustom) localStorage.setItem('pondok_jam_kustom', JSON.stringify(data.jam_kustom));
             if (data.bank_mapel) localStorage.setItem('pondok_bank_mapel', JSON.stringify(data.bank_mapel));
+
             // RESTORE DATA PENGATURAN & AKUN (FULL BACKUP)
             if (data.yayasan) localStorage.setItem('pondok_yayasan', JSON.stringify(data.yayasan));
-                        if (data.users) {
-                // Bersihkan superadmin dari data yang ditarik, lalu gabungkan dengan superadmin lokal
+            
+            if (data.users) {
                 let cloudUsersBersih = data.users.filter(u => u.role !== 'superadmin');
                 let lokalSuperAdmin = getDB('pondok_users', []).filter(u => u.role === 'superadmin');
                 let finalPulledUsers = [...cloudUsersBersih, ...lokalSuperAdmin];
@@ -5030,8 +5071,7 @@ function simpanTabungan() {
                 <tr><td style="padding:8px; border:1px solid #000; font-weight:bold;">Pengajar (Ustadz)</td><td style="padding:8px; border:1px solid #000;">${m.ustadz_nama}</td></tr>
                 <tr><td style="padding:8px; border:1px solid #000; font-weight:bold;">Kelas Terlibat</td><td style="padding:8px; border:1px solid #000;">${namaKelasTerpilih.join(', ')}</td></tr>
                 <tr><td style="padding:8px; border:1px solid #000; font-weight:bold;">Jadwal / Waktu</td><td style="padding:8px; border:1px solid #000;">${m.hari ? `${m.hari}, ${m.jam_mulai} - ${m.jam_selesai}` : 'Waktu Fleksibel (Menunggu Arahan / Tanpa Hari Tetap)'}</td></tr>
-                <tr><td style="padding:8px; border:1px solid #000; font-weight:bold;">Status Sistem</td><
-              style="padding:8px; border:1px solid #000; color:green; font-weight:bold;">TERVALIDASI / SIAP MULAI</td></tr>
+                <tr><td style="padding:8px; border:1px solid #000; font-weight:bold;">Status Sistem</td><style="padding:8px; border:1px solid #000; color:green; font-weight:bold;">TERVALIDASI / SIAP MULAI</td></tr>
             </table>
             <p style="font-size:11px; text-align:center; margin-top:30px; font-style:italic;">Dokumen ini dicetak otomatis dari Sistem Manajemen Instansi.</p>
         `;
