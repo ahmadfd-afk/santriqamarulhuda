@@ -1039,8 +1039,11 @@
 
 <label style="color: var(--primary);"><i class="fa-solid fa-barcode"></i> Tinggi Barcode 1D Depan (px)</label>
 <input type="number" id="setting-ukuran-barcode1d" placeholder="Rekomendasi: 25 - 40">
-
+<label style="color: var(--primary);"><i class="fa-solid fa-arrows-left-right"></i> Lebar Barcode 1D Depan (Rapat/Renggang)</label>
+<input type="number" step="0.1" id="setting-lebar-barcode1d" placeholder="Rekomendasi: 1.5 - 2.5">
 <label>Teks Keputusan Kelulusan Sertifikat</label><input type="text" id="setting-teks-lulus" placeholder="Telah mengikuti proses belajar dan dinyatakan:">
+<label style="color: var(--primary);"><i class="fa-solid fa-text-height"></i> Ukuran Font Nama Sertifikat (px)</label>
+<input type="number" id="setting-font-sertifikat" placeholder="Rekomendasi: 24">
 <!-- TAMBAHAN PILIHAN KERTAS -->
 <label style="color: var(--danger);"><i class="fa-solid fa-scroll"></i> Ukuran Kertas Cetak Sertifikat</label>
 <select id="setting-kertas-sertifikat">
@@ -1505,26 +1508,32 @@
             </div>
 
 <!-- KODE SESUDAHNYA -->
-             <div id="sisi-belakang-kartu" class="hidden" style="height:100%; display:flex; flex-direction:column;">
+                          <div id="sisi-belakang-kartu" class="hidden" style="height:100%; display:flex; flex-direction:column;">
                 <div class="id-header" style="padding:6px; background:linear-gradient(135deg, var(--primary), var(--primary-light));">
                     <h4 id="back-app-title" style="font-size:0.75rem; margin:0; text-transform: uppercase; color:white; text-align:center;">SISTEM MONITORING SANTRI</h4>
                 </div>
-                <div class="id-back-content">
+                <div class="id-back-content" style="display: flex; flex-direction: column; height: 100%; justify-content: space-between; text-align: center;">
                     <div class="id-back-title" id="back-instansi-name">INSTANSI PENDIDIKAN</div>
-                    <div class="id-back-rules" id="back-tata-tertib-text">1. Wajib menjaga tata tertib...</div>
-                    <div class="id-back-ttd-wrapper">
+                    
+                    <!-- Tata tertib dibuat justify -->
+                    <div class="id-back-rules" id="back-tata-tertib-text" style="text-align: justify; margin-bottom: 5px;">1. Wajib menjaga tata tertib...</div>
+                    
+                    <!-- Tanda tangan dan Barcode di tengah -->
+                    <div class="id-back-ttd-wrapper" style="width: 100%; align-items: center;">
                         <img src="" id="back-stempel-img" class="stempel-overlay" style="display:none;">
-                        <div class="id-back-ttd">
+                        <div class="id-back-ttd" style="text-align: center; width: 100%;">
                             <div>Mengetahui, Pimpinan</div>
-                            <img src="" id="back-ttd-img" style="display:none;">
+                            <img src="" id="back-ttd-img" style="display:none; margin: 2px auto;">
                             <div id="back-mudir-nama">Mudir Instansi</div>
                         </div>
                     </div>
-                    <div class="id-qr-back" id="card-qr"></div>
+                    <div class="id-qr-back" id="card-qr" style="margin: 5px auto;"></div>
+                    
+                    <!-- Elemen alamat yang sebelumnya hilang (Penyebab Modal tidak muncul) -->
+                    <div id="back-alamat-text" style="font-size: 0.5rem; text-align: center; margin-top: auto; padding-top: 5px; border-top: 1px dashed #ccc; width: 100%;"></div>
                 </div>
             </div>
-
-        </div>
+</div>
 
         <div style="margin-top: 22px; display:flex; gap:10px;">
             <button class="btn-outline" onclick="document.getElementById('id-card-modal').classList.add('hidden')" style="flex:1; justify-content:center;">Batal</button>
@@ -1764,15 +1773,37 @@ const menuMaster = [
             box-sizing: border-box !important;
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
         }
-        html, body {
+            html, body {
             margin: 0;
             padding: 0;
             width: 100%;
             background: #fff !important;
             color: #000;
         }
+
+        /* PERBAIKAN: Memastikan sisi yang tidak dipilih benar-benar hilang saat dicetak */
+        .hidden { display: none !important; }
+        
+                /* KODE PERBAIKAN: Sembunyikan elemen yang tidak dipilih (kartu depan saat cetak belakang) */
+        .hidden { display: none !important; }
+        
+        /* KODE PERBAIKAN: Matikan ornamen warna depan jika sedang mencetak kartu belakang */
+        .id-card-wrapper.kartu-belakang-saja::before,
+        .id-card-wrapper.kartu-belakang-saja::after {
+            display: none !important;
+            background: none !important;
+        }
+
+        /* KODE PERBAIKAN: Cegah Barcode/QR bentrok dengan teks Pengasuh */
+        .id-qr-back img {
+            max-width: 100% !important;
+            max-height: 100% !important;
+            object-fit: contain;
+        }
         
         /* ATURAN TABEL AGAR RAPI & TIDAK TERPOTONG JELEK */
+
+
         table {
             width: 100%;
             border-collapse: collapse;
@@ -1941,8 +1972,8 @@ const menuMaster = [
         .id-qr-depan { width: auto !important; height: auto !important; min-width: 60px; padding: 3px; background: white !important; border-radius: 8px; display: flex; align-items: center; justify-content: center; margin-left: auto; box-shadow: 0 4px 12px rgba(0,0,0,0.15); }
         .id-card-wrapper.portrait .id-qr-depan { margin: 6px auto 0 auto; width: auto !important; max-width: 90% !important; }
         
-        /* KODE PERBAIKAN: Memaksa teks belakang di atas ornamen gambar */
-        #sisi-belakang-kartu {
+               /* KODE PERBAIKAN: Memaksa teks belakang di atas ornamen gambar */
+        #sisi-belakang-kartu, .sisi-belakang-kartu-kolektif {
             position: relative !important;
             z-index: 10 !important;
         }
@@ -1959,14 +1990,18 @@ const menuMaster = [
         .id-card-wrapper.portrait .id-back-right { border-left: none !important; border-top: 1px dashed #999 !important; padding-left: 0 !important; padding-top: 8px !important; width: 100% !important; margin-top: auto !important; flex-direction: row !important; justify-content: space-between !important; }
 
         
-           .kolektif-grid-gabung {
-            display: flex;
-            flex-wrap: wrap;
-            justify-content: center;
-            gap: 12px;
-            padding-bottom: 15px;
+                  .kolektif-grid-gabung {
+            display: grid !important;
+            grid-template-columns: repeat(3, 1fr) !important;
+            gap: 6px !important;
+            justify-items: center !important;
+            padding-bottom: 15px !important;
+            width: 100% !important;
         }
-
+        .kolektif-grid-gabung .id-card-wrapper {
+            margin: 0 !important;
+            page-break-inside: avoid !important;
+        }
         
         .surat-izin-box {
             border: 2px solid #04432A;
@@ -2071,96 +2106,7 @@ const menuMaster = [
     }
 }
 
-    function cetakKolektifF4Gabung(orientasi = 'landscape') {
-    let databaseSantri = getDB('pondok_santri', []).filter(s => !s.is_alumni); 
-    if (databaseSantri.length === 0) return alert("Belum ada data santri aktif untuk dicetak F4.");
-    
-    const dataYayasan = getDB('pondok_yayasan', {});
-    let bgCardStyle = dataYayasan.bg_idcard ? `background-image: url('${dataYayasan.bg_idcard}');` : ''; 
-    let footerHTML = (dataYayasan.teks_footer && dataYayasan.teks_footer.trim() !== "") ? `<div class="id-footer-custom">${dataYayasan.teks_footer}</div>` : '';
-    
-    let htmlKartuKolektif = ``;
-    let classTambahan = orientasi === 'portrait' ? ' portrait' : '';
-
-    // WADAH DIBUKA DI SINI (Di luar loop agar kartu bisa berjejer)
-    htmlKartuKolektif += `<div class="kolektif-grid-gabung">`;
-
-    databaseSantri.forEach((santri) => {
-        let qrPayload = JSON.stringify({ n: santri.nis, u: supabaseConfig.url || "", k: supabaseConfig.key || "" });
-
-        htmlKartuKolektif += `
-            <div class="id-card-wrapper${classTambahan}" style="${bgCardStyle}">
-                <div class="id-header">
-                    <img src="${dataYayasan.logo || 'https://cdn-icons-png.flaticon.com/512/3592/3592078.png'}">
-                    <div><h4 style="margin: 0;">${dataYayasan.pondok || 'Nama Instansi'}</h4><p style="margin: 0;">${dataYayasan.yayasan || 'Sistem Manajemen'}</p></div>
-                </div>
-                <div class="id-body">
-                    <img src="${santri.foto}" class="id-photo">
-                                        <div class="id-details">
-                        <strong style="text-transform: uppercase;">${santri.nama}</strong>
-                        <div style="margin-top: 5px;">
-                            <span style="display:inline-block; width: 38px;">NIS</span>: <b style="color:var(--primary);">${santri.nis}</b><br>
-                            <b class="alamat-cetak" style="display:-webkit-inline-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; vertical-align:top; max-width: 180px; line-height:1.2; margin-top: 4px;">${(santri.alamat || '-')}</b>
-                        </div>
-                    </div>
-                    <!-- KODE PERBAIKAN: Wadah diganti menjadi SVG untuk Barcode 1D -->
-                    <div class="id-qr-depan" style="border:none; padding:0; background:transparent; box-shadow:none; width:auto; height:auto; overflow:hidden;">
-                        <svg id="barcode-gabung-${santri.nis}" style="width: 100%; max-width: 80px;"></svg>
-                    </div>
-                </div>
-
-                ${footerHTML}
-            </div>
-        `;
-    });
-
-    // WADAH DITUTUP DI SINI SETELAH LOOP SELESAI
-    htmlKartuKolektif += `</div>`;
-
-    const containerTemp = document.createElement('div'); 
-    containerTemp.style.position = 'fixed'; containerTemp.style.right = '200vw'; 
-    document.body.appendChild(containerTemp); 
-    containerTemp.innerHTML = htmlKartuKolektif;
-    
-        const size1DPrint = parseInt(dataYayasan.ukuran_barcode1d) || 30; // Ambil settingan tinggi barcode 1D
-    const sizeFontPrint = parseInt(dataYayasan.font_nama) || 13;
-    const sizeFontAlamatPrint = parseInt(dataYayasan.font_alamat) || 9;
-
-    containerTemp.querySelectorAll('.alamat-cetak').forEach(alamatEl => {
-        alamatEl.style.fontSize = sizeFontAlamatPrint + 'px';
-    });
-
-        // KODE PERBAIKAN: Looping menggunakan JsBarcode, bukan QRCode
-    databaseSantri.forEach(santri => {
-        const wadahBarcode = containerTemp.querySelector(`#barcode-gabung-${santri.nis}`);
-        if (wadahBarcode && typeof JsBarcode !== 'undefined') {
-            try {
-                JsBarcode(wadahBarcode, santri.nis, {
-                    format: "CODE128",
-                    width: 2.2, /* Lebar Garis Diperlebar agar tidak kaku */
-                    height: size1DPrint,
-                    displayValue: false,
-                    margin: 10, /* Margin ditambah (white space) mempercepat scan */
-                    background: "transparent"
-                });
-            } catch(err) { console.log("Barcode error:", err); }
-        }
-    });
-
-
-    setTimeout(() => { 
-        const canvases = containerTemp.querySelectorAll('canvas');
-        canvases.forEach(canvas => {
-            const img = document.createElement('img'); img.src = canvas.toDataURL('image/png'); 
-            img.style.width = sizeQRPrint + 'px'; img.style.height = sizeQRPrint + 'px';
-            const siblingImg = canvas.nextElementSibling; if(siblingImg && siblingImg.tagName === 'IMG') siblingImg.remove();
-            canvas.parentNode.replaceChild(img, canvas);
-        });
-        cetakElemenHTML(containerTemp.innerHTML, 'portrait'); 
-        containerTemp.remove();
-    }, 600);
-}
-    function cetakKolektifF4Belakang(orientasi = 'portrait') {
+        function cetakKolektifF4Belakang(orientasi = 'portrait') {
         let databaseSantri = getDB('pondok_santri', []).filter(s => !s.is_alumni); 
         if (databaseSantri.length === 0) return alert("Belum ada data santri aktif.");
         const yayasan = getDB('pondok_yayasan', {});
@@ -2168,28 +2114,31 @@ const menuMaster = [
         const daftarPoin = teksTertib.split('\n').filter(baris => baris.trim() !== '');
         const formatTertib = daftarPoin.map(baris => `<div class="poin-tertib">${baris}</div>`).join('');
         
+        // --- MENGAMBIL UKURAN QR DARI PENGATURAN ---
+        const sizeQRPrint = parseInt(yayasan.ukuran_qr) || 60;
+        
         let htmlKartuKolektif = `<div class="kolektif-grid-gabung">`;
         databaseSantri.forEach((santri) => {
-            let qrPayload = JSON.stringify({ n: santri.nis, u: supabaseConfig.url || "", k: supabaseConfig.key || "" });
+            let qrPayload = "https://ahmadfd-afk.github.io/Wali-santri/?nis=" + santri.nis + "&u=" + encodeURIComponent(supabaseConfig.url || "") + "&k=" + encodeURIComponent(supabaseConfig.key || "");
             htmlKartuKolektif += `
-                <div class="id-card-wrapper portrait">
-                    <div id="sisi-belakang-kartu" style="height:100%; display:flex; flex-direction:column;">
-                        <div class="id-header" style="padding:6px; background:linear-gradient(135deg, var(--primary), var(--primary-light));">
-                            <h4 style="font-size:0.75rem; margin:0; text-transform: uppercase; color:white; text-align:center;">SISTEM MONITORING SANTRI</h4>
-                        </div>
-                        <div class="id-back-content" style="display:flex; flex-direction:column; padding:10px; flex:1; background:rgba(255, 255, 255, 0.9); text-align:center;">
-                            <div class="id-back-left" style="width:100%; flex:1;">
-                                <div class="id-back-title" style="font-size:0.75rem; font-weight:bold; color:var(--primary); border-bottom:1px solid #ccc; margin-bottom:4px;">${yayasan.pondok || 'INSTANSI'}</div>
-                                <div class="id-back-rules" style="font-size: 0.55rem; text-align:left;">${formatTertib}</div>
+                <div class="id-card-wrapper portrait kartu-belakang-saja" style="background-color: #fff !important; page-break-inside: avoid;">
+                    <div class="id-header" style="padding:6px; background:linear-gradient(135deg, var(--primary), var(--primary-light)) !important; width:100%; box-sizing:border-box;">
+                        <h4 style="font-size:0.75rem; margin:0; text-transform: uppercase; color:white; text-align:center; width:100%;">SISTEM MONITORING SANTRI</h4>
+                    </div>
+                    <div class="id-back-content" style="display:flex; flex-direction:column; padding:8px 10px; flex:1; background:#ffffff !important; align-items:center; justify-content:space-between; box-sizing:border-box; width:100%;">
+                        <div class="id-back-title" style="font-size:0.75rem; font-weight:bold; color:var(--primary); border-bottom:1px solid #ccc; padding-bottom:2px; margin-bottom:4px; text-align:center; width:100%; line-height:1;">${yayasan.pondok || 'INSTANSI'}</div>
+                        <div class="id-back-rules" style="font-size:0.52rem; line-height:1.3; color:#222; width:100%; text-align:justify; flex:1;">${formatTertib}</div>
+                        <div class="id-back-ttd-wrapper" style="width:100%; display:flex; flex-direction:column; align-items:center; margin-top:auto;">
+                            <div class="id-back-ttd" style="text-align:center; font-size:0.55rem; color:var(--primary); font-weight:bold; width:100%;">
+                                <div>Mengetahui, Pimpinan</div>
+                                ${yayasan.ttd_mudir ? `<img src="${yayasan.ttd_mudir}" style="height:25px; margin:2px auto; display:block;">` : '<div style="height:25px;"></div>'}
+                                <div>${yayasan.mudir || 'Mudir Instansi'}</div>
                             </div>
-                            <div class="id-back-right" style="width:100%; border-top:1px dashed #999; padding-top:8px; display:flex; flex-direction:row; justify-content:space-between; align-items:center; gap:5px;">
-                                <div class="id-back-ttd" style="text-align:left; font-size:0.5rem; color:var(--primary); font-weight:bold; width:50%;">
-                                    <div>Mengetahui,</div>
-                                    ${yayasan.ttd_mudir ? `<img src="${yayasan.ttd_mudir}" style="height:25px; margin:2px 0; display:block;">` : '<div style="height:25px;"></div>'}
-                                    <div>${yayasan.mudir || 'Pimpinan'}</div>
-                                </div>
-                                <div class="id-qr-back" id="qr-back-${santri.nis}" data-payload='${qrPayload}' style="width:55px; height:55px; min-width:55px; padding:2px; border:2px solid var(--primary); background:#fff; border-radius:6px; display:flex; justify-content:center; align-items:center;"></div>
-                            </div>
+                            
+                            <!-- PERBAIKAN: Inline style sekarang menyesuaikan settingan sizeQRPrint -->
+                            <div class="id-qr-back" id="qr-back-${santri.nis}" data-payload='${qrPayload}' style="width:${sizeQRPrint}px; height:${sizeQRPrint}px; min-width:${sizeQRPrint}px; padding:2px; border:2px solid var(--primary); background:#fff; border-radius:6px; display:flex; justify-content:center; align-items:center; margin: 4px auto;"></div>
+                            
+                            <div style="font-size:0.45rem; text-align:center; padding-top:4px; border-top:1px dashed #ccc; width:100%;">${yayasan.alamat || '-'}</div>
                         </div>
                     </div>
                 </div>`;
@@ -2201,11 +2150,18 @@ const menuMaster = [
         document.body.appendChild(containerTemp); 
         containerTemp.innerHTML = htmlKartuKolektif;
         
-        const sizeQRPrint = parseInt(yayasan.ukuran_qr) || 60;
+        const warnaQRCodeCustom = yayasan.warna_barcode || "#000000";
         databaseSantri.forEach(santri => {
             const wadahQR = containerTemp.querySelector(`#qr-back-${santri.nis}`);
             if (wadahQR && typeof QRCode !== 'undefined') {
-                new QRCode(wadahQR, { text: wadahQR.getAttribute('data-payload'), width: sizeQRPrint, height: sizeQRPrint, correctLevel: QRCode.CorrectLevel.L });
+                new QRCode(wadahQR, { 
+                    text: wadahQR.getAttribute('data-payload'), 
+                    width: sizeQRPrint, 
+                    height: sizeQRPrint,
+                    colorDark: warnaQRCodeCustom, 
+                    colorLight: "#ffffff",
+                    correctLevel: QRCode.CorrectLevel.L 
+                });
             }
         });
 
@@ -2548,8 +2504,19 @@ function cetakLaporanPDF() {
     }
 
     function triggerSyncCloudQuick() {
-        sinkronisasiKeCloud();
-    }
+    // 1. Ganti tulisan nama ustadz dengan animasi loading
+    const namaHeader = document.getElementById('header-user-name');
+    const teksAsli = namaHeader.innerText;
+    namaHeader.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Menyinkronkan...';
+    
+    // 2. Jalankan fungsi sinkronisasi utama
+    sinkronisasiKeCloud().then(() => {
+        // 3. Kembalikan tulisan ke nama asli setelah alert sukses/gagal muncul
+        namaHeader.innerText = teksAsli;
+    }).catch(() => {
+        namaHeader.innerText = teksAsli;
+    });
+}
 
     function triggerPullCloudQuick() {
         tarikDataDariSupabase();
@@ -2745,7 +2712,11 @@ function cetakLaporanPDF() {
 
                 listMapel.forEach(m => {
             // Mengakomodasi hari yang kini string dipisah koma (Misal: "Senin, Selasa")
-            if (m.jadwal_aktif && m.hari && m.hari.includes(namaHariIni) && m.jam_mulai === jamSekarangID) {
+            if (m.jadwal_aktif && m.hari && m.hari.includes(namaHariIni) && m.jam_mulai) {
+                // Memastikan toleransi 1 menit jika interval meleset
+                const jamMulaiMenit = parseInt(m.jam_mulai.split(':')[0]) * 60 + parseInt(m.jam_mulai.split(':')[1]);
+                const jamSekarangMenit = sekarang.getHours() * 60 + sekarang.getMinutes();
+                if (jamSekarangMenit === jamMulaiMenit) {     
                 // Periksa apakah user adalah Ustadz pengampu ATAU Super Admin (untuk keperluan testing)
                 const isPengampu = (m.ustadz_ids || []).includes(currentUser.username) || (m.ustadz_id === currentUser.username);
                 if (isPengampu || currentUser.role === 'superadmin') {
@@ -2775,6 +2746,7 @@ function cetakLaporanPDF() {
                     }
                 }
             }
+            }
         });
     }
 
@@ -2796,7 +2768,7 @@ function cetakLaporanPDF() {
     }
 }
 
-    function masukKeSistemSetelahLogin(playSuara = true) {
+        function masukKeSistemSetelahLogin(playSuara = true) {
         document.getElementById('header-user-name').innerText = currentUser.nama || "User";
         document.getElementById('header-user-photo').src = currentUser.foto || "https://cdn-icons-png.flaticon.com/512/149/149071.png";
         document.getElementById('dropdown-user-role').innerText = currentUser.role.toUpperCase();
@@ -2805,7 +2777,17 @@ function cetakLaporanPDF() {
         document.getElementById('view-login').classList.add('hidden'); document.getElementById('app-header').classList.remove('hidden'); document.getElementById('dashboard-wrapper').classList.remove('hidden'); document.getElementById('app-nav').classList.remove('hidden');
         renderMenuBerdasarkanAkses();
         if (playSuara) { setTimeout(jalankanSapaanSuara, 300); }
+        
+        // --- KODE PERBAIKAN: Otomatis minta izin notifikasi saat Ustadz/Admin login ---
+        setTimeout(() => {
+            if (typeof aktifkanFCM === 'function') {
+                aktifkanFCM();
+            }
+        }, 2000); // Diberi jeda 2 detik agar sistem selesai memuat halaman
+        // --------------------------------------------------------------------------
+
         const lastTab = localStorage.getItem('pondok_active_tab') || 'view-dashboard';
+
         document.querySelectorAll('.page-view').forEach(el => el.classList.add('hidden'));
         if (lastTab === 'view-dashboard' || lastTab === 'view-login') document.getElementById('view-dashboard').classList.remove('hidden');
         else { document.getElementById(lastTab).classList.remove('hidden'); bukaFungsiTabSesuaiTujuan(lastTab); }
@@ -2863,8 +2845,10 @@ document.getElementById('setting-kertas-sertifikat').value = data.kertas_sertifi
                document.getElementById('setting-font-nama').value = data.font_nama || "13";
                document.getElementById('setting-font-alamat').value = data.font_alamat || "9";
 
+document.getElementById('setting-font-sertifikat').value = data.font_sertifikat || "24";
                 document.getElementById('setting-ukuran-qr').value = data.ukuran_qr || "60";
                 document.getElementById('setting-ukuran-barcode1d').value = data.ukuran_barcode1d || "30";
+                document.getElementById('setting-lebar-barcode1d').value = data.lebar_barcode1d || "2.2";
                  document.getElementById('setting-voice-aktif').value = data.voice_aktif || "1"; 
                 document.getElementById('setting-voice-teks').value = data.voice_teks || ""; 
                 document.getElementById('setting-tata-tertib').value = data.tata_tertib || ""; 
@@ -3221,6 +3205,7 @@ document.getElementById('setting-kertas-sertifikat').value = data.kertas_sertifi
     
     const yayasan = getDB('pondok_yayasan', {});
     const evaluasi = getDB('pondok_evaluasi', []).find(e => e.nis === nis) || { rata: 0, predikat: "Belum Ada Nilai" };
+    const sizeFontSertifikat = parseInt(yayasan.font_sertifikat) || 24;
     const tglID = tgl ? new Date(tgl).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' }) : '-';
     let bgStyle = yayasan.bg_idcard ? `background-image: url('${yayasan.bg_idcard}');` : `background: #fff;`;
     
@@ -3252,7 +3237,9 @@ document.getElementById('setting-kertas-sertifikat').value = data.kertas_sertifi
             </div>
             <div class="sertifikat-body" style="font-size:0.85rem; line-height:1.4;">
                 <p>Diberikan Kepada:</p>
-                <div class="sertifikat-name" style="font-size:1.4rem; margin:8px 0; padding:0 10px;">${santri.nama}</div>
+              
+<div class="sertifikat-name" style="font-size:${sizeFontSertifikat}px; margin:8px 0; padding:0 10px;">${santri.nama}</div>
+
                 <p style="font-size:0.8rem;">NIS: ${santri.nis} ${santri.nik ? ' | NIK: ' + santri.nik : ''}</p>
                 <p style="margin-top: 10px; font-size:0.8rem;">${yayasan.teks_lulus || 'Telah mengikuti seluruh program pembelajaran dengan baik dan dinyatakan:'}</p>
                 <div class="sertifikat-predikat" style="font-size:1rem; margin:6px 0;">LULUS DENGAN PREDIKAT: ${evaluasi.predikat.toUpperCase()}</div>
@@ -3292,6 +3279,7 @@ function bukaModalSertifikat(nis) {
         let idx = santriDB.findIndex(s => s.nis === nis);
         if(idx === -1) return;
         const santri = santriDB[idx];
+        const sizeFontSertifikat = parseInt(yayasan.font_sertifikat) || 24;
         const yayasan = getDB('pondok_yayasan', {});
         const evaluasi = getDB('pondok_evaluasi', []).find(e => e.nis === nis) || { rata: 0, predikat: "Belum Dievaluasi" };
         
@@ -3312,7 +3300,7 @@ function bukaModalSertifikat(nis) {
                 </div>
                 <div class="sertifikat-body">
                     <p>Diberikan Kepada:</p>
-                    <div class="sertifikat-name">${santri.nama}</div>
+                    <div class="sertifikat-name" style="font-size:${sizeFontSertifikat}px; margin:8px 0; padding:0 10px;">${santri.nama}</div>
                     <p>NIS: ${santri.nis} ${santri.nik ? ' | NIK: ' + santri.nik : ''}</p>
                     <p style="margin-top: 20px;">${yayasan.teks_lulus || 'Telah mengikuti seluruh program pembelajaran dengan baik dan dinyatakan:'}</p>
                     <div class="sertifikat-predikat">LULUS DENGAN PREDIKAT: ${evaluasi.predikat.toUpperCase()}</div>
@@ -3336,7 +3324,22 @@ function bukaModalSertifikat(nis) {
     }
 
     function setOrientasiKartu(tipe) { const card = document.getElementById('area-cetak-kartu'); if (tipe === 'portrait') card.classList.add('portrait'); else card.classList.remove('portrait'); }
-    function gantiSisiKartu(sisi) { if (sisi === 'depan') { document.getElementById('sisi-depan-kartu').classList.remove('hidden'); document.getElementById('sisi-belakang-kartu').classList.add('hidden'); document.getElementById('btn-kartu-depan').className = 'btn-primary'; document.getElementById('btn-kartu-belakang').className = 'btn-outline'; } else { document.getElementById('sisi-depan-kartu').classList.add('hidden'); document.getElementById('sisi-belakang-kartu').classList.remove('hidden'); document.getElementById('btn-kartu-depan').className = 'btn-outline'; document.getElementById('btn-kartu-belakang').className = 'btn-primary'; } }
+        function gantiSisiKartu(sisi) { 
+        const wrapper = document.getElementById('area-cetak-kartu');
+        if (sisi === 'depan') { 
+            document.getElementById('sisi-depan-kartu').classList.remove('hidden'); 
+            document.getElementById('sisi-belakang-kartu').classList.add('hidden'); 
+            document.getElementById('btn-kartu-depan').className = 'btn-primary'; 
+            document.getElementById('btn-kartu-belakang').className = 'btn-outline'; 
+            wrapper.classList.remove('kartu-belakang-saja');
+        } else { 
+            document.getElementById('sisi-depan-kartu').classList.add('hidden'); 
+            document.getElementById('sisi-belakang-kartu').classList.remove('hidden'); 
+            document.getElementById('btn-kartu-depan').className = 'btn-outline'; 
+            document.getElementById('btn-kartu-belakang').className = 'btn-primary'; 
+            wrapper.classList.add('kartu-belakang-saja');
+        } 
+    }
 
     function prosesCetakIDCard(identifier, tipePengguna = 'santri') { 
         const yayasan = getDB('pondok_yayasan', {}); const card = document.getElementById('area-cetak-kartu'); card.classList.remove('portrait'); gantiSisiKartu('depan'); 
@@ -3383,7 +3386,7 @@ function bukaModalSertifikat(nis) {
             }
 
             document.getElementById('card-alamat').innerText = (s.alamat || '-'); 
-            qrDataPayload = JSON.stringify({ n: s.nis, u: supabaseConfig.url || "", k: supabaseConfig.key || "" });
+            qrDataPayload = "https://ahmadfd-afk.github.io/Wali-santri/?nis=" + s.nis + "&u=" + encodeURIComponent(supabaseConfig.url || "") + "&k=" + encodeURIComponent(supabaseConfig.key || "");
         } else { 
             let db = getDB('pondok_users', []); let p = db.find(x => x.username === identifier); if(!p) return; 
             document.getElementById('card-foto').src = p.foto || "https://cdn-icons-png.flaticon.com/512/149/149071.png"; 
@@ -3417,7 +3420,7 @@ function bukaModalSertifikat(nis) {
         const sizeQR = parseInt(yayasan.ukuran_qr) || 60;
         const sizeFont = parseInt(yayasan.font_nama) || 13;
         const size1D = parseInt(yayasan.ukuran_barcode1d) || 30;
-
+const lebar1D = parseFloat(yayasan.lebar_barcode1d) || 2.2;
         // Terapkan ukuran dinamis ke tampilan
         wadahQR.style.width = sizeQR + 'px';
         wadahQR.style.height = sizeQR + 'px';
@@ -3428,14 +3431,22 @@ function bukaModalSertifikat(nis) {
 /* KODE SESUDAHNYA */
         const warnaBarcodeCustom = yayasan.warna_barcode || "#000000";
 
-        // Render Barcode 1D (Depan)
+                // Render Barcode 1D (Depan)
         if (typeof JsBarcode !== 'undefined') {
             try {
                 let nisRaw = qrText;
                 try { let parsed = JSON.parse(qrText); if(parsed.n) nisRaw = parsed.n; } catch(e){}
+                
+                // --- KODE BARU: Memastikan Barcode 1D hanya mengambil NIS dari Tautan URL ---
+                if (qrText.includes('nis=')) {
+                    let params = new URLSearchParams(qrText.split('?')[1]);
+                    if (params.get('nis')) nisRaw = params.get('nis');
+                }
+                // -----------------------------------------------------------------------------
+
                 JsBarcode("#card-barcode", nisRaw, {
                     format: "CODE128",
-                    width: 2.2, 
+                    width: lebar1D, 
                     height: size1D,
                     displayValue: false,
                     margin: 10,
@@ -4329,6 +4340,89 @@ function kirimDataAbsen() {
 /* === AKHIR PERBAIKAN BLOK 3: SIMPAN DATA ABSEN BESERTA STATUS KELAS ASAL = */
 /* ========================================================================== */
 
+async function aktifkanFCM() {
+    try {
+        // Meminta izin ke perangkat
+        const permission = await Notification.requestPermission();
+        if (permission === 'granted') {
+            console.log('Izin notifikasi diberikan.');
+            
+            // Mengambil Token (Masukkan VAPID Key dari Langkah 1 di sini)
+            const token = await window.fcmGetToken(window.fcmMessaging, { 
+                vapidKey: "BFUUggGusY3F6YjD5Nc-Z7GkHw1UWknqKk5YfSFH0BsgiMLrLR4bc8WsfHkQPhxtx8p097tt-WKDqv3nnarD2jM" 
+            });
+
+            if (token) {
+                console.log('Token FCM didapatkan:', token);
+                // SIMPAN TOKEN KE SUPABASE
+                simpanTokenKeSupabase(token);
+            } else {
+                console.log('Gagal mendapatkan token.');
+            }
+        } else {
+            alert('Aplikasi butuh izin notifikasi agar alarm jadwal bisa berbunyi.');
+        }
+    } catch (error) {
+        console.error('Error saat inisialisasi FCM:', error);
+    }
+}
+// Dijalankan otomatis saat pesan FCM masuk dan aplikasi sedang terbuka (Foreground)
+window.onload = function() {
+    initApp(); // Fungsi asli Anda
+
+    // Menangkap pesan FCM
+    setTimeout(() => {
+        if (window.fcmOnMessage) {
+            window.fcmOnMessage(window.fcmMessaging, (payload) => {
+                console.log('Pesan FCM masuk di Foreground:', payload);
+                
+                const judul = payload.notification.title;
+                const pesan = payload.notification.body;
+                
+                kirimNotifikasiLokal(judul, pesan); // Munculkan pop-up visual
+
+                // EKSEKUSI SUARA 10 KALI
+                if ('speechSynthesis' in window) {
+                    window.speechSynthesis.cancel();
+                    let hitungan = 0;
+                    
+                    function bicara() {
+                        if (hitungan < 10) {
+                            let utterance = new SpeechSynthesisUtterance(pesan);
+                            utterance.lang = 'id-ID';
+                            utterance.rate = 0.9;
+                            utterance.onend = function() {
+                                hitungan++;
+                                setTimeout(bicara, 1500); 
+                            };
+                            window.speechSynthesis.speak(utterance);
+                        }
+                    }
+                    bicara();
+                }
+            });
+        }
+    }, 2000); // Beri jeda agar library termuat dulu
+};
+
+function simpanTokenKeSupabase(tokenFCM) {
+    let users = getDB('pondok_users', []);
+    let idx = users.findIndex(u => u.username === currentUser.username);
+    if (idx > -1) {
+        // --- KODE PERBAIKAN: Cek jika token baru, simpan lalu otomatis Sync ke Cloud ---
+        if (users[idx].fcm_token !== tokenFCM) {
+            users[idx].fcm_token = tokenFCM;
+            localStorage.setItem('pondok_users', JSON.stringify(users));
+            
+            // Otomatis tembak data terbaru ke Supabase agar Admin bisa mendeteksi token ini
+            if (typeof sinkronisasiKeCloud === 'function') {
+                console.log("Menyinkronkan Token FCM Ustadz ke Cloud...");
+                sinkronisasiKeCloud();
+            }
+        }
+        // ------------------------------------------------------------------------------
+    }
+}
 
 
     function simpanYayasan() {
@@ -4349,7 +4443,10 @@ function kirimDataAbsen() {
             alamat: alamat,
             blur_login: blur_login,
             logo: base64TempImages.logo || old.logo,
-            bg_login: base64TempImages.bg_login || old.bg_login,
+            bg_login: base64TempImages.bg_login ||old.bg_login,
+            // Tambahkan di dalam variabel newConfig = { ... }
+font_sertifikat: document.getElementById('setting-font-sertifikat').value,
+
            /* KODE SESUDAHNYA */
             bg_idcard: base64TempImages.bg_idcard || old.bg_idcard,
             ttd_mudir: base64TempImages.ttd_mudir || old.ttd_mudir,
@@ -4362,6 +4459,7 @@ function kirimDataAbsen() {
                         font_alamat: document.getElementById('setting-font-alamat').value,
             ukuran_qr: document.getElementById('setting-ukuran-qr').value,
             ukuran_barcode1d: document.getElementById('setting-ukuran-barcode1d').value,
+            lebar_barcode1d: document.getElementById('setting-lebar-barcode1d').value,
             voice_aktif:             document.getElementById('setting-voice-aktif').value,
             voice_teks: document.getElementById('setting-voice-teks').value,
             tata_tertib: document.getElementById('setting-tata-tertib').value,
@@ -4780,11 +4878,11 @@ async function sinkronisasiKeCloud() {
 
             const waktuKirim = new Date().toISOString();
 
-            // LANGKAH C: Kirim kembali ke Cloud dengan Syarat Waktu (Optimistic Locking)
+                       // LANGKAH C: Kirim kembali ke Cloud dengan Syarat Waktu (Optimistic Locking)
             let patchUrl = `${supabaseConfig.url}/rest/v1/backup_lms?id=eq.1`;
             if (cloudUpdatedAt) {
                 // Syarat mutlak: Jangan timpa data jika ada Device lain yang mendahului detik pengiriman ini
-                patchUrl += `&updated_at=eq.${cloudUpdatedAt}`;
+                patchUrl += `&updated_at=eq.${encodeURIComponent(cloudUpdatedAt)}`;
             }
 
             const response = await fetch(patchUrl, {
@@ -4827,7 +4925,10 @@ async function sinkronisasiKeCloud() {
                 
                 if (typeof renderTabelSantri === 'function') renderTabelSantri();
                 if (typeof renderTabelDaftarKelas === 'function') renderTabelDaftarKelas();
+                if (typeof renderMasterMapel === 'function') renderMasterMapel();
+                if (typeof renderJamKustom === 'function') renderJamKustom();
                 
+            
             } else if (response.status === 404 || patchResult.length === 0) {
                 if (!cloudUpdatedAt) {
                     await fetch(`${supabaseConfig.url}/rest/v1/backup_lms`, {
@@ -5030,22 +5131,95 @@ function simpanTabungan() {
     // FUNGSI UNTUK TOMBOL VALIDASI & CETAK PDF
     // ==========================================
 
-    function validasiDanNotifManual(idMapel) {
-        // 1. Cari data mata pelajaran berdasarkan ID yang diklik
-        const m = getDB('pondok_master_mapel', []).find(x => x.id == idMapel);
-        if (!m) return;
-        
-        // 2. Ambil format teks notifikasi dari pengaturan Yayasan
-        const yayasan = getDB('pondok_yayasan', {});
-        let formatTeks = yayasan.pwa_notif_teks || "Waktunya mengajar mata pelajaran {mapel} di kelas {kelas}.";
-        
-        // 3. Ubah kata {mapel} menjadi nama pelajaran aslinya
-        let teksSuara = formatTeks.replace(/{mapel}/g, m.nama_mapel).replace(/{kelas}/g, "Sesuai Jadwal");
+   function validasiDanNotifManual(idMapel) {
+    // 1. Cari data mata pelajaran berdasarkan ID yang diklik
+    const m = getDB('pondok_master_mapel', []).find(x => x.id == idMapel);
+    if (!m) return;
+    
+    // 2. Ambil format teks notifikasi dari pengaturan Yayasan
+    const yayasan = getDB('pondok_yayasan', {});
+    let formatTeks = yayasan.pwa_notif_teks || "Waktunya mengajar mata pelajaran {mapel} di kelas {kelas}.";
+    let teksSuara = formatTeks.replace(/{mapel}/g, m.nama_mapel).replace(/{kelas}/g, "Sesuai Jadwal");
 
-        // 4. Picu sistem notifikasi dan suara bawaan aplikasi
-        kirimNotifikasiLokal("Jadwal Tervalidasi!", teksSuara);
-        alert(`Sukses! Notifikasi manual dan pengumuman untuk jadwal pelajaran ${m.nama_mapel} berhasil dipicu.`);
+    // 3. AMBIL TOKEN FCM USTADZ YANG MENGAJAR MAPEL INI
+    let listUsers = getDB('pondok_users', []);
+    let targetUstadzUsernames = m.ustadz_ids || [m.ustadz_id]; // Mendukung ustadz tunggal atau banyak
+    
+    let tokenDitemukan = [];
+    targetUstadzUsernames.forEach(username => {
+        let userObj = listUsers.find(u => u.username === username);
+        if (userObj && userObj.fcm_token) {
+            tokenDitemukan.push(userObj.fcm_token);
+        }
+    });
+
+    if (tokenDitemukan.length === 0) {
+        alert(`Peringatan: Jadwal ${m.nama_mapel} berhasil divalidasi lokal, tapi Ustadz pengampunya belum mengaktifkan izin notifikasi di HP mereka.`);
+        return;
     }
+
+    // 4. KIRIM PESAN KE FIREBASE CLOUD MESSAGING (FCM)
+    // (Membutuhkan fungsi pengiriman API ke server FCM/Supabase Edge Function)
+    tokenDitemukan.forEach(token => {
+        kirimPesanFCMKeServer(token, "Jadwal Mengajar Tiba!", teksSuara);
+    });
+
+    alert(`Sukses! Tombol Valid ditekan. Notifikasi dan alarm suara 10x dikirim ke HP Ustadz: ${m.ustadz_nama}`);
+}
+
+// Fungsi pendukung untuk menembak API Firebaseasync 
+/**
+ * Mengirim pesan atau pemicu notifikasi FCM ke server backend/Edge Function.
+ * @param {string} targetToken - Token perangkat tujuan (FCM Device Token).
+ * @param {string} title - Judul notifikasi.
+ * @param {string} body - Isi pesan notifikasi.
+ * @param {Object} customData - Data tambahan opsional (payload).
+ */
+async function kirimPesanFCMKeServer(targetToken, title, body, customData = {}) {
+    // Mengambil konfigurasi dari sistem lokal (mengikuti pola yang ada)
+    const config = getDB('pondok_supabase_config', { url: '', key: '' });
+    
+    if (!config.url || !config.key) {
+        console.warn("Konfigurasi server belum tersedia untuk pengiriman FCM.");
+        return false;
+    }
+
+    // Menyusun payload untuk dikirim ke Supabase Edge Function (misal: endpoint 'kirim-notif')
+    const fcmPacket = {
+        token: targetToken,
+        notification: {
+            title: title,
+            body: body
+        },
+        data: customData
+    };
+
+    try {
+        // Menembakkan request ke Supabase Edge Function yang menangani FCM
+        const response = await fetch(`${config.url}/functions/v1/kirim-notif`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'apikey': config.key,
+                'Authorization': `Bearer ${config.key}`
+            },
+            body: JSON.stringify(fcmPacket)
+        });
+
+        if (response.ok) {
+            const result = await response.json();
+            console.log("Notifikasi FCM berhasil dikirim:", result);
+            return true;
+        } else {
+            console.error("Gagal mengirim FCM. Status:", response.statusText);
+            return false;
+        }
+    } catch (error) {
+        console.error("Kesalahan jaringan saat mengirim FCM:", error);
+        return false;
+    }
+}
+
 
     function cetakJadwalMapelPDF(idMapel) {
         // 1. Ambil data mapel dan kelas
@@ -6116,6 +6290,94 @@ function simpanSantriWali() {
     document.getElementById('form-santri-wali-card').classList.add('hidden');
     renderTabelSantriWali();
 }
+function cetakKolektifF4Gabung(orientasi = 'portrait') {
+    let databaseSantri = getDB('pondok_santri', []).filter(s => !s.is_alumni);
+    if (databaseSantri.length === 0) return alert("Belum ada data santri aktif.");
+
+    const yayasan = getDB('pondok_yayasan', {});
+    const logoSrc = yayasan.logo || "https://cdn-icons-png.flaticon.com/512/3592/3592078.png";
+    const pondokName = yayasan.pondok || "Sistem Manajemen";
+    const yayasanName = yayasan.yayasan || "Instansi";
+    const sizeFont = parseInt(yayasan.font_nama) || 13;
+    const sizeFontAlamat = parseInt(yayasan.font_alamat) || 9;
+    const size1D = parseInt(yayasan.ukuran_barcode1d) || 30;
+    const lebar1D = parseFloat(yayasan.lebar_barcode1d) || 2.2;
+    const warnaBarcodeCustom = yayasan.warna_barcode || "#000000";
+
+    let htmlKartuKolektif = `<div class="kolektif-grid-gabung">`;
+
+    databaseSantri.forEach((santri) => {
+        let fotoSrc = santri.foto || "https://cdn-icons-png.flaticon.com/512/847/847969.png";
+        htmlKartuKolektif += `
+            <div class="id-card-wrapper portrait" style="page-break-inside: avoid; background-color: #fff !important; border: 1px solid #ccc;">
+                <div id="sisi-depan-kartu">
+                    <div class="id-header" style="background:linear-gradient(135deg, var(--primary), var(--primary-light)) !important;">
+                        <img src="${logoSrc}">
+                        <div><h4 style="color:white !important;">${pondokName}</h4><p style="color:#F4E29F !important;">${yayasanName}</p></div>
+                    </div>
+                    <div class="id-body" style="background:#fff !important;">
+                        <img src="${fotoSrc}" class="id-photo">
+                        <div class="id-details">
+                            <strong style="text-transform: uppercase; font-size: ${sizeFont}px;">${santri.nama}</strong>
+                            <div style="margin-top: 5px;">
+                                <span style="display:inline-block; width: 38px;">NIS</span>: <span style="font-weight: bold; color: var(--primary);">${santri.nis}</span><br>
+                                <span style="font-size: ${sizeFontAlamat}px; display:-webkit-inline-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; max-width: 180px;">${santri.alamat || '-'}</span>
+                            </div>
+                        </div>
+                        <div class="id-qr-depan" style="border:none; padding:0; background:transparent; box-shadow:none;">
+                            <svg id="barcode-depan-${santri.nis}"></svg>
+                        </div>
+                    </div>
+                    ${yayasan.teks_footer ? `<div class="id-footer-custom">${yayasan.teks_footer}</div>` : ''}
+                </div>
+            </div>`;
+    });
+
+    htmlKartuKolektif += `</div>`;
+
+    const containerTemp = document.createElement('div');
+    containerTemp.style.position = 'fixed';
+    containerTemp.style.right = '200vw';
+    document.body.appendChild(containerTemp);
+    containerTemp.innerHTML = htmlKartuKolektif;
+
+    // Render Barcode 1D
+    if (typeof JsBarcode !== 'undefined') {
+        databaseSantri.forEach(santri => {
+            try {
+                JsBarcode(containerTemp.querySelector(`#barcode-depan-${santri.nis}`), santri.nis, {
+                    format: "CODE128",
+                    width: lebar1D,
+                    height: size1D,
+                    displayValue: false,
+                    margin: 10,
+                    lineColor: warnaBarcodeCustom,
+                    background: "transparent"
+                });
+            } catch(e) {}
+        });
+    }
+
+    // Ubah SVG menjadi Image agar tercetak di PDF/Kertas
+    setTimeout(() => {
+        const svgs = containerTemp.querySelectorAll('svg');
+        svgs.forEach(svg => {
+            const serializer = new XMLSerializer();
+            let source = serializer.serializeToString(svg);
+            if(!source.match(/^<svg[^>]+xmlns="http\:\/\/www\.w3\.org\/2000\/svg"/)){
+                source = source.replace(/^<svg/, '<svg xmlns="http://www.w3.org/2000/svg"');
+            }
+            source = '<?xml version="1.0" standalone="no"?>\r\n' + source;
+            const url = "data:image/svg+xml;charset=utf-8," + encodeURIComponent(source);
+            const img = document.createElement('img');
+            img.src = url;
+            svg.parentNode.replaceChild(img, svg);
+        });
+
+        cetakElemenHTML(containerTemp.innerHTML, 'portrait');
+        containerTemp.remove();
+    }, 600);
+}
 
 function hapusSantriWali(idSantri) {
     if (!confirm("Hapus santri ini dari sistem secara permanen?")) return;
@@ -6136,6 +6398,31 @@ function hapusSantriWali(idSantri) {
 
     window.onload = initApp;
 </script>
+<!-- Script Firebase (Modular) -->
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+    import { getMessaging, getToken, onMessage } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-messaging.js";
+
+    // Ganti dengan firebaseConfig dari Langkah 1
+    const firebaseConfig = {
+  apiKey: "AIzaSyBajz9-X3RlIXphaH0a--OSvQM6_nhV6pE",
+  authDomain: "sms-digi.firebaseapp.com",
+  projectId: "sms-digi",
+  storageBucket: "sms-digi.firebasestorage.app",
+  messagingSenderId: "477801725664",
+  appId: "1:477801725664:web:0a1fc140d6ec907e1c9a85"
+};
+
+    // Inisialisasi Firebase
+    const app = initializeApp(firebaseConfig);
+    const messaging = getMessaging(app);
+
+    // Jadikan 'messaging' & 'getToken' sebagai variabel global agar bisa dipakai di fungsi lain
+    window.fcmMessaging = messaging;
+    window.fcmGetToken = getToken;
+    window.fcmOnMessage = onMessage;
+</script>
+
 <!-- Panggil file library langsung dari root folder -->
 <script src="qrcode.min.js"></script>
 <script src="html5-qrcode.min.js"></script>
