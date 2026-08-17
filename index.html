@@ -4145,11 +4145,28 @@ if (wadahUstadz) {
         masterMapel.forEach(m => {
             let tampilkan = false;
 
-                        // 1. Filter HANYA berdasarkan Hari dan Jam
-            if (m.jadwal_aktif) {
-                if (m.hari && m.hari.includes(namaHariIni) && jamSekarang >= (m.jam_mulai || "00:00") && jamSekarang <= (m.jam_selesai || "23:59")) {
-                    tampilkan = true;
+                                 // 1. Filter berdasarkan Hari dan Jam (Dengan Perbaikan Logika)
+                        if (m.jadwal_aktif) {
+                let mulai = (m.jam_mulai || "00:00").trim();
+                let selesai = (m.jam_selesai || "23:59").trim();
+                const jamKustom = getDB('pondok_jam_kustom', []);
+
+                let cekMulai = jamKustom.find(j => j.kode === mulai.toUpperCase());
+                if (cekMulai) mulai = cekMulai.mulai;
+                
+                let cekSelesai = jamKustom.find(j => j.kode === selesai.toUpperCase());
+                if (cekSelesai) selesai = cekSelesai.selesai;
+
+                if (mulai.length === 4) mulai = "0" + mulai;
+                if (selesai.length === 4) selesai = "0" + selesai;
+
+                if (m.hari && m.hari.includes(namaHariIni)) {
+                    if (mulai <= selesai ? (jamSekarang >= mulai && jamSekarang <= selesai) : (jamSekarang >= mulai || jamSekarang <= selesai)) {
+                        tampilkan = true;
+                    }
                 }
+            
+
             } else {
 
                 // Jadwal fleksibel
