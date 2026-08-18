@@ -1618,7 +1618,7 @@
 <div id="network-status" style="position:fixed; bottom: 85px; right: 20px; background: rgba(52, 199, 89, 0.9); color: white; padding: 8px 16px; border-radius: 20px; font-size: 0.75rem; font-weight: bold; box-shadow: 0 4px 15px rgba(0,0,0,0.2); z-index: 9999; display: flex; align-items: center; gap: 8px; backdrop-filter: blur(10px); transition: all 0.4s ease;">
     <i class="fa-solid fa-wifi"></i> <span>Online</span>
 </div>
-
+<script src="https://cdnjs.cloudflare.com/ajax/libs/localforage/1.10.0/localforage.min.js"></script>
 <script>
     /* Indikator Online/Offline */
     function updateNetworkStatus() {
@@ -6484,8 +6484,7 @@ function hapusSantriWali(idSantri) {
 
     window.onload = initApp;
 </script>
-    <!-- Panggil library LocalForage untuk IndexedDB -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/localforage/1.10.0/localforage.min.js"></script>
+
 <!-- Script Firebase (Modular) -->
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
