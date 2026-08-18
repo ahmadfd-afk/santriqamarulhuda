@@ -1675,8 +1675,36 @@
         pelatihan: { santri: "Peserta", ustadz: "Tutor / Instruktur", asrama: "Jenis Kelamin", kamar: "Batch / Gelombang", mudir: "Pimpinan Lembaga", instansi: "Lembaga Pelatihan", labelAsramaOpsi: ["Laki-laki", "Perempuan"] }
     };
 
-    function getTerm(key) { return termDict[appMode][key]; }
-    function getDB(key, fallback = null) { try { let data = localStorage.getItem(key); return data ? JSON.parse(data) : fallback; } catch (e) { return fallback; } }
+   function getTerm(key) { return termDict[appMode][key]; }
+
+// 1. Buat wadah penyimpanan sementara (Cache) di RAM
+window.dbCache = {}; 
+
+// 2. Fungsi getDB sekarang mengambil data super cepat langsung dari RAM
+function getDB(key, fallback = null) { 
+    if (window.dbCache[key] !== undefined && window.dbCache[key] !== null) {
+        return window.dbCache[key];
+    }
+    return fallback; 
+}
+
+// 3. Fungsi BARU untuk menyimpan data (Menggantikan localStorage.setItem)
+function setDB(key, dataObj) {
+    window.dbCache[key] = dataObj; // Simpan ke RAM agar UI langsung terupdate
+    localforage.setItem(key, dataObj).catch(err => console.error("Gagal simpan ke IndexedDB:", err)); // Simpan permanen di latar belakang
+}
+
+// 4. Fungsi BARU untuk menghapus data (Menggantikan localStorage.removeItem)
+function removeDB(key) {
+    delete window.dbCache[key];
+    localforage.removeItem(key);
+}
+
+// 5. Fungsi BARU untuk mereset semua data (Menggantikan localStorage.clear)
+function clearDB() {
+    window.dbCache = {};
+    localforage.clear();
+}
 
     let supabaseConfig = getDB('pondok_supabase_config', { url: '', key: '' });
 
@@ -2580,21 +2608,60 @@ function cetakLaporanPDF() {
     }
 
     /* KODE SESUDAHNYA */
-    function initApp() {
-        setTimeout(() => {
-            const splash = document.getElementById('splash-screen');
-            if(splash) {
-                splash.style.opacity = '0';
-                setTimeout(() => splash.style.display = 'none', 600);
-            }
-        }, 1500);
-        muatScriptEksternal(); registerServiceWorker();
+   async function initApp() {
+    const splashTitle = document.getElementById('splash-title');
+    if(splashTitle) splashTitle.innerText = "Memuat Database...";
 
-        
-        // ⬇️ TAMBAHKAN INISIALISASI INI DI SINI ⬇️
-        if (!localStorage.getItem('pondok_jam_kustom')) {
-            localStorage.setItem('pondok_jam_kustom', JSON.stringify([
-                { kode: "BS", mulai: "05:00", selesai: "06:30" },
+    // [WAJIB] Tarik semua data dari IndexedDB ke RAM sebelum aplikasi jalan
+    try {
+        const keys = await localforage.keys();
+        for (let key of keys) {
+            window.dbCache[key] = await localforage.getItem(key);
+        }
+    } catch (err) {
+        console.error("Gagal load dari IndexedDB:", err);
+    }
+
+    setTimeout(() => {
+        const splash = document.getElementById('splash-screen');
+        if(splash) {
+            splash.style.opacity = '0';
+            setTimeout(() => splash.style.display = 'none', 600);
+        }
+    }, 500); // Waktu splash screen dipercepat karena loading DB di atas butuh waktu
+
+    muatScriptEksternal(); registerServiceWorker();
+
+    // PERUBAHAN: Ganti localStorage.getItem dengan window.dbCache, dan setItem dengan setDB
+    if (!window.dbCache['pondok_jam_kustom']) {
+        setDB('pondok_jam_kustom', [
+            { kode: "BS", mulai: "05:00", selesai: "06:30" },
+            { kode: "BM", mulai: "18:30", selesai: "19:30" }
+        ]);
+    }
+    
+    if (!window.dbCache['pondok_users']) { 
+        setDB('pondok_users', [ 
+            { id: 1, nama: "Super Admin Mutlak", username: "admin", password: "admin123", pin_login: "123456", role: "superadmin", foto: 'https://cdn-icons-png.flaticon.com/512/149/149071.png' }, 
+            // ... (lanjutkan data dummy mu di sini)
+        ]); 
+    }
+
+    if (!window.dbCache['pondok_absensi']) setDB('pondok_absensi', []);
+    if (!window.dbCache['pondok_evaluasi']) setDB('pondok_evaluasi', []);
+    if (!window.dbCache['pondok_tabungan']) setDB('pondok_tabungan', []);
+    
+    // ... [Lakukan hal yang sama untuk inisialisasi default lainnya sampai akhir fungsi initApp] ...
+    
+    loadIdentitasApp();
+
+    const savedSession = getDB('pondok_active_user', null);
+    if (savedSession && savedSession.role) { 
+        currentUser = savedSession; 
+        masukKeSistemSetelahLogin(false); 
+    }
+    mulaiWatchdogJadwal();
+}
                 { kode: "BM", mulai: "18:30", selesai: "19:30" }
             ]));
         }
@@ -2886,8 +2953,12 @@ document.getElementById('setting-font-sertifikat').value = data.font_sertifikat 
         if (currentUser) { localStorage.setItem('pondok_active_user', JSON.stringify(currentUser)); localStorage.setItem('pondok_active_tab', 'view-dashboard'); document.getElementById('login-error').classList.add('hidden'); masukKeSistemSetelahLogin(); } else { document.getElementById('login-error').classList.remove('hidden'); } 
     }
     
-    function prosesLogout() { localStorage.removeItem('pondok_active_user'); localStorage.removeItem('pondok_active_tab'); location.reload(); }
-    function switchTab(viewId) { document.querySelectorAll('.page-view').forEach(el => el.classList.add('hidden')); document.getElementById(viewId).classList.remove('hidden'); localStorage.setItem('pondok_active_tab', viewId); bukaFungsiTabSesuaiTujuan(viewId); }
+    function prosesLogout() { 
+    removeDB('pondok_active_user'); 
+    removeDB('pondok_active_tab'); 
+    location.reload(); 
+}
+    function switchTab(viewId) { document.querySelectorAll('.page-view').forEach(el => el.classList.add('hidden')); document.getElementById(viewId).classList.remove('hidden'); setDB('pondok_active_tab', viewId); bukaFungsiTabSesuaiTujuan(viewId); }
     function openSubMenu(id) { switchTab(id); } function closeSubMenu() { if(html5QrcodeScanner) html5QrcodeScanner.stop(); if(scannerIzin) scannerIzin.stop(); switchTab('view-dashboard'); }
     
     function renderMenuBerdasarkanAkses() { 
@@ -3020,7 +3091,7 @@ document.getElementById('setting-font-sertifikat').value = data.font_sertifikat 
             alert(`Registrasi Berhasil!\nNIS Terbentuk: ${nisTerbentuk}`); 
         } 
 
-        localStorage.setItem('pondok_santri', JSON.stringify(databaseSantri)); 
+        setDB('pondok_santri', databaseSantri); 
 
         if (idKelasTerpilih && targetIdSantri) {
             let dbKelas = getDB('pondok_kelas', []);
@@ -3028,7 +3099,7 @@ document.getElementById('setting-font-sertifikat').value = data.font_sertifikat 
             if (klsIndex > -1) {
                 if (!dbKelas[klsIndex].santri_ids.includes(targetIdSantri)) {
                     dbKelas[klsIndex].santri_ids.push(targetIdSantri);
-                    localStorage.setItem('pondok_kelas', JSON.stringify(dbKelas));
+                    setDB('pondok_santri', databaseSantri);
                 }
             }
         }
@@ -4037,7 +4108,7 @@ if (wadahUstadz) {
     }
 
     function renderDataKeuanganPanel() { const config = getDB('pondok_setting_keuangan', null); if(config) { document.getElementById('setting-nominal-alpa').value = config.nominal_alpa; document.getElementById('setting-limit-alpa').value = config.limit_alpa; document.getElementById('setting-sanksi-ekstra').value = config.sanksi_ekstra; document.getElementById('setting-denda-terlambat').value = config.denda_terlambat_izin || 20000; } renderTabelKeuanganDenda(); }
-    function simpanSettingKeuangan() { localStorage.setItem('pondok_setting_keuangan', JSON.stringify({ nominal_alpa: document.getElementById('setting-nominal-alpa').value, limit_alpa: document.getElementById('setting-limit-alpa').value, sanksi_ekstra: document.getElementById('setting-sanksi-ekstra').value, denda_terlambat_izin: document.getElementById('setting-denda-terlambat').value })); alert("Aturan Denda Disimpan!"); }
+    function simpanSettingKeuangan() { setDB('pondok_santri', databaseSantri); alert("Aturan Denda Disimpan!"); }
     function renderTabelKeuanganDenda() { const wadahTbodyKeuangan = document.getElementById('tabel-keuangan-body'); let akumulasiTotalUang = 0; wadahTbodyKeuangan.innerHTML = ''; const databaseKeuanganTagihan = getDB('pondok_tagihan_denda', []); if(databaseKeuanganTagihan.length === 0) { document.getElementById('total-denda').innerText = "0"; return wadahTbodyKeuangan.innerHTML = '<tr><td colspan="4" align="center">Tidak ada tagihan hutang denda.</td></tr>'; } databaseKeuanganTagihan.forEach(barisTagihan => { akumulasiTotalUang += parseInt(barisTagihan.nominal); wadahTbodyKeuangan.innerHTML += `<tr><td><strong>${barisTagihan.nama}</strong><br><span style="font-size:0.7rem; color:var(--text-muted);">NIS: ${barisTagihan.nis}</span></td><td>${barisTagihan.keterangan}</td><td style="color:var(--danger); font-weight:600;">Rp ${parseInt(barisTagihan.nominal).toLocaleString('id-ID')}</td><td><button class="btn-success" onclick="tandaiLunas(${barisTagihan.id_tagihan})"><i class="fa-solid fa-check"></i> Lunas</button></td></tr>`; }); document.getElementById('total-denda').innerText = akumulasiTotalUang.toLocaleString('id-ID'); }
     function tandaiLunas(id_tagihan) { if(!confirm("Tandai lunas?")) return; let dbKeuangan = getDB('pondok_tagihan_denda', []); localStorage.setItem('pondok_tagihan_denda', JSON.stringify(dbKeuangan.filter(d => d.id_tagihan !== id_tagihan))); renderTabelKeuanganDenda(); }
 
@@ -4713,7 +4784,7 @@ font_sertifikat: document.getElementById('setting-font-sertifikat').value,
         const url = document.getElementById('setting-supabase-url').value.trim();
         const key = document.getElementById('setting-supabase-key').value.trim();
         supabaseConfig = { url: url, key: key };
-        localStorage.setItem('pondok_supabase_config', JSON.stringify(supabaseConfig));
+        setDB('pondok_supabase_config', supabaseConfig);
         alert("Konfigurasi server Supabase berhasil disimpan!");
     }
 
@@ -4745,11 +4816,11 @@ font_sertifikat: document.getElementById('setting-font-sertifikat').value,
         reader.onload = function(evt) {
             try {
                 const data = JSON.parse(evt.target.result);
-                for (const k in data) {
-                    if (k.startsWith('pondok_')) {
-                        localStorage.setItem(k, JSON.stringify(data[k]));
-                    }
-                }
+               for (const k in data) {
+    if (k.startsWith('pondok_')) {
+        setDB(k, data[k]); // Langsung oper data object-nya
+    }
+}
                 alert("Restore data berhasil! Sistem akan dimuat ulang.");
                 location.reload();
             } catch(err) {
@@ -4997,34 +5068,34 @@ async function tarikDataDariSupabase() {
         if (rows && rows.length > 0 && rows[0].data_json) {
             const data = rows[0].data_json;
             
-            // RESTORE DATA UTAMA
-            if (data.santri) localStorage.setItem('pondok_santri', JSON.stringify(data.santri));
-            if (data.absensi) localStorage.setItem('pondok_absensi', JSON.stringify(data.absensi));
-            if (data.kelas) localStorage.setItem('pondok_kelas', JSON.stringify(data.kelas));
-            if (data.mapel) localStorage.setItem('pondok_master_mapel', JSON.stringify(data.mapel));
-            if (data.evaluasi) localStorage.setItem('pondok_evaluasi', JSON.stringify(data.evaluasi));
-            if (data.tagihan) localStorage.setItem('pondok_tagihan_denda', JSON.stringify(data.tagihan));
-            if (data.tabungan) localStorage.setItem('pondok_tabungan', JSON.stringify(data.tabungan)); 
-            if (data.izin_aktif) localStorage.setItem('pondok_izin_aktif', JSON.stringify(data.izin_aktif));
-            if (data.history_izin) localStorage.setItem('pondok_history_izin', JSON.stringify(data.history_izin));
-            
-            // --- RESTORE FITUR DATA BARU ---
-            if (data.jam_kustom) localStorage.setItem('pondok_jam_kustom', JSON.stringify(data.jam_kustom));
-            if (data.bank_mapel) localStorage.setItem('pondok_bank_mapel', JSON.stringify(data.bank_mapel));
+          // RESTORE DATA UTAMA (Langsung oper object-nya, bebas limit 5MB!)
+if (data.santri) setDB('pondok_santri', data.santri);
+if (data.absensi) setDB('pondok_absensi', data.absensi);
+if (data.kelas) setDB('pondok_kelas', data.kelas);
+if (data.mapel) setDB('pondok_master_mapel', data.mapel);
+if (data.evaluasi) setDB('pondok_evaluasi', data.evaluasi);
+if (data.tagihan) setDB('pondok_tagihan_denda', data.tagihan);
+if (data.tabungan) setDB('pondok_tabungan', data.tabungan); 
+if (data.izin_aktif) setDB('pondok_izin_aktif', data.izin_aktif);
+if (data.history_izin) setDB('pondok_history_izin', data.history_izin);
 
-            // RESTORE DATA PENGATURAN & AKUN (FULL BACKUP)
-            if (data.yayasan) localStorage.setItem('pondok_yayasan', JSON.stringify(data.yayasan));
-            
-            if (data.users) {
-                let cloudUsersBersih = data.users.filter(u => u.role !== 'superadmin');
-                let lokalSuperAdmin = getDB('pondok_users', []).filter(u => u.role === 'superadmin');
-                let finalPulledUsers = [...cloudUsersBersih, ...lokalSuperAdmin];
-                localStorage.setItem('pondok_users', JSON.stringify(finalPulledUsers));
-            }
+// --- RESTORE FITUR DATA BARU ---
+if (data.jam_kustom) setDB('pondok_jam_kustom', data.jam_kustom);
+if (data.bank_mapel) setDB('pondok_bank_mapel', data.bank_mapel);
 
-            if (data.akses) localStorage.setItem('pondok_akses', JSON.stringify(data.akses));
-            if (data.gps) localStorage.setItem('pondok_gps', JSON.stringify(data.gps));
-            if (data.setting_keuangan) localStorage.setItem('pondok_setting_keuangan', JSON.stringify(data.setting_keuangan));
+// RESTORE DATA PENGATURAN & AKUN (FULL BACKUP)
+if (data.yayasan) setDB('pondok_yayasan', data.yayasan);
+
+if (data.users) {
+    let cloudUsersBersih = data.users.filter(u => u.role !== 'superadmin');
+    let lokalSuperAdmin = getDB('pondok_users', []).filter(u => u.role === 'superadmin');
+    let finalPulledUsers = [...cloudUsersBersih, ...lokalSuperAdmin];
+    setDB('pondok_users', finalPulledUsers);
+}
+
+if (data.akses) setDB('pondok_akses', data.akses);
+if (data.gps) setDB('pondok_gps', data.gps);
+if (data.setting_keuangan) setDB('pondok_setting_keuangan', data.setting_keuangan);
 
             alert("Berhasil menarik SELURUH data terbaru dari Cloud! Sistem akan dimuat ulang.");
             location.reload();
@@ -5046,25 +5117,25 @@ async function tarikDataDariSupabase() {
     function eksekusiResetOpsi(pilihan) {
         if (pilihan === 1) {
             if (!confirm("Kosongkan semua data Santri & Kelas?")) return;
-            localStorage.setItem('pondok_santri', JSON.stringify([]));
-            localStorage.setItem('pondok_kelas', JSON.stringify([]));
+           setDB('pondok_santri', []);
+    setDB('pondok_kelas', []);
             alert("Data Santri & Kelas berhasil dikosongkan.");
         } else if (pilihan === 2) {
             if (!confirm("Kosongkan semua data Absensi & Denda?")) return;
-            localStorage.setItem('pondok_absensi', JSON.stringify([]));
-            localStorage.setItem('pondok_tagihan_denda', JSON.stringify([]));
+           setDB('pondok_absensi', []);
+    setDB('pondok_tagihan_denda', []);
             alert("Data Absensi & Denda berhasil dikosongkan.");
         } else if (pilihan === 3) {
             if (!confirm("Reset Total lokal tanpa menghapus konfigurasi Supabase?")) return;
-            const configSave = localStorage.getItem('pondok_supabase_config');
-            localStorage.clear();
-            if (configSave) localStorage.setItem('pondok_supabase_config', configSave);
+            const configSave = getDB('pondok_supabase_config'); // Ambil config dari RAM
+clearDB(); // Hapus semua data dari RAM dan IndexedDB
+if (configSave) setDB('pondok_supabase_config', configSave);
             alert("Reset total berhasil! Sistem akan dimuat ulang.");
             location.reload();
             return;
         } else if (pilihan === 4) {
             if (!confirm("PERINGATAN KERAS: Hapus SEGALANYA termasuk konfigurasi Supabase?")) return;
-            localStorage.clear();
+            clearDB();
             alert("Seluruh data dihabiskan bersih. Sistem akan dimuat ulang.");
             location.reload();
             return;
@@ -6415,6 +6486,8 @@ function hapusSantriWali(idSantri) {
 
     window.onload = initApp;
 </script>
+    <!-- Panggil library LocalForage untuk IndexedDB -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/localforage/1.10.0/localforage.min.js"></script>
 <!-- Script Firebase (Modular) -->
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
