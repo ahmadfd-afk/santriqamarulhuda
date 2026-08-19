@@ -2517,8 +2517,8 @@ function cetakLaporanPDF() {
             if(tempSelfFotoBase64 !== "") users[idx].foto = tempSelfFotoBase64;
 
             currentUser = users[idx];
-            localStorage.setItem('pondok_users', JSON.stringify(users));
-            localStorage.setItem('pondok_active_user', JSON.stringify(currentUser));
+           setDB('pondok_users', users);
+setDB('pondok_active_user', currentUser);
 
             document.getElementById('header-user-name').innerText = currentUser.nama;
             document.getElementById('header-user-photo').src = currentUser.foto || "https://cdn-icons-png.flaticon.com/512/149/149071.png";
@@ -2572,8 +2572,8 @@ function cetakLaporanPDF() {
         let matchedUser = users.find(u => u.pin_login && u.pin_login === pinVal);
         if (matchedUser) {
             currentUser = matchedUser;
-            localStorage.setItem('pondok_active_user', JSON.stringify(currentUser));
-            localStorage.setItem('pondok_active_tab', 'view-dashboard');
+           setDB('pondok_active_user', currentUser); 
+setDB('pondok_active_tab', 'view-dashboard');
             document.getElementById('login-error').classList.add('hidden');
             masukKeSistemSetelahLogin();
         } else { document.getElementById('login-error').classList.remove('hidden'); document.getElementById('login-pin-input').value = ""; }
@@ -2644,7 +2644,7 @@ function cetakLaporanPDF() {
     
     if (!window.dbCache['pondok_users']) { 
         setDB('pondok_users', [ 
-            { id: 1, nama: "Super Admin Mutlak", username: "admin", password: "sms321", pin_login: "4321", role: "superadmin", foto: 'https://cdn-icons-png.flaticon.com/512/149/149071.png' }, 
+            { id: 1, nama: "Super Admin Mutlak", username: "admin", password: "admin123", pin_login: "123456", role: "superadmin", foto: 'https://cdn-icons-png.flaticon.com/512/149/149071.png' }, 
             // ... (lanjutkan data dummy mu di sini)
         ]); 
     }
@@ -2666,7 +2666,7 @@ function cetakLaporanPDF() {
 }
                
         // ⬆️ SAMPAI SINI ⬆️
-        if (!localStorage.getItem('pondok_users')) { localStorage.setItem('pondok_users', JSON.stringify([ { id: 1, nama: "Super Admin Mutlak", username: "admin", password: "admin123", pin_login: "123456", role: "superadmin", foto: 'https://cdn-icons-png.flaticon.com/512/149/149071.png' }, { id: 2, nama: "Admin Tata Usaha", username: "tu", password: "tu123", pin_login: "112233", role: "admin", foto: 'https://cdn-icons-png.flaticon.com/512/149/149071.png' }, { id: 3, nama: "Guru / Ustadz", username: "ustadz", password: "ustadz123", pin_login: "1234", role: "ustadz", foto: 'https://cdn-icons-png.flaticon.com/512/149/149071.png' }, { id: 4, nama: "Kasir Keuangan", username: "keuangan", password: "keuangan123", pin_login: "998877", role: "accounting", foto: 'https://cdn-icons-png.flaticon.com/512/149/149071.png' } ])); }
+        
         let cekAkses = getDB('pondok_akses', defaultAkses); localStorage.setItem('pondok_akses', JSON.stringify(cekAkses));
         if (!localStorage.getItem('pondok_absensi')) localStorage.setItem('pondok_absensi', JSON.stringify([]));
         if (!localStorage.getItem('pondok_evaluasi')) localStorage.setItem('pondok_evaluasi', JSON.stringify([]));
@@ -2853,7 +2853,7 @@ function cetakLaporanPDF() {
         }, 2000); // Diberi jeda 2 detik agar sistem selesai memuat halaman
         // --------------------------------------------------------------------------
 
-        const lastTab = localStorage.getItem('pondok_active_tab') || 'view-dashboard';
+        const lastTab = getDB('pondok_active_tab', 'view-dashboard');
 
         document.querySelectorAll('.page-view').forEach(el => el.classList.add('hidden'));
         if (lastTab === 'view-dashboard' || lastTab === 'view-login') document.getElementById('view-dashboard').classList.remove('hidden');
@@ -2950,7 +2950,7 @@ document.getElementById('setting-font-sertifikat').value = data.font_sertifikat 
     function prosesLogin() { 
         const usernameInput = document.getElementById('login-username').value; const passwordInput = document.getElementById('login-password').value; 
         let users = getDB('pondok_users', []); currentUser = users.find(user => user.username === usernameInput && user.password === passwordInput); 
-        if (currentUser) { localStorage.setItem('pondok_active_user', JSON.stringify(currentUser)); localStorage.setItem('pondok_active_tab', 'view-dashboard'); document.getElementById('login-error').classList.add('hidden'); masukKeSistemSetelahLogin(); } else { document.getElementById('login-error').classList.remove('hidden'); } 
+        if (currentUser) { localStorage.setItem('pondok_active_user', JSON.stringify(currentUser)); setDB('pondok_active_tab', 'view-dashboard'); document.getElementById('login-error').classList.add('hidden'); masukKeSistemSetelahLogin(); } else { document.getElementById('login-error').classList.remove('hidden'); } 
     }
     
     function prosesLogout() { 
@@ -4218,18 +4218,20 @@ if (wadahUstadz) {
 
                                  // 1. Filter berdasarkan Hari dan Jam (Dengan Perbaikan Logika)
                         if (m.jadwal_aktif) {
-                let mulai = (m.jam_mulai || "00:00").trim();
-                let selesai = (m.jam_selesai || "23:59").trim();
-                const jamKustom = getDB('pondok_jam_kustom', []);
+                // Memastikan string kosong terdeteksi dengan benar dan merubah titik menjadi titik dua (08.00 -> 08:00)
+let mulai = (m.jam_mulai && m.jam_mulai.trim() !== "") ? m.jam_mulai.trim().replace('.', ':') : "00:00";
+let selesai = (m.jam_selesai && m.jam_selesai.trim() !== "") ? m.jam_selesai.trim().replace('.', ':') : "23:59";
+const jamKustom = getDB('pondok_jam_kustom', []);
 
-                let cekMulai = jamKustom.find(j => j.kode === mulai.toUpperCase());
-                if (cekMulai) mulai = cekMulai.mulai;
-                
-                let cekSelesai = jamKustom.find(j => j.kode === selesai.toUpperCase());
-                if (cekSelesai) selesai = cekSelesai.selesai;
+let cekMulai = jamKustom.find(j => j.kode === mulai.toUpperCase());
+if (cekMulai) mulai = cekMulai.mulai;
 
-                if (mulai.length === 4) mulai = "0" + mulai;
-                if (selesai.length === 4) selesai = "0" + selesai;
+let cekSelesai = jamKustom.find(j => j.kode === selesai.toUpperCase());
+if (cekSelesai) selesai = cekSelesai.selesai;
+
+// Memastikan padding 0 hanya berlaku jika memang format jam standar (ada titik dua)
+if (mulai.length === 4 && mulai.includes(':')) mulai = "0" + mulai;
+if (selesai.length === 4 && selesai.includes(':')) selesai = "0" + selesai;
 
                 if (m.hari && m.hari.includes(namaHariIni)) {
                     if (mulai <= selesai ? (jamSekarang >= mulai && jamSekarang <= selesai) : (jamSekarang >= mulai || jamSekarang <= selesai)) {
@@ -4992,23 +4994,23 @@ async function sinkronisasiKeCloud() {
                 syncSuccess = true;
                 
                 // --- SIMPAN KEMBALI KE PENYIMPANAN LOKAL HP ---
-                localStorage.setItem('pondok_santri', JSON.stringify(payloadMerged.santri));
-                localStorage.setItem('pondok_absensi', JSON.stringify(payloadMerged.absensi));
-                localStorage.setItem('pondok_kelas', JSON.stringify(payloadMerged.kelas));
-                localStorage.setItem('pondok_master_mapel', JSON.stringify(payloadMerged.mapel));
-                localStorage.setItem('pondok_evaluasi', JSON.stringify(payloadMerged.evaluasi));
-                localStorage.setItem('pondok_tagihan_denda', JSON.stringify(payloadMerged.tagihan));
-                localStorage.setItem('pondok_tabungan', JSON.stringify(payloadMerged.tabungan));
-                localStorage.setItem('pondok_izin_aktif', JSON.stringify(payloadMerged.izin_aktif));
-                localStorage.setItem('pondok_history_izin', JSON.stringify(payloadMerged.history_izin));
-                
-                // Simpan fitur baru
-                localStorage.setItem('pondok_jam_kustom', JSON.stringify(payloadMerged.jam_kustom));
-                localStorage.setItem('pondok_bank_mapel', JSON.stringify(payloadMerged.bank_mapel));
-                
-                let lokalSuperAdmin = getDB('pondok_users', []).filter(u => u.role === 'superadmin');
-                let finalUsers = [...payloadMerged.users, ...lokalSuperAdmin];
-                localStorage.setItem('pondok_users', JSON.stringify(finalUsers));
+               // KODE SESUDAH (GUNAKAN INI)
+setDB('pondok_santri', payloadMerged.santri);
+setDB('pondok_absensi', payloadMerged.absensi);
+setDB('pondok_kelas', payloadMerged.kelas);
+setDB('pondok_master_mapel', payloadMerged.mapel);
+setDB('pondok_evaluasi', payloadMerged.evaluasi);
+setDB('pondok_tagihan_denda', payloadMerged.tagihan);
+setDB('pondok_tabungan', payloadMerged.tabungan);
+setDB('pondok_izin_aktif', payloadMerged.izin_aktif);
+setDB('pondok_history_izin', payloadMerged.history_izin);
+
+setDB('pondok_jam_kustom', payloadMerged.jam_kustom);
+setDB('pondok_bank_mapel', payloadMerged.bank_mapel);
+
+let lokalSuperAdmin = getDB('pondok_users', []).filter(u => u.role === 'superadmin');
+let finalUsers = [...payloadMerged.users, ...lokalSuperAdmin];
+setDB('pondok_users', finalUsers);
                 
                 alert("Data berhasil terakumulasi & sinkronisasi dengan Cloud!");
                 
