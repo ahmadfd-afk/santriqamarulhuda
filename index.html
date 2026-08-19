@@ -2668,85 +2668,7 @@ setDB('pondok_active_tab', 'view-dashboard');
         // ⬆️ SAMPAI SINI ⬆️
         
         let cekAkses = getDB('pondok_akses', defaultAkses); localStorage.setItem('pondok_akses', JSON.stringify(cekAkses));
-        if (!localStorage.getItem('pondok_absensi')) localStorage.setItem('pondok_absensi', JSON.stringify([]));
-        if (!localStorage.getItem('pondok_evaluasi')) localStorage.setItem('pondok_evaluasi', JSON.stringify([]));
-        if (!localStorage.getItem('pondok_tabungan')) localStorage.setItem('pondok_tabungan', JSON.stringify([]));
-         // PERBAIKAN: Inisialisasi Bank Mapel Otomatis
-        if (!localStorage.getItem('pondok_bank_mapel')) {
-            let listM = getDB('pondok_master_mapel', []);
-            let unikMapel = [...new Set(listM.map(m => m.nama_mapel))];
-            if (unikMapel.length === 0) unikMapel = ["Fiqih Shalat", "Tahfidz Al-Qur'an", "Bahasa Arab", "Aqidah Akhlak"];
-            localStorage.setItem('pondok_bank_mapel', JSON.stringify(unikMapel));
-        }
-        if (!localStorage.getItem('pondok_master_mapel')) {
-            localStorage.setItem('pondok_master_mapel', JSON.stringify([
-                { id: 101, nama_mapel: "Fiqih Shalat & Thaharah", ustadz_ids: ["ustadz"], ustadz_nama: "Guru / Ustadz", kelas_ids: [201], jadwal_aktif: true, hari: "Senin", jam_mulai: "08:00", jam_selesai: "09:30" },
-                { id: 102, nama_mapel: "Tahfidz & Tahsin Al-Qur'an", ustadz_ids: ["ustadz"], ustadz_nama: "Guru / Ustadz", kelas_ids: [201], jadwal_aktif: false, hari: null, jam_mulai: "", jam_selesai: "" }
-            ]));
-        } else {
-            let listM = getDB('pondok_master_mapel', []);
-            let modified = false;
-            listM.forEach(m => {
-                if (!m.kelas_ids) { m.kelas_ids = []; modified = true; }
-                if (!m.ustadz_ids && m.ustadz_id) { m.ustadz_ids = [m.ustadz_id]; modified = true; }
-                if (!m.ustadz_ids) { m.ustadz_ids = []; modified = true; }
-            });
-            if (modified) localStorage.setItem('pondok_master_mapel', JSON.stringify(listM));
-        }
-
-                if (!localStorage.getItem('pondok_kelas')) {
-            localStorage.setItem('pondok_kelas', JSON.stringify([
-                { id: 201, nama: "Kelas 1-A / Reguler", mapel_ids: [101, 102], santri_ids: [], wali_kelas: "" }
-            ]));
-        } else {
-            let listK = getDB('pondok_kelas', []);
-            let modified = false;
-            listK.forEach(k => {
-                if (!k.mapel_ids) { k.mapel_ids = []; modified = true; }
-                if (!k.santri_ids) { k.santri_ids = []; modified = true; }
-                if (typeof k.wali_kelas === 'undefined') { k.wali_kelas = ""; modified = true; }
-            });
-            if (modified) localStorage.setItem('pondok_kelas', JSON.stringify(listK));
-        }
-
         
-        if (!localStorage.getItem('pondok_gps')) {
-            localStorage.setItem('pondok_gps', JSON.stringify({
-                aktif: true,
-                titik: [
-                    { label: "Pusat Instansi", lat: -8.58333, lng: 116.11667, radius: 250 }
-                ]
-            }));
-        }
-
-        if (!localStorage.getItem('pondok_yayasan')) { 
-            localStorage.setItem('pondok_yayasan', JSON.stringify({ 
-                mode: 'pondok', 
-                pondok: "sistem monitoring santri", 
-                yayasan: "Yayasan Amtsilatul Huda Mesaleng", 
-                blur_login: "4", 
-                logo: "https://cdn-icons-png.flaticon.com/512/3592/3592078.png", 
-                bg_login: "https://images.unsplash.com/photo-1519817650390-28a59b20892c?q=80&w=1000&auto=format&fit=crop", 
-                bg_idcard: "", 
-                mudir: "DR. TGH. Zarkasi Efendi, M. Pd. I", 
-                ttd_mudir: "", 
-                alamat: "Dusun Mesaleng Desa Bagu Kec pringgarata kabupaten Lombok Tengah NTB 83562", 
-                teks_footer: "", 
-                teks_lulus: "Telah mengikuti seluruh program pembelajaran dengan baik dan dinyatakan:", 
-                voice_aktif: "1", 
-                voice_teks: "Assalamualaikum, selamat datang di sistem monitoring santri", 
-                tata_tertib: "1. Wajib menjaga nama baik instansi.\n2. Kartu wajib dibawa setiap saat.", 
-                izin_judul: "SURAT IZIN KELUAR / PULANG SANTRI", 
-                izin_catatan: "Surat wajib divalidasi dan dicap di sekretariat pondok.",
-                pwa_notif_aktif: "1",
-                pwa_notif_teks: "Waktunya mengajar mata pelajaran {mapel} di kelas {kelas}."
-            })); 
-        }
-        
-        if (!localStorage.getItem('pondok_setting_keuangan')) { localStorage.setItem('pondok_setting_keuangan', JSON.stringify({ nominal_alpa: 10000, limit_alpa: 3, sanksi_ekstra: "Pemanggilan Orang Tua / SP1", denda_terlambat_izin: 20000 })); }
-        if (!localStorage.getItem('pondok_izin_aktif')) localStorage.setItem('pondok_izin_aktif', JSON.stringify([]));
-        if (!localStorage.getItem('pondok_history_izin')) localStorage.setItem('pondok_history_izin', JSON.stringify([]));
-
         loadIdentitasApp();
 
         const savedSession = localStorage.getItem('pondok_active_user');
@@ -2950,7 +2872,12 @@ document.getElementById('setting-font-sertifikat').value = data.font_sertifikat 
     function prosesLogin() { 
         const usernameInput = document.getElementById('login-username').value; const passwordInput = document.getElementById('login-password').value; 
         let users = getDB('pondok_users', []); currentUser = users.find(user => user.username === usernameInput && user.password === passwordInput); 
-        if (currentUser) { localStorage.setItem('pondok_active_user', JSON.stringify(currentUser)); setDB('pondok_active_tab', 'view-dashboard'); document.getElementById('login-error').classList.add('hidden'); masukKeSistemSetelahLogin(); } else { document.getElementById('login-error').classList.remove('hidden'); } 
+        if (currentUser) { setDB('pondok_active_user', currentUser); 
+        
+        setDB('pondok_active_tab', 'view-dashboard'); 
+        document.getElementById('login-error').classList.add('hidden'); 
+        masukKeSistemSetelahLogin(); 
+    } else { document.getElementById('login-error').classList.remove('hidden'); } 
     }
     
     function prosesLogout() { 
@@ -3905,8 +3832,8 @@ if (wadahUstadz) {
         });
 
         // 5. Simpan ke LocalStorage
-        localStorage.setItem('pondok_master_mapel', JSON.stringify(listMapel));
-        localStorage.setItem('pondok_kelas', JSON.stringify(listKelas));
+        setDB('pondok_master_mapel', listMapel);
+    setDB('pondok_kelas', listKelas);
 
         // 6. Reset Form
         document.querySelectorAll('.cb-bank-mapel').forEach(cb => cb.checked = false);
