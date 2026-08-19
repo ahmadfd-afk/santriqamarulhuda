@@ -3665,13 +3665,15 @@ const lebar1D = parseFloat(yayasan.lebar_barcode1d) || 2.2;
         renderMasterMapel();
     }
 
-    function hapusBankMapel(nama) {
-        if (!confirm(`Hapus "${nama}" dari Bank Mapel?\n(Mata pelajaran yang sudah diatur jadwalnya di tabel bawah tidak akan hilang).`)) return;
-        let bank = getDB('pondok_bank_mapel', []);
-        bank = bank.filter(m => m !== nama);
-        localStorage.setItem('pondok_bank_mapel', JSON.stringify(bank));
-        renderMasterMapel();
-    }
+   function hapusBankMapel(nama) {
+    if (!confirm(`Hapus "${nama}" dari Bank Mapel?\n(Mata pelajaran yang sudah diatur jadwalnya di tabel bawah tidak akan hilang).`)) return;
+    
+    let bank = getDB('pondok_bank_mapel', []);
+    bank = bank.filter(m => m !== nama);
+    setDB('pondok_bank_mapel', bank); // PERBAIKAN: Gunakan setDB
+    
+    renderMasterMapel();
+}
 
         function renderMasterMapel() {
         // --- REPLACE BAGIAN WADAH BANK MAPEL ---
@@ -3855,19 +3857,21 @@ if (wadahUstadz) {
 
 
     function hapusMasterMapel(idMapel) {
-        if (!confirm("Yakin hapus mata pelajaran ini?")) return;
-        let listMapel = getDB('pondok_master_mapel', []).filter(m => m.id !== idMapel);
-        localStorage.setItem('pondok_master_mapel', JSON.stringify(listMapel));
-        
-        let listKelas = getDB('pondok_kelas', []);
-        listKelas.forEach(k => {
-            k.mapel_ids = (k.mapel_ids || []).filter(id => id !== idMapel);
-        });
-        localStorage.setItem('pondok_kelas', JSON.stringify(listKelas));
-        
-        renderMasterMapel();
-        renderTabelDaftarKelas();
-    }
+    if (!confirm("Yakin hapus mata pelajaran ini?")) return;
+    
+    let listMapel = getDB('pondok_master_mapel', []).filter(m => m.id !== idMapel);
+    setDB('pondok_master_mapel', listMapel); // PERBAIKAN: Gunakan setDB
+    
+    let listKelas = getDB('pondok_kelas', []);
+    listKelas.forEach(k => {
+        k.mapel_ids = (k.mapel_ids || []).filter(id => id !== idMapel);
+    });
+    setDB('pondok_kelas', listKelas); // PERBAIKAN: Gunakan setDB
+    
+    renderMasterMapel();
+    renderTabelDaftarKelas();
+}
+
 
    function simpanKelasBaru() {
         const namaKelas = document.getElementById('input-nama-kelas').value.trim();
@@ -4026,12 +4030,15 @@ if (wadahUstadz) {
     }
 
     function hapusKelasPermanen(idKelas) {
-        if (!confirm("Yakin ingin menghapus kelas ini?")) return;
-        let dbKelas = getDB('pondok_kelas', []);
-        localStorage.setItem('pondok_kelas', JSON.stringify(dbKelas.filter(k => k.id !== idKelas)));
-        renderMasterMapel();
-        renderTabelDaftarKelas();
-    }
+    if (!confirm("Yakin ingin menghapus kelas ini?")) return;
+    
+    let dbKelas = getDB('pondok_kelas', []);
+    setDB('pondok_kelas', dbKelas.filter(k => k.id !== idKelas)); // PERBAIKAN: Gunakan setDB
+    
+    renderMasterMapel();
+    renderTabelDaftarKelas();
+}
+
 
     function loadDropdownRekapKelas() { 
         const drop = document.getElementById('filter-kelas-rekap'); 
@@ -5795,11 +5802,14 @@ function tambahJamKustom() {
 
 function hapusJamKustom(idx) {
     if (!confirm("Hapus logika jam ini?")) return;
+    
     let dataJam = getDB('pondok_jam_kustom', []);
     dataJam.splice(idx, 1);
-    localStorage.setItem('pondok_jam_kustom', JSON.stringify(dataJam));
+    setDB('pondok_jam_kustom', dataJam); // PERBAIKAN: Gunakan setDB
+    
     renderJamKustom();
 }
+
 // ==========================================
 // KODE SLIDESHOW WALLPAPER WALI SANTRI (APP 2)
 // ==========================================
