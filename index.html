@@ -3073,23 +3073,30 @@ document.getElementById('setting-font-sertifikat').value = data.font_sertifikat 
     }
 
     function hapusSantri(idSantri) {
-        let dbSantri = getDB('pondok_santri', []);
-        let target = dbSantri.find(s => s.id == idSantri);
-        if (!target) return;
-        if (!confirm(`Yakin ingin menghapus data "${target.nama}" (${target.nis})?\n\nData akan dibersihkan dari seluruh daftar kelas secara otomatis.`)) return;
-        
-        let sisaSantri = dbSantri.filter(s => s.id != idSantri);
-        localStorage.setItem('pondok_santri', JSON.stringify(sisaSantri));
-        
-        let dbKelas = getDB('pondok_kelas', []);
-        dbKelas.forEach(kls => {
-            kls.santri_ids = (kls.santri_ids || []).filter(sid => sid != idSantri);
-        });
-        localStorage.setItem('pondok_kelas', JSON.stringify(dbKelas));
-        
-        renderTabelSantri();
-        alert(`Data "${target.nama}" berhasil dihapus.`);
-    }
+    let dbSantri = getDB('pondok_santri', []);
+    let target = dbSantri.find(s => s.id == idSantri);
+    if (!target) return;
+    if (!confirm(`Yakin ingin menghapus data "${target.nama}" (${target.nis})?\n\nData akan dibersihkan dari seluruh daftar kelas secara otomatis.`)) return;
+    
+    // 1. Hapus dari array lokal
+    let sisaSantri = dbSantri.filter(s => s.id != idSantri);
+    setDB('pondok_santri', sisaSantri);
+    
+    // 2. CATAT ID KE DALAM "TOMBSTONE" (Batu Nisan)
+    let tombstones = getDB('pondok_tombstone_santri', []);
+    tombstones.push(idSantri);
+    setDB('pondok_tombstone_santri', tombstones);
+    
+    // 3. Bersihkan dari kelas
+    let dbKelas = getDB('pondok_kelas', []);
+    dbKelas.forEach(kls => {
+        kls.santri_ids = (kls.santri_ids || []).filter(sid => sid != idSantri);
+    });
+    setDB('pondok_kelas', dbKelas);
+    
+    renderTabelSantri();
+    alert(`Data "${target.nama}" berhasil dihapus.`);
+}
 
     function renderTabelSantri() { 
         let databaseSantri = getDB('pondok_santri', []);
@@ -4920,7 +4927,7 @@ async function sinkronisasiKeCloud() {
                 jam_kustom: gabungDataArray(getDB('pondok_jam_kustom', []), dataCloud.jam_kustom, 'kode'),
                 // Karena bank_mapel hanya kumpulan teks string biasa, gabungkan memakai Set agar tidak ganda:
                 bank_mapel: [...new Set([...getDB('pondok_bank_mapel', []), ...(dataCloud.bank_mapel || [])])], 
-                
+                tombstone_santri: [...new Set([...getDB('pondok_tombstone_santri', []), ...(dataCloud.tombstone_santri || [])])],
                 yayasan: getDB('pondok_yayasan', {}),
                 akses: getDB('pondok_akses', {}),
                 gps: getDB('pondok_gps', {}),
@@ -4956,6 +4963,7 @@ async function sinkronisasiKeCloud() {
                 // --- SIMPAN KEMBALI KE PENYIMPANAN LOKAL HP ---
                // KODE SESUDAH (GUNAKAN INI)
 setDB('pondok_santri', payloadMerged.santri);
+setDB('pondok_tombstone_santri', payloadMerged.tombstone_santri);
 setDB('pondok_absensi', payloadMerged.absensi);
 setDB('pondok_kelas', payloadMerged.kelas);
 setDB('pondok_master_mapel', payloadMerged.mapel);
@@ -5035,6 +5043,7 @@ async function tarikDataDariSupabase() {
             let operasiSimpan = [];
 
             if (data.santri) operasiSimpan.push(setDB('pondok_santri', data.santri));
+if (data.tombstone_santri) operasiSimpan.push(setDB('pondok_tombstone_santri', data.tombstone_santri));
             if (data.absensi) operasiSimpan.push(setDB('pondok_absensi', data.absensi));
             if (data.kelas) operasiSimpan.push(setDB('pondok_kelas', data.kelas));
             if (data.mapel) operasiSimpan.push(setDB('pondok_master_mapel', data.mapel));
