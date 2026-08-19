@@ -623,32 +623,29 @@
     </button>
 </div>
 <!-- ... tombol cetak dsb ... -->
-<!-- WADAH SCROLL DITAMBAHKAN CLASS 'hidden' -->
-<div id="wadah-scroll-santri" class="wadah-scroll-santri hidden">
-    <table>
-
-                                                <div style="display:flex; gap:8px;">
-                            <div style="display: flex; gap: 4px; flex: 1; flex-wrap: wrap;">
-    <button class="btn-primary" onclick="cetakKolektifF4Gabung('portrait')" style="margin: 0; padding: 12px 6px; font-size: 0.72rem; background: var(--info); flex: 1; min-width:100px;">
-        <i class="fa-solid fa-id-badge"></i> Cetak Depan
-    </button>
-    <button class="btn-primary" onclick="cetakKolektifF4Belakang('portrait')" style="margin: 0; padding: 12px 6px; font-size: 0.72rem; background: #8E44AD; flex: 1; min-width:100px;">
-        <i class="fa-solid fa-qrcode"></i> Cetak Belakang
+<!-- Tombol Aksi Cetak & Rekap (Sudah dikeluarkan dari tag table yang salah) -->
+<div style="display:flex; gap:8px; margin-bottom: 15px; margin-top: 10px;">
+    <div style="display: flex; gap: 4px; flex: 1; flex-wrap: wrap;">
+        <button class="btn-primary" onclick="cetakKolektifF4Gabung('portrait')" style="margin: 0; padding: 12px 6px; font-size: 0.72rem; background: var(--info); flex: 1; min-width:100px;">
+            <i class="fa-solid fa-id-badge"></i> Cetak Depan
+        </button>
+        <button class="btn-primary" onclick="cetakKolektifF4Belakang('portrait')" style="margin: 0; padding: 12px 6px; font-size: 0.72rem; background: #8E44AD; flex: 1; min-width:100px;">
+            <i class="fa-solid fa-qrcode"></i> Cetak Belakang
+        </button>
+    </div>
+    <button class="btn-outline" onclick="cetakRekapSantriPDF()" style="justify-content: center; font-size: 0.72rem; background: #fff3cd; border-color: var(--warning); flex: 1; margin: 0; min-width:90px;">
+        <i class="fa-solid fa-file-pdf"></i> Rekap PDF
     </button>
 </div>
-                            <button class="btn-outline" onclick="cetakRekapSantriPDF()" style="justify-content: center; font-size: 0.72rem; background: #fff3cd; border-color: var(--warning); flex: 1; margin: 0; min-width:90px;">
-                                <i class="fa-solid fa-file-pdf"></i> Rekap PDF
-                            </button>
-                        </div>
-                    </div>
-                    
-                    <!-- WADAH SCROLL TERBATAS (TAMPIL 10-15 BARIS) -->
-                    <div id="wadah-scroll-santri" class="wadah-scroll-santri">
-                        <table>
-                            <thead><tr><th id="th-kamar-nis">NIS / Kamar</th><th>Nama Lengkap</th><th>Aksi</th></tr></thead>
-                            <tbody id="tabel-santri-body"></tbody>
-                        </table>
-                    </div>
+
+<!-- WADAH SCROLL TERBATAS (TAMPIL 10-15 BARIS) -->
+<div id="wadah-scroll-santri" class="wadah-scroll-santri">
+    <table>
+        <thead><tr><th id="th-kamar-nis">NIS / Kamar</th><th>Nama Lengkap</th><th>Aksi</th></tr></thead>
+        <tbody id="tabel-santri-body"></tbody>
+    </table>
+</div>
+
                 </div>
             </div>
 
@@ -791,15 +788,20 @@
 
                                         <button class="btn-primary" style="background: var(--info); border: none; box-shadow: none;" onclick="simpanMapel()">SIMPAN MATA PELAJARAN</button>
                     
-                    <div style="margin-top: 15px; border-top: 1px solid rgba(0,0,0,0.08); padding-top: 10px;">
-                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; flex-wrap:wrap; gap:8px;">
-    <h4 style="font-size:0.8rem; color:var(--primary); margin:0;">Daftar Mata Pelajaran & Kelas Peserta:</h4>
-    <button class="btn-print" style="width:auto; padding:6px 12px; margin:0; font-size:0.75rem;" onclick="cetakSemuaJadwalPDF()"><i class="fa-solid fa-print"></i> Download Semua Jadwal</button>
+                   <div style="margin-top: 15px; border-top: 1px solid rgba(0,0,0,0.08); padding-top: 10px;">
+    <!-- Tambahkan event onclick dan kursor pointer pada header -->
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; flex-wrap:wrap; gap:8px; cursor:pointer;" onclick="document.getElementById('wadah-tabel-jadwal').classList.toggle('hidden')">
+        <h4 style="font-size:0.8rem; color:var(--primary); margin:0;">
+            <i class="fa-solid fa-chevron-down"></i> Daftar Mata Pelajaran & Kelas Peserta
+        </h4>
+        <button class="btn-print" style="width:auto; padding:6px 12px; margin:0; font-size:0.75rem;" onclick="cetakSemuaJadwalPDF(); event.stopPropagation();"><i class="fa-solid fa-print"></i> Download Semua Jadwal</button>
+    </div>
+    <!-- Bungkus tabel dengan div yang memiliki class hidden -->
+    <div id="wadah-tabel-jadwal" class="hidden" style="overflow-x:auto;">
+        <table><thead><tr><th>Mata Pelajaran</th><th>Ustadz PJ</th><th>Kelas & Jadwal</th><th>Aksi</th></tr></thead><tbody id="tabel-mapel-body"></tbody></table>
+    </div>
 </div>
-                        <div style="overflow-x:auto;"><table><thead><tr><th>Mata Pelajaran</th><th>Ustadz PJ</th><th>Kelas & Jadwal</th><th>Aksi</th></tr></thead><tbody id="tabel-mapel-body"></tbody></table></div>
-                    </div>
-                </div>
-
+</div>
                                 <!-- ⬇️ SETTING LOGIKA JAM (DIBUAT BISA DIKLIK/DITUTUP AGAR RAPI) ⬇️ -->
                 <div class="card card-premium" style="border-left-color: var(--warning);">
                     <div style="display:flex; justify-content:space-between; align-items:center; cursor:pointer;" onclick="document.getElementById('area-setting-jam-singkatan').classList.toggle('hidden')">
@@ -4227,16 +4229,18 @@ if (wadahUstadz) {
             isFleksibel = true;
         }
 
-        // 2. Jika Mapel masuk kriteria tampil, susun ke dalam dropdown
+                // 2. Jika Mapel masuk kriteria tampil, susun ke dalam dropdown
+        // Kita wajib memfilter agar jadwal yang muncul HANYA HARI INI atau FLEKSIBEL
         if (masukHariIni || isFleksibel) {
             const isMilikSendiri = (m.ustadz_ids || []).includes(currentUser.username) || (m.ustadz_id === currentUser.username) || currentUser.role === 'superadmin';
             
-            const jmlKelas = m.kelas_ids ? m.kelas_ids.length : 0;
-            const labelKelas = jmlKelas > 0 ? `${jmlKelas} Kelas` : 'Belum Diplot';
-            const labelJam = m.jadwal_aktif ? `(${m.jam_mulai} - ${m.jam_selesai})` : '';
-
-            const tagOption = `<option value="${m.id}">${m.nama_mapel} ${labelJam} - ${labelKelas}</option>`;
-            const tagOptionLain = `<option value="${m.id}">${m.nama_mapel} ${labelJam} (Pengajar: ${m.ustadz_nama})</option>`;
+            // TEKS DIRAPIKAN AGAR TIDAK BERANTAKAN DI LAYAR HP
+            const labelJam = m.jadwal_aktif ? `(${m.jam_mulai}-${m.jam_selesai})` : '';
+            
+            // Opsi untuk jadwal milik sendiri
+            const tagOption = `<option value="${m.id}">${m.nama_mapel} ${labelJam}</option>`;
+            // Opsi untuk ustaz aktual (pengganti)
+            const tagOptionLain = `<option value="${m.id}">[GANTI] ${m.nama_mapel} ${labelJam}</option>`;
 
             if (isMilikSendiri) {
                 if (sedangBerlangsung) {
@@ -4247,10 +4251,13 @@ if (wadahUstadz) {
                     htmlFleksibel += tagOption;
                 }
             } else {
-                htmlJadwalLain += tagOptionLain;
+                // LOGIKA BARU: Ustaz aktual (jadwal ustaz lain) HANYA MUNCUL JIKA SEDANG BERLANGSUNG DI JAM TERSEBUT
+                if (sedangBerlangsung) {
+                    htmlJadwalLain += tagOptionLain;
+                }
             }
         }
-    });
+});
 
     // 3. Masukkan ke dalam dropdown dengan pengelompokan yang rapi
     if (htmlSedangBerlangsung !== '') {
@@ -4644,7 +4651,7 @@ font_sertifikat: document.getElementById('setting-font-sertifikat').value,
             return alert("Harap isi koordinat Latitude & Longitude minimal satu titik!");
         }
 
-        localStorage.setItem('pondok_gps', JSON.stringify({ aktif: aktif, titik: daftarTitik }));
+        setDB('pondok_gps', { aktif: aktif, titik: daftarTitik });
         alert("Konfigurasi geofencing GPS berhasil disimpan!");
     }
 
