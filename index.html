@@ -3598,7 +3598,11 @@ const lebar1D = parseFloat(yayasan.lebar_barcode1d) || 2.2;
 
     function buatSuratIzinKeluarProfesional(dataIzin, santri, statistik) { const yayasan = getDB('pondok_yayasan', {}); const tglKeluarID = new Date(dataIzin.tgl_keluar).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' }); const tglBalikID = new Date(dataIzin.tgl_balik).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' }); const jamSekarang = new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }); const blnRomawi = ['I','II','III','IV','V','VI','VII','VIII','IX','X','XI','XII'][new Date().getMonth()]; const noSurat = `No: ${String(statistik.total_kali).padStart(3, '0')}/IZIN-LMS/${blnRomawi}/${new Date().getFullYear()}`; let ttdMudirHTML = (yayasan.ttd_mudir) ? `<img src="${yayasan.ttd_mudir}" style="max-height:35px; display:block; margin:4px auto;">` : '<div style="height:35px;"></div>'; const htmlSurat = `<div class="surat-header"><img src="${yayasan.logo || 'https://cdn-icons-png.flaticon.com/512/3592/3592078.png'}"><div class="surat-header-text"><h3>${yayasan.pondok || 'NAMA INSTANSI PENDIDIKAN'}</h3><p><strong>${yayasan.yayasan || 'Sistem Manajemen'}</strong><br>${yayasan.alamat || 'Indonesia'}</p></div></div><div class="surat-no">${noSurat}</div><p>Diberikan surat izin keluar / pulang resmi kepada santri dengan identitas di bawah ini:</p><table style="margin:10px 0; border:none;"><tr style="border:none;"><td style="width:120px; border:none; padding:4px;"><strong>Nama Lengkap</strong></td><td style="border:none; padding:4px;">: ${santri.nama}</td></tr><tr style="border:none;"><td style="width:120px; border:none; padding:4px;"><strong>NIS</strong></td><td style="border:none; padding:4px;">: <strong>${santri.nis}</strong></td></tr><tr style="border:none;"><td style="width:120px; border:none; padding:4px;"><strong>${getTerm('asrama')} / ${getTerm('kamar')}</strong></td><td style="border:none; padding:4px;">: ${santri.asrama} (${santri.kamar})</td></tr><tr style="border:none;"><td style="width:120px; border:none; padding:4px; color:var(--primary);"><strong>Perihal / Keperluan</strong></td><td style="border:none; padding:4px; font-weight:bold;">: ${dataIzin.keperluan}</td></tr><tr style="border:none;"><td style="width:120px; border:none; padding:4px;"><strong>Tanggal Keluar</strong></td><td style="border:none; padding:4px;">: ${tglKeluarID} (${jamSekarang} WITA)</td></tr><tr style="border:none;"><td style="width:120px; border:none; padding:4px; color:red;"><strong>Batas Wajib Balik</strong></td><td style="border:none; padding:4px; color:red; font-weight:bold;">: ${tglBalikID}</td></tr></table><div class="evaluasi-izin-box"><strong style="color:var(--primary);"><i class="fa-solid fa-chart-line"></i> Catatan Evaluasi Kedisiplinan Izin Santri:</strong><br>Berdasarkan rekam jejak sistem, santri bersangkutan telah mendapatkan izin sebanyak <strong>${statistik.total_kali} Kali</strong> dengan total akumulasi durasi selama <strong>${statistik.total_hari} Hari</strong>.</div><p style="font-size:11px; font-style:italic; background:#fff3cd; padding:8px; border-left:3px solid #F39C12; color:#721c24; margin-top:10px;"><strong>Perhatian:</strong> Santri wajib kembali ke asrama sebelum batas waktu.</p><div class="surat-ttd-grid"><div><span>Sekretariat / Pengasuh,</span><div style="height:40px; border-bottom:1px dashed #999; margin-top:15px;"></div><span>( Cap & Validasi )</span></div><div><span>Menyetujui Pimpinan,</span>${ttdMudirHTML}<span><strong>${yayasan.mudir || 'Pimpinan / Mudir'}</strong></span></div></div>`; document.getElementById('surat-izin-konten').innerHTML = htmlSurat; document.getElementById('area-cetak-surat-izin').classList.remove('hidden'); }
 
-    function validasiSantriBalikIzin(nisSantri) { let izinAktifDB = getDB('pondok_izin_aktif', []); const targetIzin = izinAktifDB.find(x => x.nis === nisSantri); if (!targetIzin) return alert(`NIS [${nisSantri}] TIDAK tercatat sedang izin keluar!`); const tglHariIni = new Date().toISOString().split('T')[0]; const tglBalikWajib = targetIzin.tgl_balik; const santriDB = getDB('pondok_santri', []); const santri = santriDB.find(s => s.nis === nisSantri) || { nama: targetIzin.nama, nis: targetIzin.nis, asrama: targetIzin.asrama, kamar: targetIzin.kamar }; let statusKembaliText = "Tepat Waktu / Lolos Sanksi"; if (tglHariIni > tglBalikWajib) { const hariTerlambat = Math.ceil((new Date(tglHariIni) - new Date(tglBalikWajib)) / (1000 * 60 * 60 * 24)); const configKeuangan = getDB('pondok_setting_keuangan', { denda_terlambat_izin: 20000 }); const totalDenda = hariTerlambat * (parseInt(configKeuangan.denda_terlambat_izin) || 20000); let tagihanDB = getDB('pondok_tagihan_denda', []); tagihanDB.push({ id_tagihan: Date.now(), nis: targetIzin.nis, nama: targetIzin.nama, keterangan: `Terlambat Balik Izin (${hariTerlambat} Hari)`, nominal: totalDenda }); localStorage.setItem('pondok_tagihan_denda', JSON.stringify(tagihanDB)); statusKembaliText = `TERLAMBAT ${hariTerlambat} HARI`; } izinAktifDB = izinAktifDB.filter(x => x.nis !== nisSantri); localStorage.setItem('pondok_izin_aktif', JSON.stringify(izinAktifDB)); let histDB = getDB('pondok_history_izin', []); let idxHist = histDB.findIndex(h => h.id === targetIzin.id); if(idxHist > -1) { histDB[idxHist].status = 'Kembali'; histDB[idxHist].tgl_aktual_balik = tglHariIni; localStorage.setItem('pondok_history_izin', JSON.stringify(histDB)); } alert(`Sukses: Santri [${targetIzin.nama}] telah kembali.`); renderTabelIzinAktif(); buatSuratKembaliProfesional(targetIzin, santri, statusKembaliText); }
+    function validasiSantriBalikIzin(nisSantri) { let izinAktifDB = getDB('pondok_izin_aktif', []); const targetIzin = izinAktifDB.find(x => x.nis === nisSantri); if (!targetIzin) return alert(`NIS [${nisSantri}] TIDAK tercatat sedang izin keluar!`); const tglHariIni = new Date().toISOString().split('T')[0]; const tglBalikWajib = targetIzin.tgl_balik; const santriDB = getDB('pondok_santri', []); const santri = santriDB.find(s => s.nis === nisSantri) || { nama: targetIzin.nama, nis: targetIzin.nis, asrama: targetIzin.asrama, kamar: targetIzin.kamar }; let statusKembaliText = "Tepat Waktu / Lolos Sanksi"; if (tglHariIni > tglBalikWajib) { const hariTerlambat = Math.ceil((new Date(tglHariIni) - new Date(tglBalikWajib)) / (1000 * 60 * 60 * 24)); const configKeuangan = getDB('pondok_setting_keuangan', { denda_terlambat_izin: 20000 }); const totalDenda = hariTerlambat * (parseInt(configKeuangan.denda_terlambat_izin) || 20000); let tagihanDB = getDB('pondok_tagihan_denda', []); tagihanDB.push({ id_tagihan: Date.now(), nis: targetIzin.nis, nama: targetIzin.nama, keterangan: `Terlambat Balik Izin (${hariTerlambat} Hari)`, nominal: totalDenda }); localStorage.setItem('pondok_tagihan_denda', JSON.stringify(tagihanDB)); statusKembaliText = `TERLAMBAT ${hariTerlambat} HARI`; } let tbIzin = getDB('pondok_tombstone_izin_aktif', []);
+if(!tbIzin.includes(targetIzin.id)) { tbIzin.push(targetIzin.id); setDB('pondok_tombstone_izin_aktif', tbIzin); }
+izinAktifDB = izinAktifDB.filter(x => x.nis !== nisSantri);
+setDB('pondok_izin_aktif', izinAktifDB);
+ let histDB = getDB('pondok_history_izin', []); let idxHist = histDB.findIndex(h => h.id === targetIzin.id); if(idxHist > -1) { histDB[idxHist].status = 'Kembali'; histDB[idxHist].tgl_aktual_balik = tglHariIni; localStorage.setItem('pondok_history_izin', JSON.stringify(histDB)); } alert(`Sukses: Santri [${targetIzin.nama}] telah kembali.`); renderTabelIzinAktif(); buatSuratKembaliProfesional(targetIzin, santri, statusKembaliText); }
 
     function buatSuratKembaliProfesional(targetIzin, santri, statusKembaliText) { const yayasan = getDB('pondok_yayasan', {}); const tglBalikID = new Date().toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' }); const jamSekarang = new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }); const blnRomawi = ['I','II','III','IV','V','VI','VII','VIII','IX','X','XI','XII'][new Date().getMonth()]; const noSurat = `No: 015/KEMBALI-LMS/${blnRomawi}/${new Date().getFullYear()}`; let ttdMudirHTML = (yayasan.ttd_mudir) ? `<img src="${yayasan.ttd_mudir}" style="max-height:35px; display:block; margin:4px auto;">` : '<div style="height:35px;"></div>'; const htmlSurat = `<div class="surat-header"><img src="${yayasan.logo || 'https://cdn-icons-png.flaticon.com/512/3592/3592078.png'}"><div class="surat-header-text"><h3>${yayasan.pondok || 'NAMA INSTANSI PENDIDIKAN'}</h3><p><strong>${yayasan.yayasan || 'Sistem Manajemen'}</strong><br>${yayasan.alamat || 'Indonesia'}</p></div></div><div class="surat-no">${noSurat}</div><p>Menerangkan bahwa santri bersangkutan di bawah ini <strong>TELAH KEMBALI</strong> ke asrama dari masa izin keluar/pulang:</p><table style="margin:10px 0; border:none;"><tr style="border:none;"><td style="width:130px; border:none; padding:4px;"><strong>Nama Lengkap</strong></td><td style="border:none; padding:4px;">: ${santri.nama}</td></tr><tr style="border:none;"><td style="width:130px; border:none; padding:4px;"><strong>NIS</strong></td><td style="border:none; padding:4px;">: <strong>${santri.nis}</strong></td></tr><tr style="border:none;"><td style="width:130px; border:none; padding:4px;"><strong>Asrama / Kamar</strong></td><td style="border:none; padding:4px;">: ${santri.asrama} (${santri.kamar})</td></tr><tr style="border:none;"><td style="width:130px; border:none; padding:4px;"><strong>Keperluan Izin</strong></td><td style="border:none; padding:4px;">: ${targetIzin.keperluan}</td></tr><tr style="border:none;"><td style="width:130px; border:none; padding:4px;"><strong>Tanggal Lapor Balik</strong></td><td style="border:none; padding:4px;">: ${tglBalikID} (${jamSekarang} WITA)</td></tr><tr style="border:none;"><td style="width:130px; border:none; padding:4px;"><strong>Status Keterlambatan</strong></td><td style="border:none; padding:4px; font-weight:bold; color:${statusKembaliText.includes('TERLAMBAT') ? 'red' : 'green'};">: ${statusKembaliText}</td></tr></table><div class="surat-ttd-grid"><div><span>Santri Yang Melapor,</span><div style="height:40px; border-bottom:1px solid #111; margin-top:15px; width:120px; margin-left:auto; margin-right:auto;"></div><span>( ${santri.nama} )</span></div><div><span>Mengetahui Pimpinan,</span>${ttdMudirHTML}<span><strong>${yayasan.mudir || 'Pimpinan / Mudir'}</strong></span></div></div>`; document.getElementById('surat-izin-konten').innerHTML = htmlSurat; document.getElementById('area-cetak-surat-izin').classList.remove('hidden'); }
 
@@ -3667,11 +3671,11 @@ const lebar1D = parseFloat(yayasan.lebar_barcode1d) || 2.2;
 
    function hapusBankMapel(nama) {
     if (!confirm(`Hapus "${nama}" dari Bank Mapel?\n(Mata pelajaran yang sudah diatur jadwalnya di tabel bawah tidak akan hilang).`)) return;
+    let tbBank = getDB('pondok_tombstone_bank_mapel', []);
+    if(!tbBank.includes(nama)) { tbBank.push(nama); setDB('pondok_tombstone_bank_mapel', tbBank); }
     
     let bank = getDB('pondok_bank_mapel', []);
-    bank = bank.filter(m => m !== nama);
-    setDB('pondok_bank_mapel', bank); // PERBAIKAN: Gunakan setDB
-    
+    setDB('pondok_bank_mapel', bank.filter(m => m !== nama));
     renderMasterMapel();
 }
 
@@ -3859,18 +3863,29 @@ if (wadahUstadz) {
     function hapusMasterMapel(idMapel) {
     if (!confirm("Yakin hapus mata pelajaran ini?")) return;
     
+    // 1. Hapus dari daftar lokal
     let listMapel = getDB('pondok_master_mapel', []).filter(m => m.id !== idMapel);
-    setDB('pondok_master_mapel', listMapel); // PERBAIKAN: Gunakan setDB
+    setDB('pondok_master_mapel', listMapel);
     
+    // 2. Bersihkan ID Mapel dari daftar Kelas
     let listKelas = getDB('pondok_kelas', []);
     listKelas.forEach(k => {
         k.mapel_ids = (k.mapel_ids || []).filter(id => id !== idMapel);
     });
-    setDB('pondok_kelas', listKelas); // PERBAIKAN: Gunakan setDB
+    setDB('pondok_kelas', listKelas);
+    
+    // 3. TAMBAHAN: Catat ID Mapel ke Tombstone (Batu Nisan) agar tidak diambil lagi dari Supabase
+    let tombstoneMapel = getDB('pondok_tombstone_mapel', []);
+    if (!tombstoneMapel.includes(idMapel)) {
+        tombstoneMapel.push(idMapel);
+        setDB('pondok_tombstone_mapel', tombstoneMapel);
+    }
     
     renderMasterMapel();
     renderTabelDaftarKelas();
+    alert("Jadwal berhasil dihapus secara lokal. Silakan kirim data ke Cloud untuk memperbarui server.");
 }
+
 
 
    function simpanKelasBaru() {
@@ -4031,13 +4046,15 @@ if (wadahUstadz) {
 
     function hapusKelasPermanen(idKelas) {
     if (!confirm("Yakin ingin menghapus kelas ini?")) return;
+    let tbKelas = getDB('pondok_tombstone_kelas', []);
+    if(!tbKelas.includes(idKelas)) { tbKelas.push(idKelas); setDB('pondok_tombstone_kelas', tbKelas); }
     
     let dbKelas = getDB('pondok_kelas', []);
-    setDB('pondok_kelas', dbKelas.filter(k => k.id !== idKelas)); // PERBAIKAN: Gunakan setDB
-    
+    setDB('pondok_kelas', dbKelas.filter(k => k.id !== idKelas));
     renderMasterMapel();
     renderTabelDaftarKelas();
 }
+
 
 
     function loadDropdownRekapKelas() { 
@@ -4051,7 +4068,15 @@ if (wadahUstadz) {
     function renderDataKeuanganPanel() { const config = getDB('pondok_setting_keuangan', null); if(config) { document.getElementById('setting-nominal-alpa').value = config.nominal_alpa; document.getElementById('setting-limit-alpa').value = config.limit_alpa; document.getElementById('setting-sanksi-ekstra').value = config.sanksi_ekstra; document.getElementById('setting-denda-terlambat').value = config.denda_terlambat_izin || 20000; } renderTabelKeuanganDenda(); }
     function simpanSettingKeuangan() { setDB('pondok_santri', databaseSantri); alert("Aturan Denda Disimpan!"); }
     function renderTabelKeuanganDenda() { const wadahTbodyKeuangan = document.getElementById('tabel-keuangan-body'); let akumulasiTotalUang = 0; wadahTbodyKeuangan.innerHTML = ''; const databaseKeuanganTagihan = getDB('pondok_tagihan_denda', []); if(databaseKeuanganTagihan.length === 0) { document.getElementById('total-denda').innerText = "0"; return wadahTbodyKeuangan.innerHTML = '<tr><td colspan="4" align="center">Tidak ada tagihan hutang denda.</td></tr>'; } databaseKeuanganTagihan.forEach(barisTagihan => { akumulasiTotalUang += parseInt(barisTagihan.nominal); wadahTbodyKeuangan.innerHTML += `<tr><td><strong>${barisTagihan.nama}</strong><br><span style="font-size:0.7rem; color:var(--text-muted);">NIS: ${barisTagihan.nis}</span></td><td>${barisTagihan.keterangan}</td><td style="color:var(--danger); font-weight:600;">Rp ${parseInt(barisTagihan.nominal).toLocaleString('id-ID')}</td><td><button class="btn-success" onclick="tandaiLunas(${barisTagihan.id_tagihan})"><i class="fa-solid fa-check"></i> Lunas</button></td></tr>`; }); document.getElementById('total-denda').innerText = akumulasiTotalUang.toLocaleString('id-ID'); }
-    function tandaiLunas(id_tagihan) { if(!confirm("Tandai lunas?")) return; let dbKeuangan = getDB('pondok_tagihan_denda', []); localStorage.setItem('pondok_tagihan_denda', JSON.stringify(dbKeuangan.filter(d => d.id_tagihan !== id_tagihan))); renderTabelKeuanganDenda(); }
+    function tandaiLunas(id_tagihan) {
+    if(!confirm("Tandai lunas?")) return;
+    let tbTagihan = getDB('pondok_tombstone_tagihan', []);
+    if(!tbTagihan.includes(id_tagihan)) { tbTagihan.push(id_tagihan); setDB('pondok_tombstone_tagihan', tbTagihan); }
+    
+    let dbKeuangan = getDB('pondok_tagihan_denda', []);
+    setDB('pondok_tagihan_denda', dbKeuangan.filter(d => d.id_tagihan !== id_tagihan));
+    renderTabelKeuanganDenda();
+}
 
     function hitungJarakMeter(lat1, lon1, lat2, lon2) { const R = 6371e3; const φ1 = lat1 * Math.PI/180; const φ2 = lat2 * Math.PI/180; const Δφ = (lat2-lat1) * Math.PI/180; const Δλ = (lon2-lon1) * Math.PI/180; const a = Math.sin(Δφ/2) * Math.sin(Δφ/2) + Math.cos(φ1) * Math.cos(φ2) * Math.sin(Δλ/2) * Math.sin(Δλ/2); const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a)); return R * c; }
 
@@ -4922,28 +4947,49 @@ async function sinkronisasiKeCloud() {
             }
 
             // LANGKAH B: Gabungkan data Lokal dengan data Cloud
+            
+                           // 1. Persiapkan daftar catatan "Batu Nisan"
+            const t_santri = [...new Set([...getDB('pondok_tombstone_santri', []), ...(dataCloud.tombstone_santri || [])])];
+            const t_mapel = [...new Set([...getDB('pondok_tombstone_mapel', []), ...(dataCloud.tombstone_mapel || [])])];
+            const t_kelas = [...new Set([...getDB('pondok_tombstone_kelas', []), ...(dataCloud.tombstone_kelas || [])])];
+            const t_users = [...new Set([...getDB('pondok_tombstone_users', []), ...(dataCloud.tombstone_users || [])])];
+            const t_tagihan = [...new Set([...getDB('pondok_tombstone_tagihan', []), ...(dataCloud.tombstone_tagihan || [])])];
+            const t_izin = [...new Set([...getDB('pondok_tombstone_izin_aktif', []), ...(dataCloud.tombstone_izin_aktif || [])])];
+            const t_bank = [...new Set([...getDB('pondok_tombstone_bank_mapel', []), ...(dataCloud.tombstone_bank_mapel || [])])];
+            const t_jam = [...new Set([...getDB('pondok_tombstone_jam_kustom', []), ...(dataCloud.tombstone_jam_kustom || [])])];
+
+            // 2. Gabungkan data sekaligus buang semua data yang ID-nya terdaftar di Batu Nisan
             const payloadMerged = {
-                santri: gabungDataArray(getDB('pondok_santri', []), dataCloud.santri, 'id'),
+                santri: gabungDataArray(getDB('pondok_santri', []), dataCloud.santri, 'id').filter(x => !t_santri.includes(x.id)),
+                mapel: gabungDataArray(getDB('pondok_master_mapel', []), dataCloud.mapel, 'id').filter(x => !t_mapel.includes(x.id)),
+                kelas: gabungDataArray(getDB('pondok_kelas', []), dataCloud.kelas, 'id').filter(x => !t_kelas.includes(x.id)),
+                users: gabungDataArray(getDB('pondok_users', []).filter(u => u.role !== 'superadmin'), dataCloud.users, 'username').filter(x => !t_users.includes(x.username)),
+                tagihan: gabungDataArray(getDB('pondok_tagihan_denda', []), dataCloud.tagihan, 'id_tagihan').filter(x => !t_tagihan.includes(x.id_tagihan)),
+                izin_aktif: gabungDataArray(getDB('pondok_izin_aktif', []), dataCloud.izin_aktif, 'id').filter(x => !t_izin.includes(x.id)),
+                jam_kustom: gabungDataArray(getDB('pondok_jam_kustom', []), dataCloud.jam_kustom, 'kode').filter(x => !t_jam.includes(x.kode)),
+                bank_mapel: [...new Set([...getDB('pondok_bank_mapel', []), ...(dataCloud.bank_mapel || [])])].filter(x => !t_bank.includes(x)),
+
+                // Data berikut biasanya hanya bertambah (Append-only)
                 absensi: gabungDataArray(getDB('pondok_absensi', []), dataCloud.absensi, 'id_sesi'),
-                kelas: gabungDataArray(getDB('pondok_kelas', []), dataCloud.kelas, 'id'),
-                mapel: gabungDataArray(getDB('pondok_master_mapel', []), dataCloud.mapel, 'id'),
                 evaluasi: gabungDataArray(getDB('pondok_evaluasi', []), dataCloud.evaluasi, 'nis'),
-                tagihan: gabungDataArray(getDB('pondok_tagihan_denda', []), dataCloud.tagihan, 'id_tagihan'),
                 tabungan: gabungDataArray(getDB('pondok_tabungan', []), dataCloud.tabungan, 'id'),
-                izin_aktif: gabungDataArray(getDB('pondok_izin_aktif', []), dataCloud.izin_aktif, 'id'),
                 history_izin: gabungDataArray(getDB('pondok_history_izin', []), dataCloud.history_izin, 'id'),
-                users: gabungDataArray(getDB('pondok_users', []).filter(u => u.role !== 'superadmin'), dataCloud.users, 'username'),
-                
-                // --- PENAMBAHAN DATA BARU DARI FILE TERBARU ---
-                jam_kustom: gabungDataArray(getDB('pondok_jam_kustom', []), dataCloud.jam_kustom, 'kode'),
-                // Karena bank_mapel hanya kumpulan teks string biasa, gabungkan memakai Set agar tidak ganda:
-                bank_mapel: [...new Set([...getDB('pondok_bank_mapel', []), ...(dataCloud.bank_mapel || [])])], 
-                tombstone_santri: [...new Set([...getDB('pondok_tombstone_santri', []), ...(dataCloud.tombstone_santri || [])])],
                 yayasan: getDB('pondok_yayasan', {}),
                 akses: getDB('pondok_akses', {}),
                 gps: getDB('pondok_gps', {}),
-                setting_keuangan: getDB('pondok_setting_keuangan', {})
+                setting_keuangan: getDB('pondok_setting_keuangan', {}),
+
+                // 3. Sertakan catatan "Batu Nisan" ke Cloud agar HP/Device lain tahu data ini sudah musnah
+                tombstone_santri: t_santri,
+                tombstone_mapel: t_mapel,
+                tombstone_kelas: t_kelas,
+                tombstone_users: t_users,
+                tombstone_tagihan: t_tagihan,
+                tombstone_izin_aktif: t_izin,
+                tombstone_bank_mapel: t_bank,
+                tombstone_jam_kustom: t_jam
             };
+
 
             const waktuKirim = new Date().toISOString();
 
@@ -4978,6 +5024,7 @@ setDB('pondok_tombstone_santri', payloadMerged.tombstone_santri);
 setDB('pondok_absensi', payloadMerged.absensi);
 setDB('pondok_kelas', payloadMerged.kelas);
 setDB('pondok_master_mapel', payloadMerged.mapel);
+setDB('pondok_tombstone_mapel', payloadMerged.tombstone_mapel);
 setDB('pondok_evaluasi', payloadMerged.evaluasi);
 setDB('pondok_tagihan_denda', payloadMerged.tagihan);
 setDB('pondok_tabungan', payloadMerged.tabungan);
@@ -4986,6 +5033,13 @@ setDB('pondok_history_izin', payloadMerged.history_izin);
 
 setDB('pondok_jam_kustom', payloadMerged.jam_kustom);
 setDB('pondok_bank_mapel', payloadMerged.bank_mapel);
+setDB('pondok_tombstone_kelas', payloadMerged.tombstone_kelas);
+setDB('pondok_tombstone_users', payloadMerged.tombstone_users);
+setDB('pondok_tombstone_tagihan', payloadMerged.tombstone_tagihan);
+setDB('pondok_tombstone_izin_aktif', payloadMerged.tombstone_izin_aktif);
+setDB('pondok_tombstone_bank_mapel', payloadMerged.tombstone_bank_mapel);
+setDB('pondok_tombstone_jam_kustom', payloadMerged.tombstone_jam_kustom);
+
 
 let lokalSuperAdmin = getDB('pondok_users', []).filter(u => u.role === 'superadmin');
 let finalUsers = [...payloadMerged.users, ...lokalSuperAdmin];
@@ -5069,6 +5123,12 @@ if (data.tombstone_santri) operasiSimpan.push(setDB('pondok_tombstone_santri', d
             if (data.akses) operasiSimpan.push(setDB('pondok_akses', data.akses));
             if (data.gps) operasiSimpan.push(setDB('pondok_gps', data.gps));
             if (data.setting_keuangan) operasiSimpan.push(setDB('pondok_setting_keuangan', data.setting_keuangan));
+if (data.tombstone_kelas) operasiSimpan.push(setDB('pondok_tombstone_kelas', data.tombstone_kelas));
+if (data.tombstone_users) operasiSimpan.push(setDB('pondok_tombstone_users', data.tombstone_users));
+if (data.tombstone_tagihan) operasiSimpan.push(setDB('pondok_tombstone_tagihan', data.tombstone_tagihan));
+if (data.tombstone_izin_aktif) operasiSimpan.push(setDB('pondok_tombstone_izin_aktif', data.tombstone_izin_aktif));
+if (data.tombstone_bank_mapel) operasiSimpan.push(setDB('pondok_tombstone_bank_mapel', data.tombstone_bank_mapel));
+if (data.tombstone_jam_kustom) operasiSimpan.push(setDB('pondok_tombstone_jam_kustom', data.tombstone_jam_kustom));
 
             if (data.users) {
                 let cloudUsersBersih = data.users.filter(u => u.role !== 'superadmin');
@@ -5802,11 +5862,13 @@ function tambahJamKustom() {
 
 function hapusJamKustom(idx) {
     if (!confirm("Hapus logika jam ini?")) return;
-    
     let dataJam = getDB('pondok_jam_kustom', []);
+    if (dataJam[idx]) {
+        let tbJam = getDB('pondok_tombstone_jam_kustom', []);
+        if (!tbJam.includes(dataJam[idx].kode)) { tbJam.push(dataJam[idx].kode); setDB('pondok_tombstone_jam_kustom', tbJam); }
+    }
     dataJam.splice(idx, 1);
-    setDB('pondok_jam_kustom', dataJam); // PERBAIKAN: Gunakan setDB
-    
+    setDB('pondok_jam_kustom', dataJam);
     renderJamKustom();
 }
 
