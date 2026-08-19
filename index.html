@@ -1689,23 +1689,21 @@ function getDB(key, fallback = null) {
 }
 
 // 3. Fungsi BARU untuk menyimpan data (Menggantikan localStorage.setItem)
-function setDB(key, dataObj) {
-    window.dbCache[key] = dataObj; // Simpan ke RAM agar UI langsung terupdate
-    localforage.setItem(key, dataObj).catch(err => console.error("Gagal simpan ke IndexedDB:", err)); // Simpan permanen di latar belakang
+// 🟢 PERBAIKAN: Tambahkan kata kunci 'async' dan 'await' agar fungsi mengembalikan Promise
+async function setDB(key, dataObj) {
+    window.dbCache[key] = dataObj; 
+    return await localforage.setItem(key, dataObj).catch(err => console.error("Gagal simpan ke IndexedDB:", err)); 
 }
 
-// 4. Fungsi BARU untuk menghapus data (Menggantikan localStorage.removeItem)
-function removeDB(key) {
+async function removeDB(key) {
     delete window.dbCache[key];
-    localforage.removeItem(key);
+    return await localforage.removeItem(key);
 }
 
-// 5. Fungsi BARU untuk mereset semua data (Menggantikan localStorage.clear)
-function clearDB() {
+async function clearDB() {
     window.dbCache = {};
-    localforage.clear();
+    return await localforage.clear();
 }
-
     let supabaseConfig = getDB('pondok_supabase_config', { url: '', key: '' });
 
         function muatScriptEksternal() {
@@ -2618,12 +2616,16 @@ function cetakLaporanPDF() {
         for (let key of keys) {
             window.dbCache[key] = await localforage.getItem(key);
         }
+
+        supabaseConfig = getDB('pondok_supabase_config', { url: '', key: '' });
+
     } catch (err) {
         console.error("Gagal load dari IndexedDB:", err);
     }
 
     setTimeout(() => {
         const splash = document.getElementById('splash-screen');
+
         if(splash) {
             splash.style.opacity = '0';
             setTimeout(() => splash.style.display = 'none', 600);
@@ -4851,7 +4853,8 @@ font_sertifikat: document.getElementById('setting-font-sertifikat').value,
                     const obj = JSON.parse(res);
                     if (obj.code === KODE_RAHASIA_SYNC) {
                         supabaseConfig = { url: obj.url, key: obj.key };
-                        localStorage.setItem('pondok_supabase_config', JSON.stringify(supabaseConfig));
+                        // 🟢 PERBAIKAN: Gunakan setDB agar tersimpan aman di IndexedDB (localforage)
+                        setDB('pondok_supabase_config', supabaseConfig);
                         tutupScannerLoginTarikData();
                         alert("Berhasil menghubungkan server! Menyiapkan sinkronisasi cloud...");
                         tarikDataDariSupabase();
@@ -5063,40 +5066,40 @@ async function tarikDataDariSupabase() {
         });
 
         const rows = await response.json();
-        if (rows && rows.length > 0 && rows[0].data_json) {
+       if (rows && rows.length > 0 && rows[0].data_json) {
             const data = rows[0].data_json;
             
-          // RESTORE DATA UTAMA (Langsung oper object-nya, bebas limit 5MB!)
-if (data.santri) setDB('pondok_santri', data.santri);
-if (data.absensi) setDB('pondok_absensi', data.absensi);
-if (data.kelas) setDB('pondok_kelas', data.kelas);
-if (data.mapel) setDB('pondok_master_mapel', data.mapel);
-if (data.evaluasi) setDB('pondok_evaluasi', data.evaluasi);
-if (data.tagihan) setDB('pondok_tagihan_denda', data.tagihan);
-if (data.tabungan) setDB('pondok_tabungan', data.tabungan); 
-if (data.izin_aktif) setDB('pondok_izin_aktif', data.izin_aktif);
-if (data.history_izin) setDB('pondok_history_izin', data.history_izin);
+            // 🟢 PERBAIKAN: Kumpulkan semua proses simpan ke dalam array Promises
+            let operasiSimpan = [];
 
-// --- RESTORE FITUR DATA BARU ---
-if (data.jam_kustom) setDB('pondok_jam_kustom', data.jam_kustom);
-if (data.bank_mapel) setDB('pondok_bank_mapel', data.bank_mapel);
+            if (data.santri) operasiSimpan.push(setDB('pondok_santri', data.santri));
+            if (data.absensi) operasiSimpan.push(setDB('pondok_absensi', data.absensi));
+            if (data.kelas) operasiSimpan.push(setDB('pondok_kelas', data.kelas));
+            if (data.mapel) operasiSimpan.push(setDB('pondok_master_mapel', data.mapel));
+            if (data.evaluasi) operasiSimpan.push(setDB('pondok_evaluasi', data.evaluasi));
+            if (data.tagihan) operasiSimpan.push(setDB('pondok_tagihan_denda', data.tagihan));
+            if (data.tabungan) operasiSimpan.push(setDB('pondok_tabungan', data.tabungan)); 
+            if (data.izin_aktif) operasiSimpan.push(setDB('pondok_izin_aktif', data.izin_aktif));
+            if (data.history_izin) operasiSimpan.push(setDB('pondok_history_izin', data.history_izin));
+            if (data.jam_kustom) operasiSimpan.push(setDB('pondok_jam_kustom', data.jam_kustom));
+            if (data.bank_mapel) operasiSimpan.push(setDB('pondok_bank_mapel', data.bank_mapel));
+            if (data.yayasan) operasiSimpan.push(setDB('pondok_yayasan', data.yayasan));
+            if (data.akses) operasiSimpan.push(setDB('pondok_akses', data.akses));
+            if (data.gps) operasiSimpan.push(setDB('pondok_gps', data.gps));
+            if (data.setting_keuangan) operasiSimpan.push(setDB('pondok_setting_keuangan', data.setting_keuangan));
 
-// RESTORE DATA PENGATURAN & AKUN (FULL BACKUP)
-if (data.yayasan) setDB('pondok_yayasan', data.yayasan);
+            if (data.users) {
+                let cloudUsersBersih = data.users.filter(u => u.role !== 'superadmin');
+                let lokalSuperAdmin = getDB('pondok_users', []).filter(u => u.role === 'superadmin');
+                let finalPulledUsers = [...cloudUsersBersih, ...lokalSuperAdmin];
+                operasiSimpan.push(setDB('pondok_users', finalPulledUsers));
+            }
 
-if (data.users) {
-    let cloudUsersBersih = data.users.filter(u => u.role !== 'superadmin');
-    let lokalSuperAdmin = getDB('pondok_users', []).filter(u => u.role === 'superadmin');
-    let finalPulledUsers = [...cloudUsersBersih, ...lokalSuperAdmin];
-    setDB('pondok_users', finalPulledUsers);
-}
-
-if (data.akses) setDB('pondok_akses', data.akses);
-if (data.gps) setDB('pondok_gps', data.gps);
-if (data.setting_keuangan) setDB('pondok_setting_keuangan', data.setting_keuangan);
+            // 🟢 PERBAIKAN: Paksa sistem menunggu hingga seluruh data 100% selesai ditulis ke IndexedDB
+            await Promise.all(operasiSimpan);
 
             alert("Berhasil menarik SELURUH data terbaru dari Cloud! Sistem akan dimuat ulang.");
-            location.reload();
+            location.reload(); // ✅ Sekarang aman untuk di-reload karena data sudah tersimpan penuh
         } else {
             alert("Belum ada data cadangan tersimpan di server Supabase kamu.");
         }
