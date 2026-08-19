@@ -4742,12 +4742,16 @@ font_sertifikat: document.getElementById('setting-font-sertifikat').value,
     }
 
     function hapusPengguna(id) {
-        if (!confirm("Yakin hapus akun pegawai ini?")) return;
-        let users = getDB('pondok_users', []).filter(u => u.id != id);
-        localStorage.setItem('pondok_users', JSON.stringify(users));
-        renderTabelPegawai();
-        renderMasterMapel();
-    }
+    if (!confirm("Yakin hapus akun pegawai ini?")) return;
+    let users = getDB('pondok_users', []).filter(u => u.id != id);
+    
+    // PERBAIKAN: Gunakan setDB agar cache RAM dan UI ikut ter-update
+    setDB('pondok_users', users); 
+    
+    renderTabelPegawai();
+    renderMasterMapel();
+}
+
 
     function simpanKonfigurasiSupabase() {
         const url = document.getElementById('setting-supabase-url').value.trim();
@@ -6444,17 +6448,18 @@ function hapusSantriWali(idSantri) {
     
     // Hapus dari tabel santri
     let dbSantri = getDB('pondok_santri', []).filter(s => s.id !== idSantri);
-    localStorage.setItem('pondok_santri', JSON.stringify(dbSantri));
+    setDB('pondok_santri', dbSantri); // PERBAIKAN
 
     // Bersihkan id santri dari array kelas (Plotting)
     let dbKelas = getDB('pondok_kelas', []);
     dbKelas.forEach(k => {
         k.santri_ids = (k.santri_ids || []).filter(sid => sid !== idSantri);
     });
-    localStorage.setItem('pondok_kelas', JSON.stringify(dbKelas));
+    setDB('pondok_kelas', dbKelas); // PERBAIKAN
 
     renderTabelSantriWali();
 }
+
 
     window.onload = initApp;
 </script>
