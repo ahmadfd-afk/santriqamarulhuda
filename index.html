@@ -549,7 +549,8 @@
                     <div id="notif-dropdown-menu" class="profile-dropdown-menu hidden" style="width: 260px; right: -10px; top: 52px; padding-bottom: 5px;">
                         <div class="dropdown-header-info" style="display: flex; justify-content: space-between; align-items: center; background: rgba(4, 67, 42, 0.08);">
                             <strong style="color: var(--primary); font-size: 0.85rem;">Notifikasi</strong>
-                            <span style="font-size: 0.65rem; color: var(--info); cursor: pointer; font-weight: bold;">Tandai dibaca</span>
+                            <span onclick="tandaiSemuaDibaca()" style="font-size: 0.65rem; color: var(--info); cursor: pointer; font-weight: bold;">Tandai dibaca</span>
+
                         </div>
                         <div id="notif-list-container" style="max-height: 250px; overflow-y: auto;">
                             <div style="padding: 25px 15px; text-align: center; color: var(--text-muted); font-size: 0.75rem;">
@@ -6891,6 +6892,100 @@ function jalankanWaktuHeader() {
 // Jalankan fungsi saat aplikasi pertama kali dibuka
 document.addEventListener('DOMContentLoaded', function() {
     jalankanWaktuHeader();
+});
+// ==========================================
+// MESIN NOTIFIKASI OTOMATIS
+// ==========================================
+
+// 1. Fungsi Menampilkan Notifikasi ke Layar
+function renderNotifikasi() {
+    // Ambil data notifikasi dari database, jika kosong buat array []
+    let notifDB = typeof getDB === 'function' ? getDB('pondok_notifikasi', []) : [];
+    let container = document.getElementById('notif-list-container');
+    let badge = document.getElementById('angka-notif');
+    if(!container) return;
+
+    // Hitung yang belum dibaca
+    let unreadCount = notifDB.filter(n => n.dibaca === false).length;
+
+    // Update angka merah di lonceng
+    if(badge) {
+        badge.innerText = unreadCount;
+        badge.style.display = unreadCount > 0 ? 'flex' : 'none';
+    }
+
+    // Tampilan jika kosong
+    if(notifDB.length === 0) {
+        container.innerHTML = `
+            <div style="padding: 25px 15px; text-align: center; color: var(--text-muted); font-size: 0.75rem;">
+                <i class="fa-solid fa-bell-slash" style="font-size: 2rem; margin-bottom: 10px; color: #ccc;"></i><br>
+                Belum ada notifikasi baru
+            </div>`;
+        return;
+    }
+
+    // Tampilan jika ada notifikasi
+    let html = '';
+    notifDB.forEach(notif => {
+        let bgInfo = notif.dibaca ? 'transparent' : 'rgba(4, 67, 42, 0.08)'; // Background agak hijau jika belum dibaca
+        let icon = notif.tipe === 'keuangan' ? 'fa-money-bill-wave' : 'fa-bell';
+        let color = notif.tipe === 'keuangan' ? '#28a745' : 'var(--primary)';
+
+        html += `
+        <div style="padding: 12px 15px; border-bottom: 1px solid #eee; background: ${bgInfo}; cursor: pointer; transition: 0.2s;">
+            <div style="display: flex; gap: 12px; align-items: start;">
+                <div style="background: white; padding: 6px; border-radius: 50%; box-shadow: 0 2px 5px rgba(0,0,0,0.1);">
+                    <i class="fa-solid ${icon}" style="color: ${color}; font-size: 0.9rem;"></i>
+                </div>
+                <div style="flex: 1;">
+                    <strong style="display: block; font-size: 0.75rem; color: #333; margin-bottom: 2px;">${notif.judul}</strong>
+                    <span style="display: block; font-size: 0.7rem; color: #666; line-height: 1.3;">${notif.pesan}</span>
+                    <span style="display: block; font-size: 0.6rem; color: #999; margin-top: 5px;">
+                        <i class="fa-regular fa-clock"></i> ${notif.waktu}
+                    </span>
+                </div>
+            </div>
+        </div>`;
+    });
+    container.innerHTML = html;
+}
+
+// 2. Fungsi Menambah Notifikasi Baru (Bisa dipanggil dari mana saja)
+function tambahNotifikasi(judul, pesan, tipe = 'umum') {
+    let notifDB = typeof getDB === 'function' ? getDB('pondok_notifikasi', []) : [];
+    let sekarang = new Date();
+    let jam = sekarang.getHours().toString().padStart(2, '0') + ':' + sekarang.getMinutes().toString().padStart(2, '0');
+
+    // Masukkan data baru ke urutan paling atas (unshift)
+    notifDB.unshift({
+        id: Date.now(),
+        judul: judul,
+        pesan: pesan,
+        waktu: jam,
+        dibaca: false,
+        tipe: tipe // 'keuangan', 'sistem', 'absensi'
+    });
+
+    // Batasi maksimal 30 notifikasi saja agar tidak memberatkan HP
+    if(notifDB.length > 30) notifDB.pop();
+
+    if(typeof setDB === 'function') setDB('pondok_notifikasi', notifDB);
+    
+    renderNotifikasi(); // Refresh tampilan lonceng
+    if (typeof playPremiumBeep === 'function') playPremiumBeep(); // Bunyi ting!
+}
+
+// 3. Fungsi Menandai Semua Telah Dibaca
+function tandaiSemuaDibaca() {
+    let notifDB = typeof getDB === 'function' ? getDB('pondok_notifikasi', []) : [];
+    notifDB.forEach(n => n.dibaca = true);
+    if(typeof setDB === 'function') setDB('pondok_notifikasi', notifDB);
+    renderNotifikasi();
+}
+
+// Jalankan saat aplikasi pertama dimuat
+document.addEventListener('DOMContentLoaded', function() {
+    renderNotifikasi();
 });
 
 function hapusSantriWali(idSantri) {
