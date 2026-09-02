@@ -304,7 +304,8 @@
 /* --- TAMBAHAN CSS DROPDOWN & HARI --- */
 .custom-select-wrapper { position: relative; width: 100%; margin-bottom: 14px; }
 .custom-select-btn { display:flex; justify-content:space-between; align-items:center; width: 100%; padding: 13px 15px; border-radius: var(--radius-sm); border: 1px solid rgba(0,0,0,0.12); background: rgba(255,255,255,0.92); cursor: pointer; font-size: 0.95rem; font-weight: 600; color: #333; }
-.custom-select-content { display: none; position: absolute; top: 100%; left: 0; right: 0; background: #fff; border: 1px solid #ccc; border-radius: 8px; box-shadow: 0 10px 25px rgba(0,0,0,0.15); z-index: 1000; max-height: 250px; overflow-y: auto; padding: 10px; margin-top: 5px; }
+.custom-select-content { display: none; position: absolute; top: 100%; left: 0; right: 0; background: #fff; border: 1px solid #ccc; border-radius: 8px; box-shadow: 0 10px 25px rgba(0,0,0,0.15); z-index: 1000; max-height: 220px; overflow-y: auto; -webkit-overflow-scrolling: touch; touch-action: pan-y; padding: 10px; margin-top: 5px; }
+
 .custom-select-content.show { display: block; }
 
 .hari-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
@@ -467,21 +468,6 @@
 <!-- KODE SESUDAHNYA -->
 <body>
 <!-- BUBBLE NOTIFIKASI SYSTEM -->
-<div id="system-notif-banner" style="position: fixed; top: -100px; left: 50%; transform: translateX(-50%); width: 90%; max-width: 450px; background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px); border: 1px solid var(--accent); border-radius: 20px; padding: 12px 18px; display: flex; align-items: center; justify-content: space-between; box-shadow: 0 15px 35px rgba(0,0,0,0.25); z-index: 999999; transition: top 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);">
-    <div style="display: flex; align-items: center; gap: 12px; flex: 1;">
-        <div id="system-notif-icon" style="background: var(--warning); color: white; width: 35px; height: 35px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.1rem;">
-            <i class="fa-solid fa-cloud-arrow-down"></i>
-        </div>
-        <div>
-            <h4 id="system-notif-title" style="margin: 0; font-size: 0.85rem; color: var(--primary);">Data Baru Tersedia</h4>
-            <p id="system-notif-desc" style="margin: 0; font-size: 0.7rem; color: var(--text-muted);">Ada sinkronisasi dari perangkat lain.</p>
-        </div>
-    </div>
-    <div style="display: flex; gap: 8px;">
-        <button id="system-notif-btn" class="btn-primary" style="margin: 0; padding: 8px 12px; font-size: 0.7rem; width: auto; border-radius: 12px; box-shadow: none;">Tarik Data</button>
-        <button onclick="document.getElementById('system-notif-banner').style.top = '-100px';" style="background: transparent; border: none; color: var(--danger); font-size: 1.2rem; padding: 5px; cursor: pointer;"><i class="fa-solid fa-xmark"></i></button>
-    </div>
-</div>
 
 <div id="splash-screen" style="position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(255,255,255,0.95); backdrop-filter:blur(20px); z-index:999999; display:flex; flex-direction:column; align-items:center; justify-content:center; transition:opacity 0.6s ease, visibility 0.6s ease;">
     <img id="splash-logo" src="icon-512.png" style="width:110px; height:110px; border-radius:24px; box-shadow:0 15px 35px rgba(0,0,0,0.2); animation: pulse 1.5s infinite alternate;">
@@ -549,8 +535,7 @@
                     <div id="notif-dropdown-menu" class="profile-dropdown-menu hidden" style="width: 260px; right: -10px; top: 52px; padding-bottom: 5px;">
                         <div class="dropdown-header-info" style="display: flex; justify-content: space-between; align-items: center; background: rgba(4, 67, 42, 0.08);">
                             <strong style="color: var(--primary); font-size: 0.85rem;">Notifikasi</strong>
-                            <span onclick="tandaiSemuaDibaca()" style="font-size: 0.65rem; color: var(--info); cursor: pointer; font-weight: bold;">Tandai dibaca</span>
-
+                            <span style="font-size: 0.65rem; color: var(--info); cursor: pointer; font-weight: bold;">Tandai dibaca</span>
                         </div>
                         <div id="notif-list-container" style="max-height: 250px; overflow-y: auto;">
                             <div style="padding: 25px 15px; text-align: center; color: var(--text-muted); font-size: 0.75rem;">
@@ -730,6 +715,13 @@
 </div>
 
 <!-- WADAH SCROLL TERBATAS (TAMPIL 10-15 BARIS) -->
+<!-- 👇 TAMBAHKAN KOTAK PENCARIAN DI SINI 👇 -->
+<div style="margin-bottom: 12px; position: relative;">
+    <i class="fa-solid fa-magnifying-glass" style="position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: #888;"></i>
+    <input type="text" id="input-search-santri" onkeyup="cariDataSantri()" placeholder="Ketik nama, NIS, atau kamar santri..." style="width: 100%; padding: 12px 15px 12px 38px; border-radius: 12px; border: 1px solid rgba(0,0,0,0.15); font-size: 0.85rem; box-shadow: inset 0 2px 4px rgba(0,0,0,0.02);">
+</div>
+<!-- 👆 SELESAI TAMBAH KOTAK PENCARIAN 👆 -->
+
 <div id="wadah-scroll-santri" class="wadah-scroll-santri">
     <table>
         <thead><tr><th id="th-kamar-nis">NIS / Kamar</th><th>Nama Lengkap</th><th>Aksi</th></tr></thead>
@@ -2563,18 +2555,128 @@ function cetakLaporanPDF() {
     }
 
         // 👇 KODE BARU: Fungsi klik Notifikasi 👇
-    function toggleNotifDropdown(e) {
-        e.stopPropagation();
-        if (typeof playPremiumBeep === 'function') playPremiumBeep();
+        function toggleNotifDropdown(e) {
+    e.stopPropagation();
+    if (typeof playPremiumBeep === 'function') playPremiumBeep();
+    
+    // Tutup profil jika sedang terbuka
+    const menuProfil = document.getElementById('profile-dropdown-menu');
+    if (menuProfil) menuProfil.classList.add('hidden');
+    
+    // Buka/Tutup Notifikasi
+    const menuNotif = document.getElementById('notif-dropdown-menu');
+    if (menuNotif) {
+        const isHidden = menuNotif.classList.contains('hidden');
+        menuNotif.classList.toggle('hidden');
         
-        // Tutup profil jika sedang terbuka
-        const menuProfil = document.getElementById('profile-dropdown-menu');
-        if (menuProfil) menuProfil.classList.add('hidden');
-        
-        // Buka/Tutup Notifikasi
-        const menuNotif = document.getElementById('notif-dropdown-menu');
-        if (menuNotif) menuNotif.classList.toggle('hidden');
+        // JIKA MENU DIBUKA, TANDAI SEMUA SEBAGAI DIBACA
+        if (isHidden) {
+            // PERBAIKAN: Sembunyikan badge merah (angka notif) secara instan secara visual
+            const badgeNotif = document.getElementById('angka-notif');
+            if (badgeNotif) badgeNotif.style.display = 'none';
+            
+            tandaiSemuaNotifDibaca();
+        }
     }
+}
+
+// --- SISTEM NOTIFIKASI INTERNAL LOKAL ---
+function tambahNotifInternal(id_notif, judul, pesan, ikon, warna, fungsiKlik) {
+    let listNotif = getDB('pondok_notifikasi', []);
+    
+    // Jika notif dengan ID sama (misal 'absen_unsynced') sudah ada, update pesannya saja
+    let index = listNotif.findIndex(n => n.id_notif === id_notif);
+    if (index > -1) {
+        listNotif[index].pesan = pesan;
+        listNotif[index].is_read = false; // Jadikan unread agar badge merah muncul lagi
+        listNotif[index].waktu = new Date().toISOString();
+    } else {
+        listNotif.push({
+            id_notif: id_notif,
+            judul: judul,
+            pesan: pesan,
+            ikon: ikon,
+            warna: warna,
+            fungsiKlik: fungsiKlik,
+            is_read: false,
+            waktu: new Date().toISOString()
+        });
+    }
+    
+    setDB('pondok_notifikasi', listNotif).then(() => {
+        renderNotifInternal();
+    });
+}
+
+function hapusNotifInternal(id_notif) {
+    let listNotif = getDB('pondok_notifikasi', []);
+    listNotif = listNotif.filter(n => n.id_notif !== id_notif);
+    setDB('pondok_notifikasi', listNotif).then(() => {
+        renderNotifInternal();
+    });
+}
+
+function tandaiSemuaNotifDibaca() {
+    let listNotif = getDB('pondok_notifikasi', []);
+    let adaUnread = false;
+    listNotif.forEach(n => {
+        if (!n.is_read) {
+            n.is_read = true;
+            adaUnread = true;
+        }
+    });
+    
+    if (adaUnread) {
+        setDB('pondok_notifikasi', listNotif).then(() => {
+            renderNotifInternal();
+        });
+    }
+}
+
+function renderNotifInternal() {
+    let listNotif = getDB('pondok_notifikasi', []);
+    const wadahList = document.getElementById('notif-list-container');
+    
+    // Hitung yang belum dibaca untuk memunculkan Badge Merah
+    let unreadCount = listNotif.filter(n => !n.is_read).length;
+    updateBadgeNotifikasi(unreadCount); 
+    
+    if (wadahList) {
+        wadahList.innerHTML = '';
+        if (listNotif.length === 0) {
+            wadahList.innerHTML = `
+                <div style="padding: 25px 15px; text-align: center; color: var(--text-muted); font-size: 0.75rem;">
+                    <i class="fa-solid fa-bell-slash" style="font-size: 2rem; margin-bottom: 10px; color: #ccc;"></i><br>
+                    Belum ada notifikasi
+                </div>`;
+            return;
+        }
+        
+        // Urutkan dari yang terbaru
+        listNotif.sort((a, b) => new Date(b.waktu) - new Date(a.waktu));
+        
+        listNotif.forEach(n => {
+            let bgOpacity = n.is_read ? '0.02' : '0.1';
+            let dotNew = n.is_read ? '' : '<div style="width:8px; height:8px; background:var(--danger); border-radius:50%; position:absolute; top:15px; right:15px;"></div>';
+            
+            wadahList.innerHTML += `
+                <div onclick="${n.fungsiKlik}; toggleNotifDropdown(event);" style="padding: 12px 15px; border-bottom: 1px solid rgba(0,0,0,0.05); cursor: pointer; background: rgba(var(--${n.warna}-rgb, 0,0,0), ${bgOpacity}); position:relative; transition: 0.2s;">
+                    ${dotNew}
+                    <div style="display: flex; gap: 10px; align-items: flex-start;">
+                        <div style="background: var(--${n.warna}, #888); color: white; width: 32px; height: 32px; border-radius: 50%; display: flex; justify-content: center; align-items: center; flex-shrink: 0; font-size:0.8rem;">
+                            <i class="fa-solid ${n.ikon}"></i>
+                        </div>
+                        <div>
+                            <strong style="display: block; font-size: 0.8rem; color: var(--text-main);">${n.judul}</strong>
+                            <span style="font-size: 0.7rem; color: var(--text-muted); line-height: 1.2; display: block; margin-top:3px;">${n.pesan}</span>
+                        </div>
+                    </div>
+                </div>
+            `;
+        });
+    }
+}
+
 
     function toggleProfileDropdown(e) {
         e.stopPropagation();
@@ -2753,23 +2855,6 @@ setDB('pondok_active_tab', 'view-dashboard');
         window.speechSynthesis.cancel(); const utterance = new SpeechSynthesisUtterance(teks); utterance.lang = 'id-ID'; window.speechSynthesis.speak(utterance);
     }
 // Kontrol Animasi Banner Notifikasi
-function tampilkanSystemNotif(judul, deskripsi, ikon, warnaBg, teksTombol, fungsiTombol) {
-    document.getElementById('system-notif-title').innerText = judul;
-    document.getElementById('system-notif-desc').innerText = deskripsi;
-    document.getElementById('system-notif-icon').innerHTML = `<i class="fa-solid ${ikon}"></i>`;
-    document.getElementById('system-notif-icon').style.background = `var(--${warnaBg})`;
-    
-    const btn = document.getElementById('system-notif-btn');
-    btn.innerText = teksTombol;
-    btn.onclick = () => {
-        document.getElementById('system-notif-banner').style.top = "-100px";
-        fungsiTombol();
-    };
-
-    // Munculkan notifikasi dengan animasi memantul
-    document.getElementById('system-notif-banner').style.top = "20px";
-    playPremiumBeep(); // Bunyikan suara
-}
 
 let supabaseRealtimeClient = null;
 
@@ -2801,18 +2886,22 @@ function initSupabaseRealtimeListener() {
     const splashTitle = document.getElementById('splash-title');
     if(splashTitle) splashTitle.innerText = "Memuat Database...";
 
-    // [WAJIB] Tarik semua data dari IndexedDB ke RAM sebelum aplikasi jalan
     try {
         const keys = await localforage.keys();
         for (let key of keys) {
             window.dbCache[key] = await localforage.getItem(key);
         }
-
         supabaseConfig = getDB('pondok_supabase_config', { url: '', key: '' });
+        
+        // 👇 TAMBAHKAN BARIS INI AGAR HAK AKSES AMAN SAAT REFRESH 👇
+        let cekAkses = getDB('pondok_akses', defaultAkses); 
+        setDB('pondok_akses', cekAkses);
 
     } catch (err) {
         console.error("Gagal load dari IndexedDB:", err);
     }
+    // ...
+
 
     setTimeout(() => {
         const splash = document.getElementById('splash-screen');
@@ -2861,8 +2950,7 @@ initSupabaseRealtimeListener();
         // ⬆️ SAMPAI SINI ⬆️
         
         
-        let cekAkses = getDB('pondok_akses', defaultAkses); setDB('pondok_akses', cekAkses);
-
+        
     
 
     // ═══ PWA WATCHDOG ENGINE (PERMANEN MUTLAK) ═══
@@ -2964,7 +3052,13 @@ function registerServiceWorker() {
 
 
         function masukKeSistemSetelahLogin(playSuara = true) {
-        document.getElementById('header-user-name').innerText = currentUser.nama || "User";
+    document.getElementById('header-user-name').innerText = currentUser.nama || "User";
+    
+    // 👇 TAMBAHKAN BARIS INI 👇
+    renderNotifInternal();
+    // 👆 ------------------ 👆
+    // ...
+
         document.getElementById('header-user-photo').src = currentUser.foto || "https://cdn-icons-png.flaticon.com/512/149/149071.png";
         document.getElementById('dropdown-user-role').innerText = currentUser.role.toUpperCase();
 
@@ -4732,9 +4826,20 @@ function kirimDataAbsen() {
         setDB('pondok_tagihan_denda', tagihanDB);
     }
 
-    alert("Data absensi berhasil disimpan secara lokal!");
+        // alert("Data absensi berhasil disimpan secara lokal!"); // <-- Ganti dengan sistem notifikasi
+    tambahNotifInternal(
+        'absen_unsynced', 
+        'Absen Belum Terkirim', 
+        'Data absen kelas ' + mObj.nama_mapel + ' belum sinkron ke Cloud.', 
+        'fa-cloud-arrow-up', 
+        'warning', 
+        'triggerSyncCloudQuick()'
+    );
+    tampilkanSystemNotif("Berhasil Disimpan", "Absensi tersimpan lokal. Jangan lupa kirim ke Cloud ya!", "fa-check", "success", "Kirim", triggerSyncCloudQuick);
+
     document.getElementById('pilih-mapel-absen').value = "";
     document.getElementById('student-list').innerHTML = "";
+
 }
 /* ========================================================================== */
 /* === AKHIR PERBAIKAN BLOK 3: SIMPAN DATA ABSEN BESERTA STATUS KELAS ASAL = */
@@ -5239,9 +5344,13 @@ function gabungDataArray(arrayLokal, arrayCloud, primaryKey) {
 }
 
 // 2. FUNGSI SINKRONISASI BARU
+// =========================================================================
+// 1. FUNGSI SINKRONISASI KE CLOUD (YANG SUDAH DIPERBAIKI)
+// =========================================================================
 async function sinkronisasiKeCloud() {
     if (!supabaseConfig.url || !supabaseConfig.key) {
-        return alert("Konfigurasi URL & Key Supabase belum diisi di menu Database!");
+        tambahNotifInternal('err_sync_config', 'Gagal Sinkronisasi', 'Konfigurasi URL & Key Supabase belum diisi di menu Database.', 'fa-triangle-exclamation', 'danger', '');
+        return;
     }
     const btn = document.getElementById('btn-sync-cloud');
     if (btn) btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> SINKRONISASI & MENGGABUNGKAN...';
@@ -5266,19 +5375,12 @@ async function sinkronisasiKeCloud() {
             });
             const rows = await resCloud.json();
             
-            if (rows && rows.length > 0) {
-                if (rows[0].data_json) {
-                    dataCloud = rows[0].data_json;
-                    if (dataCloud.users) {
-                        dataCloud.users = dataCloud.users.filter(u => u.role !== 'superadmin');
-                    }
-                }
-                cloudUpdatedAt = rows[0].updated_at; 
+            if (resCloud.ok && rows.length > 0) {
+                dataCloud = rows[0].data_json || {};
+                cloudUpdatedAt = rows[0].updated_at;
             }
 
             // LANGKAH B: Gabungkan data Lokal dengan data Cloud
-            
-                           // 1. Persiapkan daftar catatan "Batu Nisan"
             const t_santri = [...new Set([...getDB('pondok_tombstone_santri', []), ...(dataCloud.tombstone_santri || [])])];
             const t_mapel = [...new Set([...getDB('pondok_tombstone_mapel', []), ...(dataCloud.tombstone_mapel || [])])];
             const t_kelas = [...new Set([...getDB('pondok_tombstone_kelas', []), ...(dataCloud.tombstone_kelas || [])])];
@@ -5288,7 +5390,6 @@ async function sinkronisasiKeCloud() {
             const t_bank = [...new Set([...getDB('pondok_tombstone_bank_mapel', []), ...(dataCloud.tombstone_bank_mapel || [])])];
             const t_jam = [...new Set([...getDB('pondok_tombstone_jam_kustom', []), ...(dataCloud.tombstone_jam_kustom || [])])];
 
-            // 2. Gabungkan data sekaligus buang semua data yang ID-nya terdaftar di Batu Nisan
             const payloadMerged = {
                 santri: gabungDataArray(getDB('pondok_santri', []), dataCloud.santri, 'id').filter(x => !t_santri.includes(x.id)),
                 mapel: gabungDataArray(getDB('pondok_master_mapel', []), dataCloud.mapel, 'id').filter(x => !t_mapel.includes(x.id)),
@@ -5299,7 +5400,6 @@ async function sinkronisasiKeCloud() {
                 jam_kustom: gabungDataArray(getDB('pondok_jam_kustom', []), dataCloud.jam_kustom, 'kode').filter(x => !t_jam.includes(x.kode)),
                 bank_mapel: [...new Set([...getDB('pondok_bank_mapel', []), ...(dataCloud.bank_mapel || [])])].filter(x => !t_bank.includes(x)),
 
-                // Data berikut biasanya hanya bertambah (Append-only)
                 absensi: gabungDataArray(getDB('pondok_absensi', []), dataCloud.absensi, 'id_sesi'),
                 evaluasi: gabungDataArray(getDB('pondok_evaluasi', []), dataCloud.evaluasi, 'nis'),
                 tabungan: gabungDataArray(getDB('pondok_tabungan', []), dataCloud.tabungan, 'id'),
@@ -5309,7 +5409,6 @@ async function sinkronisasiKeCloud() {
                 gps: getDB('pondok_gps', {}),
                 setting_keuangan: getDB('pondok_setting_keuangan', {}),
 
-                // 3. Sertakan catatan "Batu Nisan" ke Cloud agar HP/Device lain tahu data ini sudah musnah
                 tombstone_santri: t_santri,
                 tombstone_mapel: t_mapel,
                 tombstone_kelas: t_kelas,
@@ -5320,13 +5419,10 @@ async function sinkronisasiKeCloud() {
                 tombstone_jam_kustom: t_jam
             };
 
-
             const waktuKirim = new Date().toISOString();
 
-                       // LANGKAH C: Kirim kembali ke Cloud dengan Syarat Waktu (Optimistic Locking)
             let patchUrl = `${supabaseConfig.url}/rest/v1/backup_lms?id=eq.1`;
             if (cloudUpdatedAt) {
-                // Syarat mutlak: Jangan timpa data jika ada Device lain yang mendahului detik pengiriman ini
                 patchUrl += `&updated_at=eq.${encodeURIComponent(cloudUpdatedAt)}`;
             }
 
@@ -5347,42 +5443,39 @@ async function sinkronisasiKeCloud() {
             if (response.ok && patchResult.length > 0) {
                 syncSuccess = true;
                 
-                // --- SIMPAN KEMBALI KE PENYIMPANAN LOKAL HP ---
-               
-setDB('pondok_santri', payloadMerged.santri);
-setDB('pondok_tombstone_santri', payloadMerged.tombstone_santri);
-setDB('pondok_absensi', payloadMerged.absensi);
-setDB('pondok_kelas', payloadMerged.kelas);
-setDB('pondok_master_mapel', payloadMerged.mapel);
-setDB('pondok_tombstone_mapel', payloadMerged.tombstone_mapel);
-setDB('pondok_evaluasi', payloadMerged.evaluasi);
-setDB('pondok_tagihan_denda', payloadMerged.tagihan);
-setDB('pondok_tabungan', payloadMerged.tabungan);
-setDB('pondok_izin_aktif', payloadMerged.izin_aktif);
-setDB('pondok_history_izin', payloadMerged.history_izin);
+                // SIMPAN KEMBALI KE PENYIMPANAN LOKAL HP
+                setDB('pondok_santri', payloadMerged.santri);
+                setDB('pondok_tombstone_santri', payloadMerged.tombstone_santri);
+                setDB('pondok_absensi', payloadMerged.absensi);
+                setDB('pondok_kelas', payloadMerged.kelas);
+                setDB('pondok_master_mapel', payloadMerged.mapel);
+                setDB('pondok_tombstone_mapel', payloadMerged.tombstone_mapel);
+                setDB('pondok_evaluasi', payloadMerged.evaluasi);
+                setDB('pondok_tagihan_denda', payloadMerged.tagihan);
+                setDB('pondok_tabungan', payloadMerged.tabungan);
+                setDB('pondok_izin_aktif', payloadMerged.izin_aktif);
+                setDB('pondok_history_izin', payloadMerged.history_izin);
+                setDB('pondok_jam_kustom', payloadMerged.jam_kustom);
+                setDB('pondok_bank_mapel', payloadMerged.bank_mapel);
+                setDB('pondok_tombstone_kelas', payloadMerged.tombstone_kelas);
+                setDB('pondok_tombstone_users', payloadMerged.tombstone_users);
+                setDB('pondok_tombstone_tagihan', payloadMerged.tombstone_tagihan);
+                setDB('pondok_tombstone_izin_aktif', payloadMerged.tombstone_izin_aktif);
+                setDB('pondok_tombstone_bank_mapel', payloadMerged.tombstone_bank_mapel);
+                setDB('pondok_tombstone_jam_kustom', payloadMerged.tombstone_jam_kustom);
 
-setDB('pondok_jam_kustom', payloadMerged.jam_kustom);
-setDB('pondok_bank_mapel', payloadMerged.bank_mapel);
-setDB('pondok_tombstone_kelas', payloadMerged.tombstone_kelas);
-setDB('pondok_tombstone_users', payloadMerged.tombstone_users);
-setDB('pondok_tombstone_tagihan', payloadMerged.tombstone_tagihan);
-setDB('pondok_tombstone_izin_aktif', payloadMerged.tombstone_izin_aktif);
-setDB('pondok_tombstone_bank_mapel', payloadMerged.tombstone_bank_mapel);
-setDB('pondok_tombstone_jam_kustom', payloadMerged.tombstone_jam_kustom);
-
-
-let lokalSuperAdmin = getDB('pondok_users', []).filter(u => u.role === 'superadmin');
-let finalUsers = [...payloadMerged.users, ...lokalSuperAdmin];
-setDB('pondok_users', finalUsers);
+                let lokalSuperAdmin = getDB('pondok_users', []).filter(u => u.role === 'superadmin');
+                let finalUsers = [...payloadMerged.users, ...lokalSuperAdmin];
+                setDB('pondok_users', finalUsers);
                 
-                alert("Data berhasil terakumulasi & sinkronisasi dengan Cloud!");
+                hapusNotifInternal('absen_unsynced'); 
+                tambahNotifInternal('sync_sukses', 'Sinkronisasi Sukses', 'Semua data berhasil terkirim dan sinkron ke Cloud.', 'fa-check-double', 'success', '');
                 
                 if (typeof renderTabelSantri === 'function') renderTabelSantri();
                 if (typeof renderTabelDaftarKelas === 'function') renderTabelDaftarKelas();
                 if (typeof renderMasterMapel === 'function') renderMasterMapel();
                 if (typeof renderJamKustom === 'function') renderJamKustom();
                 
-            
             } else if (response.status === 404 || patchResult.length === 0) {
                 if (!cloudUpdatedAt) {
                     await fetch(`${supabaseConfig.url}/rest/v1/backup_lms`, {
@@ -5395,17 +5488,17 @@ setDB('pondok_users', finalUsers);
                         body: JSON.stringify({ id: 1, data_json: payloadMerged, updated_at: waktuKirim })
                     });
                     syncSuccess = true;
-                    alert("Berhasil membuat rekam cadangan sinkronisasi baru di Cloud!");
+                    tambahNotifInternal('sync_new_sukses', 'Database Baru Dibuat', 'Berhasil membuat wadah sinkronisasi baru di server Cloud.', 'fa-database', 'success', '');
                 } else {
-                    console.warn(`Bentrok pengiriman terdeteksi! Mengulang penarikan dan penggabungan data... (Percobaan ${attempt}/${maxRetries})`);
+                    console.warn(`Bentrok pengiriman! Mengulang... (Percobaan ${attempt}/${maxRetries})`);
                     if (attempt === maxRetries) {
-                        alert("Server sibuk menerima data dari perangkat lain. Silakan coba tekan Kirim lagi.");
+                        tambahNotifInternal('err_sync_sibuk', 'Sinkronisasi Tertunda', 'Server sedang sibuk memproses perangkat lain, harap coba lagi nanti.', 'fa-clock', 'warning', '');
                     }
                 }
             }
         } catch (err) {
             console.error(err);
-            alert("Gagal koneksi ke server Cloud. Periksa jaringan internet kamu.");
+            tambahNotifInternal('err_sync_net', 'Koneksi Terputus', 'Gagal mengirim data ke server. Silakan periksa koneksi internet.', 'fa-wifi', 'danger', '');
             break; 
         }
     }
@@ -5413,14 +5506,17 @@ setDB('pondok_users', finalUsers);
     if (btn) btn.innerHTML = '<i class="fa-solid fa-cloud-arrow-up"></i> KIRIM KE CLOUD';
 }
 
+// =========================================================================
+// 2. FUNGSI TARIK DATA DARI CLOUD (YANG SUDAH DIPERBAIKI)
+// =========================================================================
 async function tarikDataDariSupabase() {
     if (!supabaseConfig.url || !supabaseConfig.key) {
-        return alert("URL & Key Supabase belum tersedia!");
+        tambahNotifInternal('err_pull_config', 'Gagal Tarik Data', 'URL & Key Supabase belum tersedia di menu Database.', 'fa-triangle-exclamation', 'danger', '');
+        return;
     }
-    if (!confirm("Peringatan: Menarik data dari Cloud akan menimpa seluruh database lokal HP ini. Lanjutkan?")) return;
-
+    
     const btn = document.getElementById('btn-pull-cloud');
-    if (btn) btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> MENARIK DATA...';
+    if (btn) btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> MENGUNDUH DATA DARI CLOUD...';
 
     try {
         const response = await fetch(`${supabaseConfig.url}/rest/v1/backup_lms?id=eq.1&select=data_json`, {
@@ -5431,53 +5527,78 @@ async function tarikDataDariSupabase() {
         });
 
         const rows = await response.json();
-       if (rows && rows.length > 0 && rows[0].data_json) {
+        
+        if (rows && rows.length > 0 && rows[0].data_json) {
             const data = rows[0].data_json;
             
-            // 🟢 PERBAIKAN: Kumpulkan semua proses simpan ke dalam array Promises
-            let operasiSimpan = [];
-
-            if (data.santri) operasiSimpan.push(setDB('pondok_santri', data.santri));
-if (data.tombstone_santri) operasiSimpan.push(setDB('pondok_tombstone_santri', data.tombstone_santri));
-            if (data.absensi) operasiSimpan.push(setDB('pondok_absensi', data.absensi));
-            if (data.kelas) operasiSimpan.push(setDB('pondok_kelas', data.kelas));
-            if (data.mapel) operasiSimpan.push(setDB('pondok_master_mapel', data.mapel));
-            if (data.evaluasi) operasiSimpan.push(setDB('pondok_evaluasi', data.evaluasi));
-            if (data.tagihan) operasiSimpan.push(setDB('pondok_tagihan_denda', data.tagihan));
-            if (data.tabungan) operasiSimpan.push(setDB('pondok_tabungan', data.tabungan)); 
-            if (data.izin_aktif) operasiSimpan.push(setDB('pondok_izin_aktif', data.izin_aktif));
-            if (data.history_izin) operasiSimpan.push(setDB('pondok_history_izin', data.history_izin));
-            if (data.jam_kustom) operasiSimpan.push(setDB('pondok_jam_kustom', data.jam_kustom));
-            if (data.bank_mapel) operasiSimpan.push(setDB('pondok_bank_mapel', data.bank_mapel));
-            if (data.yayasan) operasiSimpan.push(setDB('pondok_yayasan', data.yayasan));
-            if (data.akses) operasiSimpan.push(setDB('pondok_akses', data.akses));
-            if (data.gps) operasiSimpan.push(setDB('pondok_gps', data.gps));
-            if (data.setting_keuangan) operasiSimpan.push(setDB('pondok_setting_keuangan', data.setting_keuangan));
-if (data.tombstone_kelas) operasiSimpan.push(setDB('pondok_tombstone_kelas', data.tombstone_kelas));
-if (data.tombstone_users) operasiSimpan.push(setDB('pondok_tombstone_users', data.tombstone_users));
-if (data.tombstone_tagihan) operasiSimpan.push(setDB('pondok_tombstone_tagihan', data.tombstone_tagihan));
-if (data.tombstone_izin_aktif) operasiSimpan.push(setDB('pondok_tombstone_izin_aktif', data.tombstone_izin_aktif));
-if (data.tombstone_bank_mapel) operasiSimpan.push(setDB('pondok_tombstone_bank_mapel', data.tombstone_bank_mapel));
-if (data.tombstone_jam_kustom) operasiSimpan.push(setDB('pondok_tombstone_jam_kustom', data.tombstone_jam_kustom));
+            // 1. Kumpulkan antrean data ke dalam format Array Object
+            let daftarTugas = [];
+            
+            if (data.santri) daftarTugas.push({ key: 'pondok_santri', val: data.santri });
+            if (data.tombstone_santri) daftarTugas.push({ key: 'pondok_tombstone_santri', val: data.tombstone_santri });
+            if (data.absensi) daftarTugas.push({ key: 'pondok_absensi', val: data.absensi });
+            if (data.kelas) daftarTugas.push({ key: 'pondok_kelas', val: data.kelas });
+            if (data.mapel) daftarTugas.push({ key: 'pondok_master_mapel', val: data.mapel });
+            if (data.evaluasi) daftarTugas.push({ key: 'pondok_evaluasi', val: data.evaluasi });
+            if (data.tagihan) daftarTugas.push({ key: 'pondok_tagihan_denda', val: data.tagihan });
+            if (data.tabungan) daftarTugas.push({ key: 'pondok_tabungan', val: data.tabungan }); 
+            if (data.izin_aktif) daftarTugas.push({ key: 'pondok_izin_aktif', val: data.izin_aktif });
+            if (data.history_izin) daftarTugas.push({ key: 'pondok_history_izin', val: data.history_izin });
+            if (data.jam_kustom) daftarTugas.push({ key: 'pondok_jam_kustom', val: data.jam_kustom });
+            if (data.bank_mapel) daftarTugas.push({ key: 'pondok_bank_mapel', val: data.bank_mapel });
+            if (data.yayasan) daftarTugas.push({ key: 'pondok_yayasan', val: data.yayasan });
+            if (data.akses) daftarTugas.push({ key: 'pondok_akses', val: data.akses });
+            if (data.gps) daftarTugas.push({ key: 'pondok_gps', val: data.gps });
+            if (data.setting_keuangan) daftarTugas.push({ key: 'pondok_setting_keuangan', val: data.setting_keuangan });
+            if (data.tombstone_kelas) daftarTugas.push({ key: 'pondok_tombstone_kelas', val: data.tombstone_kelas });
+            if (data.tombstone_users) daftarTugas.push({ key: 'pondok_tombstone_users', val: data.tombstone_users });
+            if (data.tombstone_tagihan) daftarTugas.push({ key: 'pondok_tombstone_tagihan', val: data.tombstone_tagihan });
+            if (data.tombstone_izin_aktif) daftarTugas.push({ key: 'pondok_tombstone_izin_aktif', val: data.tombstone_izin_aktif });
+            if (data.tombstone_bank_mapel) daftarTugas.push({ key: 'pondok_tombstone_bank_mapel', val: data.tombstone_bank_mapel });
+            if (data.tombstone_jam_kustom) daftarTugas.push({ key: 'pondok_tombstone_jam_kustom', val: data.tombstone_jam_kustom });
 
             if (data.users) {
                 let cloudUsersBersih = data.users.filter(u => u.role !== 'superadmin');
                 let lokalSuperAdmin = getDB('pondok_users', []).filter(u => u.role === 'superadmin');
                 let finalPulledUsers = [...cloudUsersBersih, ...lokalSuperAdmin];
-                operasiSimpan.push(setDB('pondok_users', finalPulledUsers));
+                daftarTugas.push({ key: 'pondok_users', val: finalPulledUsers });
             }
 
-            // 🟢 PERBAIKAN: Paksa sistem menunggu hingga seluruh data 100% selesai ditulis ke IndexedDB
+            // 2. Olah Tugas menjadi Promise untuk menampilkan Persentase
+            let totalTugas = daftarTugas.length;
+            let tugasSelesai = 0;
+            
+            let operasiSimpan = daftarTugas.map(tugas => {
+                return setDB(tugas.key, tugas.val).then(() => {
+                    tugasSelesai++;
+                    let persentase = Math.round((tugasSelesai / totalTugas) * 100);
+                    if (btn) btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> MEMPROSES DATA (${persentase}%)`;
+                });
+            });
+
             await Promise.all(operasiSimpan);
 
-            alert("Berhasil menarik SELURUH data terbaru dari Cloud! Sistem akan dimuat ulang.");
-            location.reload(); // ✅ Sekarang aman untuk di-reload karena data sudah tersimpan penuh
+            if (btn) btn.innerHTML = `<i class="fa-solid fa-check"></i> SELESAI (100%)`;
+
+            tambahNotifInternal(
+                'pull_sukses_' + Date.now(), 
+                'Berhasil Menarik Data', 
+                'Sistem akan memuat ulang sebentar lagi.', 
+                'fa-cloud-arrow-down', 
+                'primary', 
+                ''
+            );
+            renderNotifInternal();
+            
+            setTimeout(() => {
+                location.reload();
+            }, 1500);
         } else {
-            alert("Belum ada data cadangan tersimpan di server Supabase kamu.");
+            tambahNotifInternal('err_pull_kosong', 'Database Kosong', 'Belum ada data cadangan tersimpan di server Supabase.', 'fa-folder-open', 'warning', '');
+            if (btn) btn.innerHTML = '<i class="fa-solid fa-triangle-exclamation"></i> TARIK DARI CLOUD';
         }
     } catch (err) {
-        alert("Gagal menarik data dari server Cloud.");
-    } finally {
+        tambahNotifInternal('err_pull_net', 'Koneksi Terputus', 'Gagal menarik data dari server. Periksa jaringan internet.', 'fa-wifi', 'danger', '');
         if (btn) btn.innerHTML = '<i class="fa-solid fa-triangle-exclamation"></i> TARIK DARI CLOUD';
     }
 }
@@ -6888,105 +7009,84 @@ function jalankanWaktuHeader() {
         tempatWaktu.innerHTML = `${tanggal} &bull; ${jam}:${menit}:${detik}`;
     }, 1000); // Diperbarui setiap 1000 milidetik (1 detik)
 }
+// ==========================================
+// MESIN NOTIFIKASI INTERNAL (LONCENG)
+// ==========================================
+function tambahNotifInternal(id, judul, pesan, ikon, warna, aksiKlik) {
+    let listNotif = getDB('pondok_notifikasi', []);
+    listNotif = listNotif.filter(n => n.id !== id);
+    listNotif.unshift({ id, judul, pesan, ikon, warna, aksiKlik });
+    setDB('pondok_notifikasi', listNotif);
+    renderNotifInternal();
+}
+
+function hapusNotifInternal(id) {
+    let listNotif = getDB('pondok_notifikasi', []);
+    listNotif = listNotif.filter(n => n.id !== id);
+    setDB('pondok_notifikasi', listNotif);
+    renderNotifInternal();
+}
+
+function bersihkanNotifInternal() {
+    setDB('pondok_notifikasi', []);
+    renderNotifInternal();
+}
+
+function renderNotifInternal() {
+    let listNotif = getDB('pondok_notifikasi', []);
+    const container = document.getElementById('notif-list-container');
+    const badge = document.getElementById('angka-notif');
+    
+    if (!container || !badge) return;
+
+    if (listNotif.length === 0) {
+        container.innerHTML = `<div style="padding: 25px 15px; text-align: center; color: var(--text-muted); font-size: 0.75rem;">
+                                <i class="fa-solid fa-bell-slash" style="font-size: 2rem; margin-bottom: 10px; color: #ccc;"></i><br>
+                                Belum ada notifikasi baru
+                            </div>`;
+        badge.style.display = 'none';
+    } else {
+        badge.style.display = 'block';
+        badge.innerText = listNotif.length;
+        container.innerHTML = '';
+        listNotif.forEach(n => {
+            container.innerHTML += `
+                <div style="padding: 12px 14px; border-bottom: 1px solid rgba(0,0,0,0.05); cursor: pointer; display: flex; gap: 10px; align-items: flex-start; transition: 0.2s;" onclick="${n.aksiKlik}">
+                    <div style="background: var(--${n.warna}); color: white; width: 30px; height: 30px; border-radius: 50%; display: flex; justify-content: center; align-items: center; flex-shrink: 0; font-size: 0.8rem;">
+                        <i class="fa-solid ${n.ikon}"></i>
+                    </div>
+                    <div>
+                        <strong style="font-size: 0.8rem; color: var(--text-main); display: block; margin-bottom: 2px;">${n.judul}</strong>
+                        <span style="font-size: 0.7rem; color: var(--text-muted); line-height: 1.2; display: block;">${n.pesan}</span>
+                    </div>
+                </div>
+            `;
+        });
+    }
+}
 
 // Jalankan fungsi saat aplikasi pertama kali dibuka
 document.addEventListener('DOMContentLoaded', function() {
     jalankanWaktuHeader();
 });
 // ==========================================
-// MESIN NOTIFIKASI OTOMATIS
+// FUNGSI PENCARIAN SANTRI (REAL-TIME)
 // ==========================================
-
-// 1. Fungsi Menampilkan Notifikasi ke Layar
-function renderNotifikasi() {
-    // Ambil data notifikasi dari database, jika kosong buat array []
-    let notifDB = typeof getDB === 'function' ? getDB('pondok_notifikasi', []) : [];
-    let container = document.getElementById('notif-list-container');
-    let badge = document.getElementById('angka-notif');
-    if(!container) return;
-
-    // Hitung yang belum dibaca
-    let unreadCount = notifDB.filter(n => n.dibaca === false).length;
-
-    // Update angka merah di lonceng
-    if(badge) {
-        badge.innerText = unreadCount;
-        badge.style.display = unreadCount > 0 ? 'flex' : 'none';
-    }
-
-    // Tampilan jika kosong
-    if(notifDB.length === 0) {
-        container.innerHTML = `
-            <div style="padding: 25px 15px; text-align: center; color: var(--text-muted); font-size: 0.75rem;">
-                <i class="fa-solid fa-bell-slash" style="font-size: 2rem; margin-bottom: 10px; color: #ccc;"></i><br>
-                Belum ada notifikasi baru
-            </div>`;
-        return;
-    }
-
-    // Tampilan jika ada notifikasi
-    let html = '';
-    notifDB.forEach(notif => {
-        let bgInfo = notif.dibaca ? 'transparent' : 'rgba(4, 67, 42, 0.08)'; // Background agak hijau jika belum dibaca
-        let icon = notif.tipe === 'keuangan' ? 'fa-money-bill-wave' : 'fa-bell';
-        let color = notif.tipe === 'keuangan' ? '#28a745' : 'var(--primary)';
-
-        html += `
-        <div style="padding: 12px 15px; border-bottom: 1px solid #eee; background: ${bgInfo}; cursor: pointer; transition: 0.2s;">
-            <div style="display: flex; gap: 12px; align-items: start;">
-                <div style="background: white; padding: 6px; border-radius: 50%; box-shadow: 0 2px 5px rgba(0,0,0,0.1);">
-                    <i class="fa-solid ${icon}" style="color: ${color}; font-size: 0.9rem;"></i>
-                </div>
-                <div style="flex: 1;">
-                    <strong style="display: block; font-size: 0.75rem; color: #333; margin-bottom: 2px;">${notif.judul}</strong>
-                    <span style="display: block; font-size: 0.7rem; color: #666; line-height: 1.3;">${notif.pesan}</span>
-                    <span style="display: block; font-size: 0.6rem; color: #999; margin-top: 5px;">
-                        <i class="fa-regular fa-clock"></i> ${notif.waktu}
-                    </span>
-                </div>
-            </div>
-        </div>`;
-    });
-    container.innerHTML = html;
-}
-
-// 2. Fungsi Menambah Notifikasi Baru (Bisa dipanggil dari mana saja)
-function tambahNotifikasi(judul, pesan, tipe = 'umum') {
-    let notifDB = typeof getDB === 'function' ? getDB('pondok_notifikasi', []) : [];
-    let sekarang = new Date();
-    let jam = sekarang.getHours().toString().padStart(2, '0') + ':' + sekarang.getMinutes().toString().padStart(2, '0');
-
-    // Masukkan data baru ke urutan paling atas (unshift)
-    notifDB.unshift({
-        id: Date.now(),
-        judul: judul,
-        pesan: pesan,
-        waktu: jam,
-        dibaca: false,
-        tipe: tipe // 'keuangan', 'sistem', 'absensi'
-    });
-
-    // Batasi maksimal 30 notifikasi saja agar tidak memberatkan HP
-    if(notifDB.length > 30) notifDB.pop();
-
-    if(typeof setDB === 'function') setDB('pondok_notifikasi', notifDB);
+function cariDataSantri() {
+    const kataKunci = document.getElementById("input-search-santri").value.toLowerCase();
+    const barisTabel = document.querySelectorAll("#tabel-santri-body tr");
     
-    renderNotifikasi(); // Refresh tampilan lonceng
-    if (typeof playPremiumBeep === 'function') playPremiumBeep(); // Bunyi ting!
-}
+    barisTabel.forEach(baris => {
+        const teksBaris = baris.innerText.toLowerCase();
+        if (teksBaris.includes("belum ada data")) return;
 
-// 3. Fungsi Menandai Semua Telah Dibaca
-function tandaiSemuaDibaca() {
-    let notifDB = typeof getDB === 'function' ? getDB('pondok_notifikasi', []) : [];
-    notifDB.forEach(n => n.dibaca = true);
-    if(typeof setDB === 'function') setDB('pondok_notifikasi', notifDB);
-    renderNotifikasi();
+        if (teksBaris.includes(kataKunci)) {
+            baris.style.display = "";
+        } else {
+            baris.style.display = "none";
+        }
+    });
 }
-
-// Jalankan saat aplikasi pertama dimuat
-document.addEventListener('DOMContentLoaded', function() {
-    renderNotifikasi();
-});
 
 function hapusSantriWali(idSantri) {
     if (!confirm("Hapus santri ini dari sistem secara permanen?")) return;
