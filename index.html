@@ -5725,7 +5725,7 @@ if (activeCloudProvider === 'firebase') {
     xhr.setRequestHeader('apikey', supabaseConfig.key);
     xhr.setRequestHeader('Authorization', `Bearer ${supabaseConfig.key}`);
 }
-            };
+            
 
            xhr.onload = () => {
     if (xhr.status >= 200 && xhr.status < 300) {
