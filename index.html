@@ -598,10 +598,17 @@
                 </div>
 
                 <div id="login-area-user" class="hidden">
-                    <input type="text" id="login-username" placeholder="Masukkan Username...">
-                    <input type="password" id="login-password" placeholder="Masukkan Password...">
-                    <button class="btn-primary" onclick="prosesLogin()" style="font-size: 0.88rem; padding: 12px; border-radius: 12px; margin-top: 5px;">MASUK SISTEM</button>
-                </div>
+    <input type="text" id="login-username" placeholder="Masukkan Username...">
+    <input type="password" id="login-password" placeholder="Masukkan Password...">
+    
+    <!-- LINK LUPA PASSWORD -->
+    <div style="text-align: right; margin-bottom: 8px;">
+        <span style="font-size: 0.75rem; color: rgba(255,255,255,0.9); cursor: pointer; text-decoration: underline;" onclick="bukaModalLupaPassword()">Lupa Password?</span>
+    </div>
+
+    <button class="btn-primary" onclick="prosesLogin()" style="font-size: 0.88rem; padding: 12px; border-radius: 12px; margin-top: 5px;">MASUK SISTEM</button>
+</div>
+
                 
                 <div style="display:flex; justify-content:center; margin-top: 5px;">
                     <button class="btn-outline" style="background: transparent; color: rgba(255,255,255,0.7); border: none; margin-top: 0px; justify-content: center; font-size:0.7rem; padding: 4px; width:auto; text-decoration: underline;" onclick="bukaScannerLoginTarikData()">
@@ -1195,7 +1202,9 @@
                     <label>Foto</label><input type="file" id="reg-foto" accept="image/*">
                     <label>Nama</label><input type="text" id="reg-nama" placeholder="Nama lengkap pegawai...">
                     <label>Username</label><input type="text" id="reg-username" placeholder="Username untuk login...">
-                    <label>Password</label><input type="password" id="reg-password" placeholder="Password akun...">
+<label>Nomor Identitas / NIK</label><input type="text" id="reg-nik" placeholder="Identitas untuk pemulihan password...">
+<label>Password</label><input type="password" id="reg-password" placeholder="Password akun...">
+
                     <label>Role</label>
                                         <select id="reg-role">
                         <option value="admin">Admin Tata Usaha</option>
@@ -1356,7 +1365,30 @@
     
     <nav class="bottom-nav hidden" id="app-nav"></nav>
 </div>
-<!-- MODAL SCANNER ABSENSI (POP-UP KAKU) -->
+    <!-- MODAL LUPA PASSWORD -->
+    <div id="modal-lupa-password" class="hidden" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); backdrop-filter: blur(15px); z-index: 99999; display: flex; align-items: center; justify-content: center; flex-direction: column; padding: 15px;">
+        <div class="glass-panel" style="padding: 24px; border-radius: 28px; text-align:center; width: 100%; max-width: 400px; background: #fff;">
+            <h3 style="color:var(--primary); margin-bottom:15px; font-size:1.15rem; font-weight: 800;">Reset Password</h3>
+            
+            <div id="step-1-lupa-password">
+                <input type="text" id="reset-username" placeholder="Masukkan Username Anda..." style="width: 100%; padding: 13px 15px; border-radius: 12px; border: 1px solid #ccc; margin-bottom: 15px;">
+                <button class="btn-primary" onclick="cekUsernameReset()" style="width: 100%; padding: 14px; border-radius: 12px;">LANJUTKAN</button>
+            </div>
+
+            <div id="step-2-lupa-password" class="hidden">
+                <div style="background: rgba(4, 67, 42, 0.08); padding: 10px; border-radius: 10px; margin-bottom: 14px;">
+                    <strong style="color: var(--primary); font-size: 0.85rem;" id="reset-info-user"></strong>
+                </div>
+                <input type="text" id="reset-verifikasi" placeholder="Masukkan NIK Anda..." style="width: 100%; padding: 13px 15px; border-radius: 12px; border: 1px solid #ccc; margin-bottom: 10px;">
+                <input type="password" id="reset-new-password" placeholder="Buat Password Baru..." style="width: 100%; padding: 13px 15px; border-radius: 12px; border: 1px solid #ccc; margin-bottom: 15px;">
+                <button class="btn-success" onclick="prosesResetPassword()" style="width: 100%; padding: 14px; border-radius: 12px;">UBAH PASSWORD</button>
+            </div>
+            <button class="btn-outline" onclick="tutupModalLupaPassword()" style="width: 100%; padding: 12px; border-radius: 12px; margin-top: 15px; color: red;">Batal</button>
+        </div>
+    </div>
+
+    <!-- MODAL SCANNER ABSENSI (POP-UP KAKU) -->
+
 <div id="modal-scanner-absen" class="hidden" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px); z-index: 99999; display: flex; align-items: center; justify-content: center; flex-direction: column; padding: 15px; touch-action: none; overscroll-behavior: none;">
     <div class="glass-panel" style="padding: 24px; border-radius: 28px; text-align:center; width: 100%; max-width: 420px; background: #fff; box-shadow: 0 20px 50px rgba(0,0,0,0.5);">
         <h3 style="color:var(--primary); margin-bottom:15px; font-size:1.15rem; font-weight: 800;"><i class="fa-solid fa-camera"></i> Absensi</h3>
@@ -5131,6 +5163,7 @@ font_sertifikat: document.getElementById('setting-font-sertifikat').value,
     const idEdit = document.getElementById('edit-id-pengguna').value;
     const nama = document.getElementById('reg-nama').value.trim();
     const username = document.getElementById('reg-username').value.trim().toLowerCase();
+    const nik = document.getElementById('reg-nik').value.trim(); 
     const password = document.getElementById('reg-password').value;
     const role = document.getElementById('reg-role').value;
 
@@ -5143,6 +5176,7 @@ font_sertifikat: document.getElementById('setting-font-sertifikat').value,
             users[index].nama = nama;
             users[index].username = username;
             users[index].role = role;
+            users[index].nik = nik; 
             if (password && password.trim() !== "") users[index].password = password;
             if (tempFotoPegawaiBase64 !== "") users[index].foto = tempFotoPegawaiBase64;
         }
@@ -5154,6 +5188,7 @@ font_sertifikat: document.getElementById('setting-font-sertifikat').value,
             id: Date.now(),
             nama: nama,
             username: username,
+            nik: nik, 
             password: password,
             role: role,
             pin_login: null,
@@ -5161,25 +5196,25 @@ font_sertifikat: document.getElementById('setting-font-sertifikat').value,
         });
         alert("Pegawai baru berhasil ditambahkan!");
     }
-
     setDB('pondok_users', users);
     batalEditPengguna();
     renderTabelPegawai();
     renderMasterMapel();
 }
 
+function batalEditPengguna() {
+    document.getElementById('edit-id-pengguna').value = "";
+    document.getElementById('reg-nama').value = "";
+    document.getElementById('reg-username').value = "";
+    document.getElementById('reg-nik').value = ""; 
+    document.getElementById('reg-password').value = "";
+    document.getElementById('reg-foto').value = "";
+    tempFotoPegawaiBase64 = '';
+    document.getElementById('form-pengguna-title').innerText = "Buat Akun Pegawai";
+    document.getElementById('btn-simpan-pengguna').innerText = "SIMPAN AKUN";
+    document.getElementById('btn-batal-edit-pengguna').classList.add('hidden');
+}
 
-    function batalEditPengguna() {
-        document.getElementById('edit-id-pengguna').value = "";
-        document.getElementById('reg-nama').value = "";
-        document.getElementById('reg-username').value = "";
-        document.getElementById('reg-password').value = "";
-        document.getElementById('reg-foto').value = "";
-        tempFotoPegawaiBase64 = '';
-        document.getElementById('form-pengguna-title').innerText = "Buat Akun Pegawai";
-        document.getElementById('btn-simpan-pengguna').innerText = "SIMPAN AKUN";
-        document.getElementById('btn-batal-edit-pengguna').classList.add('hidden');
-    }
 
     function renderTabelPegawai() {
         const tbody = document.getElementById('tabel-pengguna-body');
@@ -5204,18 +5239,19 @@ font_sertifikat: document.getElementById('setting-font-sertifikat').value,
     }
 
     function editPenggunaMode(id) {
-        let u = getDB('pondok_users', []).find(x => x.id == id);
-        if (!u) return;
-        document.getElementById('edit-id-pengguna').value = u.id;
-        document.getElementById('reg-nama').value = u.nama;
-        document.getElementById('reg-username').value = u.username;
-        document.getElementById('reg-password').value = "";
-        document.getElementById('reg-role').value = u.role;
-        document.getElementById('form-pengguna-title').innerText = "Edit Akun Pegawai";
-        document.getElementById('btn-simpan-pengguna').innerText = "UPDATE AKUN";
-        document.getElementById('btn-batal-edit-pengguna').classList.remove('hidden');
-        window.scrollTo(0, 0);
-    }
+    let u = getDB('pondok_users', []).find(x => x.id == id);
+    if (!u) return;
+    document.getElementById('edit-id-pengguna').value = u.id;
+    document.getElementById('reg-nama').value = u.nama;
+    document.getElementById('reg-username').value = u.username;
+    document.getElementById('reg-nik').value = u.nik || ""; 
+    document.getElementById('reg-password').value = "";
+    document.getElementById('reg-role').value = u.role;
+    document.getElementById('form-pengguna-title').innerText = "Edit Akun Pegawai";
+    document.getElementById('btn-simpan-pengguna').innerText = "UPDATE AKUN";
+    document.getElementById('btn-batal-edit-pengguna').classList.remove('hidden');
+    window.scrollTo(0, 0);
+}
 
     function hapusPengguna(id) {
     if (!confirm("Yakin hapus akun pegawai ini?")) return;
@@ -5273,25 +5309,38 @@ font_sertifikat: document.getElementById('setting-font-sertifikat').value,
     }
 
     function importDataLokal(e) {
-        const file = e.target.files[0];
-        if (!file) return;
-        const reader = new FileReader();
-        reader.onload = function(evt) {
-            try {
-                const data = JSON.parse(evt.target.result);
-               for (const k in data) {
-    if (k.startsWith('pondok_')) {
-        setDB(k, data[k]); // Langsung oper data object-nya
-    }
-}
-                alert("Restore data berhasil! Sistem akan dimuat ulang.");
-                location.reload();
-            } catch(err) {
-                alert("File backup tidak valid!");
+    const file = e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    
+    // 1. Tambahkan 'async' pada fungsi pembacaan file
+    reader.onload = async function(evt) {
+        try {
+            const data = JSON.parse(evt.target.result);
+            let prosesSimpan = []; // Array untuk menampung antrean proses simpan
+            
+            for (const k in data) {
+                if (k.startsWith('pondok_')) {
+                    // Masukkan proses setDB ke dalam antrean (jangan di-await satu-satu agar lebih cepat)
+                    prosesSimpan.push(setDB(k, data[k]));
+                }
             }
-        };
-        reader.readAsText(file);
-    }
+            
+            // 2. Wajib TUNGGU semua antrean penyimpanan IndexedDB selesai 100%
+            await Promise.all(prosesSimpan);
+            
+            // 3. Setelah aman, baru tampilkan alert dan reload halaman
+            alert("Restore data berhasil! Sistem akan dimuat ulang.");
+            location.reload();
+            
+        } catch(err) {
+            console.error("Error saat restore:", err);
+            alert("File backup tidak valid!");
+        }
+    };
+    reader.readAsText(file);
+}
+
 
     function tampilkanQRTarikData() {
         const wadah = document.getElementById('wadah-qr-sync');
@@ -7219,11 +7268,124 @@ function hapusSantriWali(idSantri) {
             });
         }
     }, 2000); 
+    // Jalankan inisialisasi aplikasi
+    initApp();
 </script>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/localforage/1.10.0/localforage.min.js"></script>
 
-<!-- Panggil file library langsung dari root folder -->
+<!-- Script Firebase (Modular) -->
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+    import { getMessaging, getToken, onMessage } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-messaging.js";
+
+    // ... (konfigurasi firebase Anda) ...
+
+    const app = initializeApp(firebaseConfig);
+    const messaging = getMessaging(app);
+
+    window.fcmMessaging = messaging;
+    window.fcmGetToken = getToken;
+    window.fcmOnMessage = onMessage;
+
+    setTimeout(() => {
+        if (window.fcmOnMessage) {
+            window.fcmOnMessage(window.fcmMessaging, (payload) => {
+                console.log('Pesan FCM masuk di Foreground:', payload);
+                
+                const judul = payload.notification.title;
+                const pesan = payload.notification.body;
+                
+                kirimNotifikasiLokal(judul, pesan);
+
+                if ('speechSynthesis' in window) {
+                    window.speechSynthesis.cancel();
+                    let hitungan = 0;
+                    
+                    function bicara() {
+                        if (hitungan < 10) {
+                            let utterance = new SpeechSynthesisUtterance(pesan);
+                            utterance.lang = 'id-ID';
+                            utterance.rate = 0.9;
+                            utterance.onend = function() {
+                                hitungan++;
+                                setTimeout(bicara, 1500); 
+                            };
+                            window.speechSynthesis.speak(utterance);
+                        }
+                    }
+                    bicara();
+                }
+            });
+        }
+    }, 2000); 
+</script>
+
+<!-- Script Lupa Password -->
+<script>
+    let resetTargetUser = null;
+
+    function bukaModalLupaPassword() {
+        document.getElementById('modal-lupa-password').classList.remove('hidden');
+        document.getElementById('step-1-lupa-password').classList.remove('hidden');
+        document.getElementById('step-2-lupa-password').classList.add('hidden');
+        document.getElementById('reset-username').value = '';
+    }
+
+    function tutupModalLupaPassword() {
+        document.getElementById('modal-lupa-password').classList.add('hidden');
+        resetTargetUser = null;
+    }
+
+    function cekUsernameReset() {
+        const usernameInput = document.getElementById('reset-username').value.trim().toLowerCase();
+        if (!usernameInput) return alert("Username wajib diisi!");
+        
+        let users = getDB('pondok_users', []);
+        resetTargetUser = users.find(u => u.username === usernameInput);
+        
+        if (resetTargetUser) {
+            document.getElementById('step-1-lupa-password').classList.add('hidden');
+            document.getElementById('step-2-lupa-password').classList.remove('hidden');
+            
+            if (resetTargetUser.role === 'superadmin') {
+                document.getElementById('reset-info-user').innerText = `Super Admin (${resetTargetUser.nama})`;
+                document.getElementById('reset-verifikasi').style.display = 'none'; 
+            } else {
+                document.getElementById('reset-info-user').innerText = `${resetTargetUser.nama} (Role: ${resetTargetUser.role.toUpperCase()})`;
+                document.getElementById('reset-verifikasi').style.display = 'block'; 
+                document.getElementById('reset-verifikasi').value = '';
+            }
+        } else {
+            alert("Username tidak terdaftar di sistem!");
+        }
+    }
+
+    function prosesResetPassword() {
+        if (!resetTargetUser) return;
+        
+        const newPassword = document.getElementById('reset-new-password').value;
+        const inputVerifikasi = document.getElementById('reset-verifikasi').value.trim();
+        
+        if (!newPassword) return alert("Password baru tidak boleh kosong!");
+        
+        if (resetTargetUser.role !== 'superadmin') {
+            const nikAsli = resetTargetUser.nik || "";
+            if (!nikAsli) return alert("Akun Anda belum memiliki NIK. Hubungi Super Admin.");
+            if (inputVerifikasi !== nikAsli) return alert("Verifikasi Gagal! NIK yang dimasukkan salah.");
+        }
+        
+        let users = getDB('pondok_users', []);
+        let userIndex = users.findIndex(u => u.username === resetTargetUser.username);
+        
+        if (userIndex > -1) {
+            users[userIndex].password = newPassword;
+            setDB('pondok_users', users);
+            alert("Berhasil! Password telah diperbarui. Silakan masuk.");
+            tutupModalLupaPassword();
+        }
+    }
+</script>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="qrcode.min.js"></script>
 <script src="html5-qrcode.min.js"></script>
 <script src="JsBarcode.all.min.js"></script>
