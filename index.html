@@ -1258,9 +1258,16 @@
                     <button class="btn-outline" onclick="tampilkanQRTarikData()" style="border-color: var(--info); color: var(--info);"><i class="fa-solid fa-qrcode"></i> Tampilkan Barcode Tarik Data</button>
 
                     <div style="margin-top: 22px; border-top: 1px dashed rgba(0,0,0,0.15); padding-top: 18px;">
-                        <button class="btn-primary" onclick="sinkronisasiKeCloud()" id="btn-sync-cloud"><i class="fa-solid fa-cloud-arrow-up"></i> KIRIM KE CLOUD</button>
-                        <button class="btn-outline" onclick="tarikDataDariSupabase()" id="btn-pull-cloud" style="margin-top: 14px; background: #ffebee; border-color: var(--danger); color: var(--danger);"><i class="fa-solid fa-triangle-exclamation"></i> TARIK DARI CLOUD</button>
-                    </div>
+    <p style="font-size:0.75rem; color:var(--text-muted); margin-bottom:8px;">1. Sinkronisasi Rutin (Teks & Absen - Cepat):</p>
+    <div style="display: flex; gap: 8px;">
+        <button class="btn-primary" onclick="sinkronisasiKeCloud()" id="btn-sync-cloud" style="flex:1; font-size:0.75rem;"><i class="fa-solid fa-cloud-arrow-up"></i> KIRIM TEKS</button>
+        <button class="btn-outline" onclick="tarikDataDariSupabase()" id="btn-pull-cloud" style="flex:1; font-size:0.75rem; background: #ffebee; border-color: var(--danger); color: var(--danger); justify-content:center;"><i class="fa-solid fa-cloud-arrow-down"></i> TARIK TEKS</button>
+    </div>
+    
+    <p style="font-size:0.75rem; color:var(--info); margin-bottom:8px; margin-top:15px;">2. Sinkronisasi Berat (Khusus Foto):</p>
+    <button class="btn-primary" onclick="sinkronisasiFotoKeCloud()" id="btn-sync-foto" style="background: var(--info); width:100%; border: none; box-shadow: 0 8px 20px rgba(0,122,255,0.2);"><i class="fa-solid fa-images"></i> SINKRONKAN FOTO SANTRI</button>
+</div>
+
                     
                     <div id="zona-berbahaya-reset" style="margin-top: 30px; border-top: 3px solid #ffcccc; padding-top: 18px; background: #fff0f0; padding: 14px; border-radius: 12px; display: none;">
                         <label style="color: var(--danger);"><i class="fa-solid fa-skull"></i> RESET DATA</label>
@@ -2938,16 +2945,47 @@ function initSupabaseRealtimeListener() {
     const splashTitle = document.getElementById('splash-title');
     if(splashTitle) splashTitle.innerText = "Memuat Database...";
 
-    try {
+        try {
         const keys = await localforage.keys();
         for (let key of keys) {
             window.dbCache[key] = await localforage.getItem(key);
         }
-        supabaseConfig = getDB('pondok_supabase_config', { url: '', key: '' });
         
-       // 👇 TAMBAHKAN DUA BARIS INI 👇
+        // =========================================================================
+        // SKRIP OTOMATIS: MEMISAHKAN FOTO LAMA YANG TERLANJUR MENYATU
+        // =========================================================================
+        let santriLokal = getDB('pondok_santri', []);
+        let dbFotoSantri = getDB('pondok_foto_santri', {});
+        let adaPerubahan = false;
+
+        santriLokal = santriLokal.map(s => {
+            // Jika santri lama punya string foto (base64) yang panjang di dalam data utamanya
+            if (s.foto && s.foto.length > 100 && s.foto !== 'https://cdn-icons-png.flaticon.com/512/847/847969.png') {
+                // Pindahkan fotonya ke wadah terpisah (dbFotoSantri) menggunakan NIS
+                if (!dbFotoSantri[s.nis]) {
+                    dbFotoSantri[s.nis] = s.foto;
+                    adaPerubahan = true;
+                }
+                // Hapus string foto dari data teks santri agar ringan
+                let santriBersih = { ...s };
+                delete santriBersih.foto;
+                return santriBersih;
+            }
+            return s;
+        });
+
+        if (adaPerubahan) {
+            setDB('pondok_santri', santriLokal);
+            setDB('pondok_foto_santri', dbFotoSantri);
+            console.log("Migrasi otomatis: Foto lama berhasil dipisahkan dari database teks!");
+        }
+        // =========================================================================
+
+        supabaseConfig = getDB('pondok_supabase_config', { url: '', key: '' });
         firebaseConfig = getDB('pondok_firebase_config', { url: '', key: '' });
         activeCloudProvider = getDB('pondok_active_cloud_provider', 'supabase');
+        // ...
+
 
         // 👇 TAMBAHKAN BARIS INI AGAR HAK AKSES AMAN SAAT REFRESH 👇
         let cekAkses = getDB('pondok_akses', defaultAkses); 
@@ -5585,9 +5623,18 @@ async function sinkronisasiKeCloud() {
             const t_bank = [...new Set([...getDB('pondok_tombstone_bank_mapel', []), ...(dataCloud.tombstone_bank_mapel || [])])];
             const t_jam = [...new Set([...getDB('pondok_tombstone_jam_kustom', []), ...(dataCloud.tombstone_jam_kustom || [])])];
 
-            const payloadMerged = {
-                santri: gabungDataArray(getDB('pondok_santri', []), dataCloud.santri, 'id').filter(x => !t_santri.includes(x.id)),
-                mapel: gabungDataArray(getDB('pondok_master_mapel', []), dataCloud.mapel, 'id').filter(x => !t_mapel.includes(x.id)),
+                    // Ekstrak santri, lalu HAPUS foto dari payload agar JSON tidak membengkak
+        let santriGabungan = gabungDataArray(getDB('pondok_santri', []), dataCloud.santri, 'id').filter(x => !t_santri.includes(x.id));
+        let santriTanpaFoto = santriGabungan.map(s => {
+            let temp = { ...s };
+            delete temp.foto; // Mencegah foto ikut terkirim di sinkronisasi teks harian
+            return temp;
+        });
+
+        const payloadMerged = {
+            santri: santriTanpaFoto,
+            mapel: gabungDataArray(getDB('pondok_master_mapel', []), dataCloud.mapel, 'id').filter(x => !t_mapel.includes(x.id)),
+
                 kelas: gabungDataArray(getDB('pondok_kelas', []), dataCloud.kelas, 'id').filter(x => !t_kelas.includes(x.id)),
                 users: gabungDataArray(getDB('pondok_users', []).filter(u => u.role !== 'superadmin'), dataCloud.users, 'username').filter(x => !t_users.includes(x.username)),
                 tagihan: gabungDataArray(getDB('pondok_tagihan_denda', []), dataCloud.tagihan, 'id_tagihan').filter(x => !t_tagihan.includes(x.id_tagihan)),
@@ -5790,10 +5837,24 @@ if (activeCloudProvider === 'firebase') {
             
             if (btn) btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> MEMPROSES INSTALASI LOKAL...`;
             
-            let daftarTugas = [];
-            
-            if (data.santri) daftarTugas.push({ key: 'pondok_santri', val: data.santri });
-            if (data.tombstone_santri) daftarTugas.push({ key: 'pondok_tombstone_santri', val: data.tombstone_santri });
+                    let daftarTugas = [];
+        
+        if (data.santri) {
+            // PENYELAMAT FOTO: Gabungkan kembali foto lokal ke data teks yang baru ditarik dari Cloud
+            let santriLokal = getDB('pondok_santri', []);
+            let santriUtuh = data.santri.map(sCloud => {
+                let sLokal = santriLokal.find(x => x.id === sCloud.id);
+                if (sLokal && sLokal.foto && sLokal.foto.length > 100) {
+                    sCloud.foto = sLokal.foto; // Kembalikan foto dari cache lokal HP
+                } else if (!sCloud.foto) {
+                    sCloud.foto = 'https://cdn-icons-png.flaticon.com/512/847/847969.png';
+                }
+                return sCloud;
+            });
+            daftarTugas.push({ key: 'pondok_santri', val: santriUtuh });
+        }
+        if (data.tombstone_santri) daftarTugas.push({ key: 'pondok_tombstone_santri', val: data.tombstone_santri });
+
             if (data.absensi) daftarTugas.push({ key: 'pondok_absensi', val: data.absensi });
             if (data.kelas) daftarTugas.push({ key: 'pondok_kelas', val: data.kelas });
             if (data.mapel) daftarTugas.push({ key: 'pondok_master_mapel', val: data.mapel });
@@ -5850,6 +5911,100 @@ if (activeCloudProvider === 'firebase') {
     } catch (err) {
         tambahNotifInternal('err_pull_net', 'Koneksi Terputus', 'Gagal menarik data dari server. Periksa jaringan internet.', 'fa-wifi', 'danger', '');
         if (btn) btn.innerHTML = '<i class="fa-solid fa-triangle-exclamation"></i> TARIK DARI CLOUD';
+    }
+}
+// =========================================================================
+// 3. FUNGSI SINKRONISASI KHUSUS FOTO (FIREBASE)
+// =========================================================================
+async function sinkronisasiFotoKeCloud() {
+    if (activeCloudProvider !== 'firebase') {
+        return alert("Fitur sinkronisasi foto terpisah ini dioptimalkan untuk Firebase. Silakan pilih Firebase di Pengaturan Database.");
+    }
+    if (!firebaseConfig.url || !firebaseConfig.key) return alert("Konfigurasi Firebase belum diisi!");
+
+    const btn = document.getElementById('btn-sync-foto');
+    if (btn) btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> MEMERIKSA FOTO CLOUD...';
+
+    try {
+        // 1. Tarik Data Foto dari Firebase terlebih dahulu
+        const resPull = await fetch(`${firebaseConfig.url}/backup_foto.json?auth=${firebaseConfig.key}`);
+        let fotoCloud = {};
+        if (resPull.ok) {
+            fotoCloud = await resPull.json() || {};
+        }
+
+        // 2. Siapkan data foto lokal yang ada di HP
+        let dbSantri = getDB('pondok_santri', []);
+        let fotoLokal = {};
+        let adaUpdateLokal = false;
+
+        dbSantri.forEach(s => {
+            if (s.foto && s.foto.length > 100 && s.foto !== 'https://cdn-icons-png.flaticon.com/512/847/847969.png') {
+                fotoLokal[s.nis] = s.foto;
+            }
+        });
+
+        // 3. Bandingkan dan Gabungkan (Cloud + Lokal)
+        let payloadPatch = {};
+        
+        // Cek jika Cloud punya foto yang HP ini tidak punya (Tarik/PULL)
+        for (const nis in fotoCloud) {
+            let sIdx = dbSantri.findIndex(x => x.nis === nis);
+            if (sIdx > -1) {
+                // Jika HP lokal fotonya kosong atau default, ambil dari Cloud
+                if (!dbSantri[sIdx].foto || dbSantri[sIdx].foto.length < 100 || dbSantri[sIdx].foto === 'https://cdn-icons-png.flaticon.com/512/847/847969.png') {
+                    dbSantri[sIdx].foto = fotoCloud[nis];
+                    adaUpdateLokal = true;
+                }
+            }
+        }
+
+        // Cek jika HP ini punya foto yang belum ada di Cloud (Kirim/PUSH)
+        let listNisLokal = Object.keys(fotoLokal);
+        let totalKirim = 0;
+        
+        for (let i = 0; i < listNisLokal.length; i++) {
+            const nis = listNisLokal[i];
+            // Jika foto di cloud berbeda atau tidak ada, kita Patch (Upload)
+            if (fotoCloud[nis] !== fotoLokal[nis]) {
+                payloadPatch[nis] = fotoLokal[nis];
+                totalKirim++;
+            }
+        }
+
+        // Simpan perubahan PULL ke lokal
+        if (adaUpdateLokal) {
+            setDB('pondok_santri', dbSantri);
+            if (typeof renderTabelSantri === 'function') renderTabelSantri();
+        }
+
+        // 4. Proses Upload (PATCH) ke Firebase secara bertahap (Chunk)
+        if (totalKirim > 0) {
+            const keysToUpload = Object.keys(payloadPatch);
+            const chunkSize = 15; // Kirim 15 foto per request agar tidak putus/timeout
+            
+            for (let i = 0; i < keysToUpload.length; i += chunkSize) {
+                const chunkKeys = keysToUpload.slice(i, i + chunkSize);
+                let chunkPayload = {};
+                chunkKeys.forEach(k => chunkPayload[k] = payloadPatch[k]);
+
+                if (btn) btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> MENGUNGGAH FOTO (${i + chunkKeys.length}/${totalKirim})...`;
+
+                await fetch(`${firebaseConfig.url}/backup_foto.json?auth=${firebaseConfig.key}`, {
+                    method: 'PATCH',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(chunkPayload)
+                });
+            }
+        }
+
+        if (btn) btn.innerHTML = '<i class="fa-solid fa-images"></i> SINKRONKAN FOTO SANTRI';
+        alert(`Sinkronisasi foto selesai!\n\nDiunduh dari Cloud: ${adaUpdateLokal ? 'Ada pembaruan' : '0'}\nDiunggah ke Cloud: ${totalKirim} foto.`);
+
+    } catch (err) {
+        console.error(err);
+        alert("Terjadi kesalahan saat menyinkronkan foto. Periksa koneksi internet.");
+        if (btn) btn.innerHTML = '<i class="fa-solid fa-images"></i> SINKRONKAN FOTO SANTRI';
     }
 }
 
