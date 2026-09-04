@@ -2951,35 +2951,31 @@ function initSupabaseRealtimeListener() {
             window.dbCache[key] = await localforage.getItem(key);
         }
         
-        // =========================================================================
-        // SKRIP OTOMATIS: MEMISAHKAN FOTO LAMA YANG TERLANJUR MENYATU
+               // =========================================================================
+        // SKRIP PEMULIHAN: MENGEMBALIKAN FOTO KE DATABASE SANTRI LOKAL
         // =========================================================================
         let santriLokal = getDB('pondok_santri', []);
-        let dbFotoSantri = getDB('pondok_foto_santri', {});
-        let adaPerubahan = false;
-
-        santriLokal = santriLokal.map(s => {
-            // Jika santri lama punya string foto (base64) yang panjang di dalam data utamanya
-            if (s.foto && s.foto.length > 100 && s.foto !== 'https://cdn-icons-png.flaticon.com/512/847/847969.png') {
-                // Pindahkan fotonya ke wadah terpisah (dbFotoSantri) menggunakan NIS
-                if (!dbFotoSantri[s.nis]) {
-                    dbFotoSantri[s.nis] = s.foto;
-                    adaPerubahan = true;
+        let dbFotoSantri = getDB('pondok_foto_santri', null);
+        
+        if (dbFotoSantri) {
+            let adaPemulihan = false;
+            santriLokal = santriLokal.map(s => {
+                // Jika fotonya terpisah di dbFotoSantri, kembalikan ke tempat asalnya
+                if (dbFotoSantri[s.nis] && (!s.foto || s.foto.length < 100 || s.foto === 'https://cdn-icons-png.flaticon.com/512/847/847969.png')) {
+                    s.foto = dbFotoSantri[s.nis];
+                    adaPemulihan = true;
                 }
-                // Hapus string foto dari data teks santri agar ringan
-                let santriBersih = { ...s };
-                delete santriBersih.foto;
-                return santriBersih;
+                return s;
+            });
+            
+            if (adaPemulihan) {
+                setDB('pondok_santri', santriLokal);
+                removeDB('pondok_foto_santri'); // Hapus db terpisah karena sudah tidak diperlukan
+                console.log("Pemulihan otomatis: Foto berhasil dikembalikan ke data lokal!");
             }
-            return s;
-        });
-
-        if (adaPerubahan) {
-            setDB('pondok_santri', santriLokal);
-            setDB('pondok_foto_santri', dbFotoSantri);
-            console.log("Migrasi otomatis: Foto lama berhasil dipisahkan dari database teks!");
         }
         // =========================================================================
+
 
         supabaseConfig = getDB('pondok_supabase_config', { url: '', key: '' });
         firebaseConfig = getDB('pondok_firebase_config', { url: '', key: '' });
@@ -5624,42 +5620,58 @@ async function sinkronisasiKeCloud() {
             const t_jam = [...new Set([...getDB('pondok_tombstone_jam_kustom', []), ...(dataCloud.tombstone_jam_kustom || [])])];
 
                     // Ekstrak santri, lalu HAPUS foto dari payload agar JSON tidak membengkak
+                // 1. Bersihkan Foto dari Data Santri
         let santriGabungan = gabungDataArray(getDB('pondok_santri', []), dataCloud.santri, 'id').filter(x => !t_santri.includes(x.id));
         let santriTanpaFoto = santriGabungan.map(s => {
             let temp = { ...s };
-            delete temp.foto; // Mencegah foto ikut terkirim di sinkronisasi teks harian
+            delete temp.foto; // Cegah masuk ke payload
             return temp;
         });
 
+        // 2. Bersihkan Foto dari Data Pegawai/Users
+        let usersLokalAsli = getDB('pondok_users', []).filter(u => u.role !== 'superadmin');
+        let usersGabungan = gabungDataArray(usersLokalAsli, dataCloud.users, 'username').filter(x => !t_users.includes(x.username));
+        let usersTanpaFoto = usersGabungan.map(u => {
+            let temp = { ...u };
+            delete temp.foto; // Cegah masuk ke payload
+            return temp;
+        });
+
+        // 3. Bersihkan Wallpaper & Gambar Besar dari Data Yayasan
+        let yayasanBersih = getDB('pondok_yayasan', {});
+        delete yayasanBersih.bg_login;
+        delete yayasanBersih.bg_idcard;
+        delete yayasanBersih.wallpaper_slides; 
+        // Catatan: Logo & Ttd dibiarkan karena ukurannya kecil (KB), tapi wallpaper (MB) dimatikan.
+
         const payloadMerged = {
             santri: santriTanpaFoto,
+            users: usersTanpaFoto,
+            yayasan: yayasanBersih,
             mapel: gabungDataArray(getDB('pondok_master_mapel', []), dataCloud.mapel, 'id').filter(x => !t_mapel.includes(x.id)),
+            kelas: gabungDataArray(getDB('pondok_kelas', []), dataCloud.kelas, 'id').filter(x => !t_kelas.includes(x.id)),
+            tagihan: gabungDataArray(getDB('pondok_tagihan_denda', []), dataCloud.tagihan, 'id_tagihan').filter(x => !t_tagihan.includes(x.id_tagihan)),
+            izin_aktif: gabungDataArray(getDB('pondok_izin_aktif', []), dataCloud.izin_aktif, 'id').filter(x => !t_izin.includes(x.id)),
+            jam_kustom: gabungDataArray(getDB('pondok_jam_kustom', []), dataCloud.jam_kustom, 'kode').filter(x => !t_jam.includes(x.kode)),
+            bank_mapel: [...new Set([...getDB('pondok_bank_mapel', []), ...(dataCloud.bank_mapel || [])])].filter(x => !t_bank.includes(x)),
+            absensi: gabungDataArray(getDB('pondok_absensi', []), dataCloud.absensi, 'id_sesi'),
+            evaluasi: gabungDataArray(getDB('pondok_evaluasi', []), dataCloud.evaluasi, 'nis'),
+            tabungan: gabungDataArray(getDB('pondok_tabungan', []), dataCloud.tabungan, 'id'),
+            history_izin: gabungDataArray(getDB('pondok_history_izin', []), dataCloud.history_izin, 'id'),
+            akses: getDB('pondok_akses', {}),
+            gps: getDB('pondok_gps', {}),
+            setting_keuangan: getDB('pondok_setting_keuangan', {}),
 
-                kelas: gabungDataArray(getDB('pondok_kelas', []), dataCloud.kelas, 'id').filter(x => !t_kelas.includes(x.id)),
-                users: gabungDataArray(getDB('pondok_users', []).filter(u => u.role !== 'superadmin'), dataCloud.users, 'username').filter(x => !t_users.includes(x.username)),
-                tagihan: gabungDataArray(getDB('pondok_tagihan_denda', []), dataCloud.tagihan, 'id_tagihan').filter(x => !t_tagihan.includes(x.id_tagihan)),
-                izin_aktif: gabungDataArray(getDB('pondok_izin_aktif', []), dataCloud.izin_aktif, 'id').filter(x => !t_izin.includes(x.id)),
-                jam_kustom: gabungDataArray(getDB('pondok_jam_kustom', []), dataCloud.jam_kustom, 'kode').filter(x => !t_jam.includes(x.kode)),
-                bank_mapel: [...new Set([...getDB('pondok_bank_mapel', []), ...(dataCloud.bank_mapel || [])])].filter(x => !t_bank.includes(x)),
+            tombstone_santri: t_santri,
+            tombstone_mapel: t_mapel,
+            tombstone_kelas: t_kelas,
+            tombstone_users: t_users,
+            tombstone_tagihan: t_tagihan,
+            tombstone_izin_aktif: t_izin,
+            tombstone_bank_mapel: t_bank,
+            tombstone_jam_kustom: t_jam
+        };
 
-                absensi: gabungDataArray(getDB('pondok_absensi', []), dataCloud.absensi, 'id_sesi'),
-                evaluasi: gabungDataArray(getDB('pondok_evaluasi', []), dataCloud.evaluasi, 'nis'),
-                tabungan: gabungDataArray(getDB('pondok_tabungan', []), dataCloud.tabungan, 'id'),
-                history_izin: gabungDataArray(getDB('pondok_history_izin', []), dataCloud.history_izin, 'id'),
-                yayasan: getDB('pondok_yayasan', {}),
-                akses: getDB('pondok_akses', {}),
-                gps: getDB('pondok_gps', {}),
-                setting_keuangan: getDB('pondok_setting_keuangan', {}),
-
-                tombstone_santri: t_santri,
-                tombstone_mapel: t_mapel,
-                tombstone_kelas: t_kelas,
-                tombstone_users: t_users,
-                tombstone_tagihan: t_tagihan,
-                tombstone_izin_aktif: t_izin,
-                tombstone_bank_mapel: t_bank,
-                tombstone_jam_kustom: t_jam
-            };
 
             const waktuKirim = new Date().toISOString();
 
@@ -5865,7 +5877,15 @@ if (activeCloudProvider === 'firebase') {
             if (data.history_izin) daftarTugas.push({ key: 'pondok_history_izin', val: data.history_izin });
             if (data.jam_kustom) daftarTugas.push({ key: 'pondok_jam_kustom', val: data.jam_kustom });
             if (data.bank_mapel) daftarTugas.push({ key: 'pondok_bank_mapel', val: data.bank_mapel });
-            if (data.yayasan) daftarTugas.push({ key: 'pondok_yayasan', val: data.yayasan });
+            if (data.yayasan) {
+                let lokalYayasan = getDB('pondok_yayasan', {});
+                // Gabungkan, tapi pertahankan aset berat lokal jika di Cloud kosong akibat dipangkas
+                let mergedYayasan = { ...lokalYayasan, ...data.yayasan };
+                if (lokalYayasan.bg_login && !data.yayasan.bg_login) mergedYayasan.bg_login = lokalYayasan.bg_login;
+                if (lokalYayasan.bg_idcard && !data.yayasan.bg_idcard) mergedYayasan.bg_idcard = lokalYayasan.bg_idcard;
+                if (lokalYayasan.wallpaper_slides && !data.yayasan.wallpaper_slides) mergedYayasan.wallpaper_slides = lokalYayasan.wallpaper_slides;
+                daftarTugas.push({ key: 'pondok_yayasan', val: mergedYayasan });
+            }
             if (data.akses) daftarTugas.push({ key: 'pondok_akses', val: data.akses });
             if (data.gps) daftarTugas.push({ key: 'pondok_gps', val: data.gps });
             if (data.setting_keuangan) daftarTugas.push({ key: 'pondok_setting_keuangan', val: data.setting_keuangan });
@@ -5877,11 +5897,22 @@ if (activeCloudProvider === 'firebase') {
             if (data.tombstone_jam_kustom) daftarTugas.push({ key: 'pondok_tombstone_jam_kustom', val: data.tombstone_jam_kustom });
 
             if (data.users) {
-                let cloudUsersBersih = data.users.filter(u => u.role !== 'superadmin');
-                let lokalSuperAdmin = getDB('pondok_users', []).filter(u => u.role === 'superadmin');
+                let lokalUsers = getDB('pondok_users', []);
+                let cloudUsersBersih = data.users.filter(u => u.role !== 'superadmin').map(uCloud => {
+                    let uLokal = lokalUsers.find(x => x.username === uCloud.username);
+                    // Selamatkan foto pegawai lokal
+                    if (uLokal && uLokal.foto && uLokal.foto.length > 100) {
+                        uCloud.foto = uLokal.foto; 
+                    } else if (!uCloud.foto) {
+                        uCloud.foto = 'https://cdn-icons-png.flaticon.com/512/149/149071.png';
+                    }
+                    return uCloud;
+                });
+                let lokalSuperAdmin = lokalUsers.filter(u => u.role === 'superadmin');
                 let finalPulledUsers = [...cloudUsersBersih, ...lokalSuperAdmin];
                 daftarTugas.push({ key: 'pondok_users', val: finalPulledUsers });
             }
+                
 
             let operasiSimpan = daftarTugas.map(tugas => {
                 return setDB(tugas.key, tugas.val);
