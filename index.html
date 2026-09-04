@@ -1579,6 +1579,13 @@
     <div class="glass-panel" style="padding: 24px; border-radius: var(--radius-md); text-align:center; width: 92%; max-width: 400px;">
         <h3 style="color:var(--primary); margin-bottom:10px; font-size:1rem;">Arahkan ke QR Super Admin</h3>
         <div id="qr-reader-login" style="margin-bottom:14px; display:none;"></div>
+        <div style="margin-top: 15px;">
+        <label for="input-file-qr" class="btn-upload-qr" style="background: #4f46e5; color: white; padding: 10px 18px; border-radius: 8px; cursor: pointer; display: inline-block; font-size: 14px;">
+            <i class="fa-solid fa-image"></i> Upload QR dari Galeri
+        </label>
+        <input type="file" id="input-file-qr" accept="image/*" style="display: none;" onchange="bacaQRCodeDariGaleri(event)">
+    </div>
+</div>
         <button class="btn-danger" onclick="tutupScannerLoginTarikData()" style="width: 100%;">Batal</button>
     </div>
 </div>
@@ -1589,6 +1596,7 @@
             <h3 style="color:var(--primary); margin-bottom:10px; font-size:1rem;"><i class="fa-solid fa-qrcode"></i> QR Tarik Data</h3>
             <p style="font-size:0.78rem; color:#555; margin-bottom:18px;">Berikan Barcode ini kepada rekan untuk menyingkronkan database ke HP barunya.</p>
             <div id="wadah-qr-sync" style="display:flex; justify-content:center; margin-bottom:18px;"></div>
+            
         </div>
         <button class="btn-print" style="width: 100%; margin-bottom: 10px; padding: 12px; font-size:0.95rem;" onclick="cetakAreaKhusus('area-cetak-qr-sync')">Cetak / Print QR</button>
         <button class="btn-outline" style="width: 100%; justify-content: center;" onclick="document.getElementById('modal-show-qr').classList.add('hidden')">Tutup</button>
@@ -7028,6 +7036,70 @@ function initWaliKelasView() {
     });
     
     renderTabelSantriWali();
+}
+function bacaQRCodeDariGaleri(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = function(e) {
+        const img = new Image();
+        img.onload = function() {
+            // Buat elemen canvas sementara untuk membaca piksel gambar
+            const canvas = document.createElement('canvas');
+            const context = canvas.getContext('2d');
+            canvas.width = img.width;
+            canvas.height = img.height;
+            context.drawImage(img, 0, 0, img.width, img.height);
+            
+            const imageData = context.getImageData(0, 0, canvas.width, canvas.height);
+            
+            // Menggunakan library jsQR untuk mendeteksi QR code dari gambar
+            if (typeof jsQR !== 'undefined') {
+                const code = jsQR(imageData.data, imageData.width, imageData.height);
+                if (code) {
+                    // QR Code berhasil dibaca! Data teks ada di dalam code.data
+                    prosesDataQRSync(code.data);
+                } else {
+                    alert("QR Code tidak ditemukan dalam gambar. Pastikan gambar jelas.");
+                }
+            } else {
+                alert("Library pemindai QR gambar (jsQR) belum terpasang di dokumen.");
+            }
+        };
+        img.src = e.target.result;
+    };
+    reader.readAsDataURL(file);
+}
+
+// Fungsi opsional untuk menangani data hasil scan/upload QR
+function prosesDataQRSync(payloadString) {
+    try {
+        const data = JSON.parse(payloadString);
+        
+        // Validasi apakah kode rahasia sinkronisasi cocok
+        if (data.code === KODE_RAHASIA_SYNC) {
+            if (data.provider === 'firebase') {
+                setDB('pondok_firebase_config', { url: data.url, key: data.key });
+                setDB('pondok_active_cloud_provider', 'firebase');
+                firebaseConfig = { url: data.url, key: data.key };
+                activeCloudProvider = 'firebase';
+            } else {
+                setDB('pondok_supabase_config', { url: data.url, key: data.key });
+                setDB('pondok_active_cloud_provider', 'supabase');
+                supabaseConfig = { url: data.url, key: data.key };
+                activeCloudProvider = 'supabase';
+            }
+            
+            alert("Konfigurasi Cloud berhasil dimuat dari QR Code!");
+            location.reload(); // Muat ulang aplikasi agar langsung terhubung
+        } else {
+            alert("Kode rahasia QR Code tidak valid atau bukan QR sinkronisasi aplikasi ini.");
+        }
+    } catch (err) {
+        alert("Format data QR Code rusak atau tidak dikenali.");
+        console.error(err);
+    }
 }
 
 function renderTabelSantriWali() {
