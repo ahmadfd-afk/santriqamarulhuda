@@ -2937,6 +2937,10 @@ function initSupabaseRealtimeListener() {
         }
         supabaseConfig = getDB('pondok_supabase_config', { url: '', key: '' });
         
+       // 👇 TAMBAHKAN DUA BARIS INI 👇
+        firebaseConfig = getDB('pondok_firebase_config', { url: '', key: '' });
+        activeCloudProvider = getDB('pondok_active_cloud_provider', 'supabase');
+
         // 👇 TAMBAHKAN BARIS INI AGAR HAK AKSES AMAN SAAT REFRESH 👇
         let cekAkses = getDB('pondok_akses', defaultAkses); 
         setDB('pondok_akses', cekAkses);
@@ -3142,10 +3146,28 @@ function registerServiceWorker() {
         if(lastTab === 'view-pengguna') renderTabelPegawai(); 
         if(lastTab === 'view-rekap') loadDropdownRekapKelas(); 
         if(lastTab === 'view-database') { 
-            document.getElementById('zona-berbahaya-reset').style.display = (currentUser && currentUser.role === 'superadmin') ? 'block' : 'none'; 
-            const cardSupabase = document.getElementById('pengaturan-supabase-card');
-            if(currentUser && currentUser.role === 'superadmin') { cardSupabase.style.display = 'block'; document.getElementById('setting-supabase-url').value = supabaseConfig.url; document.getElementById('setting-supabase-key').value = supabaseConfig.key; } else { cardSupabase.style.display = 'none'; }
-        }
+    document.getElementById('zona-berbahaya-reset').style.display = (currentUser && currentUser.role === 'superadmin') ? 'block' : 'none'; 
+    const cardSupabase = document.getElementById('pengaturan-supabase-card');
+    
+    if(currentUser && currentUser.role === 'superadmin') { 
+        cardSupabase.style.display = 'block'; 
+        
+        // 👇 PERBAIKAN: Setel Dropdown & Tampilkan Form Sesuai Pilihan 👇
+        document.getElementById('setting-db-provider').value = activeCloudProvider;
+        toggleFormDB(); // Panggil fungsi toggle agar form yang benar yang muncul
+        
+        // Isi form Supabase
+        document.getElementById('setting-supabase-url').value = supabaseConfig.url || ''; 
+        document.getElementById('setting-supabase-key').value = supabaseConfig.key || ''; 
+        
+        // Isi form Firebase
+        document.getElementById('setting-firebase-url').value = firebaseConfig.url || ''; 
+        document.getElementById('setting-firebase-key').value = firebaseConfig.key || ''; 
+    } else { 
+        cardSupabase.style.display = 'none'; 
+    }
+}
+
     }
 
     function loadIdentitasApp() {
@@ -5330,12 +5352,16 @@ function batalEditPengguna() {
 }
 
     function exportDataLokal() {
-    const semuaKey = [
+        const semuaKey = [
         'pondok_users', 'pondok_akses', 'pondok_santri', 'pondok_evaluasi',
         'pondok_master_mapel', 'pondok_kelas', 'pondok_gps', 'pondok_yayasan',
         'pondok_setting_keuangan', 'pondok_absensi', 'pondok_tagihan_denda',
-        'pondok_izin_aktif', 'pondok_history_izin', 'pondok_supabase_config'
+        'pondok_izin_aktif', 'pondok_history_izin', 
+        'pondok_supabase_config', // <--- Tambahkan koma di sini
+        'pondok_firebase_config',
+        'pondok_active_cloud_provider'
     ];
+
     let backup = {};
     semuaKey.forEach(k => {
         // PERBAIKAN: Gunakan getDB alih-alih localStorage
@@ -5397,7 +5423,13 @@ function batalEditPengguna() {
     }
 
     if (typeof QRCode !== 'undefined') {
-        new QRCode(wadah, { text: payload, width: 180, height: 180 });
+        // 👇 PERBAIKAN: Tambahkan correctLevel: QRCode.CorrectLevel.L 👇
+        new QRCode(wadah, { 
+            text: payload, 
+            width: 200, // Sedikit diperbesar agar barcode yang padat lebih mudah di-scan
+            height: 200,
+            correctLevel: QRCode.CorrectLevel.L // Level 'Low' mengizinkan teks paling panjang
+        });
         document.getElementById('modal-show-qr').classList.remove('hidden');
     } else {
         alert("Library QRCode belum termuat.");
