@@ -1226,12 +1226,26 @@
                 <div class="back-nav" onclick="closeSubMenu()"><i class="fa-solid fa-arrow-left"></i> Kembali</div>
                 
                 <div class="card card-premium" id="pengaturan-supabase-card" style="border-left-color: var(--info); display: none;">
-                    <h3 style="margin-bottom: 5px; color: var(--info);"><i class="fa-solid fa-server"></i> Server Database</h3>
-                    
-                    <label>Supabase URL</label><input type="text" id="setting-supabase-url" placeholder="https://xxxx.supabase.co">
-                    <label>Supabase Anon Key</label><input type="password" id="setting-supabase-key" placeholder="eyJhbGciOi...">
-                    <button class="btn-primary" style="background: var(--info); border: none; box-shadow: none;" onclick="simpanKonfigurasiSupabase()">SIMPAN KONFIGURASI SERVER</button>
-                </div>
+    <h3 style="margin-bottom: 5px; color: var(--info);"><i class="fa-solid fa-server"></i> Server Database Aktif</h3>
+    
+    <label>Pilih Provider Database</label>
+    <select id="setting-db-provider" onchange="toggleFormDB()" style="margin-bottom: 10px;">
+        <option value="supabase">Supabase</option>
+        <option value="firebase">Firebase Realtime DB</option>
+    </select>
+
+    <div id="form-supabase">
+        <label>Supabase URL</label><input type="text" id="setting-supabase-url" placeholder="https://xxxx.supabase.co">
+        <label>Supabase Anon Key</label><input type="password" id="setting-supabase-key" placeholder="eyJhbGciOi...">
+    </div>
+
+    <div id="form-firebase" class="hidden">
+        <label>Firebase Database URL</label><input type="text" id="setting-firebase-url" placeholder="https://xxx.firebasedatabase.app">
+        <label>Firebase Web API Key</label><input type="password" id="setting-firebase-key" placeholder="AIzaSy...">
+    </div>
+
+    <button class="btn-primary" style="background: var(--info); border: none; box-shadow: none;" onclick="simpanKonfigurasiSupabase()">SIMPAN KONFIGURASI SERVER</button>
+</div>
 
                 <div class="card card-premium">
                     <h3 style="margin-bottom: 14px; color: var(--danger);"><i class="fa-solid fa-shield-heart"></i> Backup & Sinkronisasi</h3>
@@ -1824,6 +1838,9 @@ async function clearDB() {
     return await localforage.clear();
 }
     let supabaseConfig = getDB('pondok_supabase_config', { url: '', key: '' });
+// === TAMBAHAN UNTUK FIREBASE ===
+let firebaseConfig = getDB('pondok_firebase_config', { url: '', key: '' });
+let activeCloudProvider = getDB('pondok_active_cloud_provider', 'supabase'); // 'supabase' atau 'firebase'
 
         function muatScriptEksternal() {
         if (typeof QRCode === 'undefined') { const qs = document.createElement('script'); qs.src = "https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"; document.body.appendChild(qs); }
@@ -3504,7 +3521,17 @@ document.getElementById('setting-font-sertifikat').value = data.font_sertifikat 
             }
         }); 
     }
-
+// Fungsi tambahan untuk toggle form UI DB
+function toggleFormDB() {
+    const prov = document.getElementById('setting-db-provider').value;
+    if(prov === 'firebase') {
+        document.getElementById('form-supabase').classList.add('hidden');
+        document.getElementById('form-firebase').classList.remove('hidden');
+    } else {
+        document.getElementById('form-supabase').classList.remove('hidden');
+        document.getElementById('form-firebase').classList.add('hidden');
+    }
+}
     function renderDropdownKelasEvaluasi() {
         const dropdown = document.getElementById('pilih-kelas-evaluasi'); dropdown.innerHTML = '<option value="">-- Pilih Kelas --</option>';
         getDB('pondok_kelas', []).forEach(k => { dropdown.innerHTML += `<option value="${k.id}">${k.nama} (${(k.mapel_ids || []).length} Mapel)</option>`; });
@@ -3741,7 +3768,11 @@ function bukaModalSertifikat(nis) {
             }
 
             document.getElementById('card-alamat').innerText = (s.alamat || '-'); 
-            qrDataPayload = "https://ahmadfd-afk.github.io/Wali-santri/?nis=" + s.nis + "&u=" + encodeURIComponent(supabaseConfig.url || "") + "&k=" + encodeURIComponent(supabaseConfig.key || "");
+           let dbProvParam = activeCloudProvider === 'firebase' ? '&p=firebase' : '';
+let activeUrl = activeCloudProvider === 'firebase' ? firebaseConfig.url : supabaseConfig.url;
+let activeKey = activeCloudProvider === 'firebase' ? firebaseConfig.key : supabaseConfig.key;
+
+qrDataPayload = "https://ahmadfd-afk.github.io/Wali-santri/?nis=" + s.nis + dbProvParam + "&u=" + encodeURIComponent(activeUrl || "") + "&k=" + encodeURIComponent(activeKey || "");
         } else { 
             let db = getDB('pondok_users', []); let p = db.find(x => x.username === identifier); if(!p) return; 
             document.getElementById('card-foto').src = p.foto || "https://cdn-icons-png.flaticon.com/512/149/149071.png"; 
@@ -5279,12 +5310,24 @@ function batalEditPengguna() {
 
 
     function simpanKonfigurasiSupabase() {
-        const url = document.getElementById('setting-supabase-url').value.trim();
-        const key = document.getElementById('setting-supabase-key').value.trim();
-        supabaseConfig = { url: url, key: key };
+    activeCloudProvider = document.getElementById('setting-db-provider').value;
+    setDB('pondok_active_cloud_provider', activeCloudProvider);
+
+    if (activeCloudProvider === 'supabase') {
+        supabaseConfig = { 
+            url: document.getElementById('setting-supabase-url').value.trim(), 
+            key: document.getElementById('setting-supabase-key').value.trim() 
+        };
         setDB('pondok_supabase_config', supabaseConfig);
-        alert("Konfigurasi server Supabase berhasil disimpan!");
+    } else {
+        firebaseConfig = { 
+            url: document.getElementById('setting-firebase-url').value.trim(), 
+            key: document.getElementById('setting-firebase-key').value.trim() 
+        };
+        setDB('pondok_firebase_config', firebaseConfig);
     }
+    alert(`Konfigurasi server ${activeCloudProvider.toUpperCase()} berhasil disimpan!`);
+}
 
     function exportDataLokal() {
     const semuaKey = [
@@ -5342,17 +5385,24 @@ function batalEditPengguna() {
 }
 
 
-    function tampilkanQRTarikData() {
-        const wadah = document.getElementById('wadah-qr-sync');
-        wadah.innerHTML = '';
-        const payload = JSON.stringify({ code: KODE_RAHASIA_SYNC, url: supabaseConfig.url, key: supabaseConfig.key });
-        if (typeof QRCode !== 'undefined') {
-            new QRCode(wadah, { text: payload, width: 180, height: 180 });
-            document.getElementById('modal-show-qr').classList.remove('hidden');
-        } else {
-            alert("Library QRCode belum termuat.");
-        }
+   function tampilkanQRTarikData() {
+    const wadah = document.getElementById('wadah-qr-sync');
+    wadah.innerHTML = '';
+    
+    let payload;
+    if (activeCloudProvider === 'firebase') {
+        payload = JSON.stringify({ code: KODE_RAHASIA_SYNC, provider: 'firebase', url: firebaseConfig.url, key: firebaseConfig.key });
+    } else {
+        payload = JSON.stringify({ code: KODE_RAHASIA_SYNC, provider: 'supabase', url: supabaseConfig.url, key: supabaseConfig.key });
     }
+
+    if (typeof QRCode !== 'undefined') {
+        new QRCode(wadah, { text: payload, width: 180, height: 180 });
+        document.getElementById('modal-show-qr').classList.remove('hidden');
+    } else {
+        alert("Library QRCode belum termuat.");
+    }
+}
 
     function bukaScannerLoginTarikData() {
         if (typeof Html5Qrcode === 'undefined') return alert("Library Scanner belum siap.");
@@ -5361,21 +5411,33 @@ function batalEditPengguna() {
         if (!scannerLoginData) {
             scannerLoginData = new Html5Qrcode("qr-reader-login");
             scannerLoginData.start({ facingMode: "environment" }, { fps: 15, qrbox: { width: 220, height: 220 } }, (res) => {
-                try {
-                    const obj = JSON.parse(res);
-                    if (obj.code === KODE_RAHASIA_SYNC) {
-                        supabaseConfig = { url: obj.url, key: obj.key };
-                        // 🟢 PERBAIKAN: Gunakan setDB agar tersimpan aman di IndexedDB (localforage)
-                        setDB('pondok_supabase_config', supabaseConfig);
-                        tutupScannerLoginTarikData();
-                        alert("Berhasil menghubungkan server! Menyiapkan sinkronisasi cloud...");
-                        tarikDataDariSupabase();
-                    } else {
-                        alert("QR Code bukan QR Tarik Data yang valid!");
-                    }
-                } catch(e) {
-                    alert("Format Barcode tidak dikenali.");
-                }
+               // Di dalam bukaScannerLoginTarikData()
+try {
+    const obj = JSON.parse(res);
+    if (obj.code === KODE_RAHASIA_SYNC) {
+        
+        // --- TAMBAHAN LOGIKA DETEKSI FIREBASE ATAU SUPABASE ---
+        activeCloudProvider = obj.provider || 'supabase';
+        setDB('pondok_active_cloud_provider', activeCloudProvider);
+
+        if (activeCloudProvider === 'firebase') {
+            firebaseConfig = { url: obj.url, key: obj.key };
+            setDB('pondok_firebase_config', firebaseConfig);
+        } else {
+            supabaseConfig = { url: obj.url, key: obj.key };
+            setDB('pondok_supabase_config', supabaseConfig);
+        }
+        // --------------------------------------------------------
+
+        tutupScannerLoginTarikData();
+        alert(`Berhasil menghubungkan server ${activeCloudProvider.toUpperCase()}! Menyiapkan sinkronisasi cloud...`);
+        tarikDataDariSupabase();
+    } else {
+        alert("QR Code bukan QR Tarik Data yang valid!");
+    }
+} catch(e) {
+    alert("Format Barcode tidak dikenali.");
+}
             }).catch(() => {
                 alert("Gagal membuka kamera scan.");
                 tutupScannerLoginTarikData();
@@ -5514,37 +5576,64 @@ async function sinkronisasiKeCloud() {
 
             const waktuKirim = new Date().toISOString();
 
-            // LANGKAH C: Eksekusi XMLHttpRequest untuk melacak progress % Upload
-            const response = await new Promise((resolve, reject) => {
-                const xhr = new XMLHttpRequest();
-                let patchUrl = `${supabaseConfig.url}/rest/v1/backup_lms?id=eq.1`;
-                if (cloudUpdatedAt) patchUrl += `&updated_at=eq.${encodeURIComponent(cloudUpdatedAt)}`;
+          // LANGKAH C: Eksekusi HTTP Request berdasarkan Provider Aktif
+const response = await new Promise((resolve, reject) => {
+    const xhr = new XMLHttpRequest();
+    
+    if (activeCloudProvider === 'firebase') {
+        // --- LOGIKA API FIREBASE ---
+        // Firebase menyimpan di endpoint /backup_lms.json
+        const firebaseUrl = `${firebaseConfig.url}/backup_lms.json?auth=${firebaseConfig.key}`;
+        xhr.open('PUT', firebaseUrl, true); // Menggunakan PUT untuk overwrite seluruh object JSON
+        xhr.setRequestHeader('Content-Type', 'application/json');
+        
+        xhr.upload.onprogress = (event) => {
+            if (event.lengthComputable) {
+                let persen = Math.round((event.loaded / event.total) * 100);
+                if (btn) btn.innerHTML = `<i class="fa-solid fa-cloud-arrow-up"></i> MENGUNGGAH (${persen}%)`;
+            }
+        };
 
-                xhr.open('PATCH', patchUrl, true);
-                xhr.setRequestHeader('Content-Type', 'application/json');
-                xhr.setRequestHeader('apikey', supabaseConfig.key);
-                xhr.setRequestHeader('Authorization', `Bearer ${supabaseConfig.key}`);
-                xhr.setRequestHeader('Prefer', 'return=representation');
+        xhr.onload = () => {
+            if (xhr.status >= 200 && xhr.status < 300) {
+                // Firebase mereturn objek yang sama saat sukses PUT
+                resolve({ ok: true, status: xhr.status, patchResult: [JSON.parse(xhr.responseText || "{}")] });
+            } else { resolve({ ok: false, status: xhr.status, patchResult: [] }); }
+        };
+        
+        xhr.onerror = () => reject("Koneksi terputus");
+        // Firebase tidak memerlukan format 'id', cukup lempar payload-nya
+        xhr.send(JSON.stringify({ data_json: payloadMerged, updated_at: waktuKirim }));
 
-                xhr.upload.onprogress = (event) => {
-                    if (event.lengthComputable) {
-                        let persen = Math.round((event.loaded / event.total) * 100);
-                        if (btn) btn.innerHTML = `<i class="fa-solid fa-cloud-arrow-up"></i> MENGUNGGAH (${persen}%)`;
-                    }
-                };
+    } else {
+        // --- LOGIKA API SUPABASE (TETAP SAMA SEPERTI ASLINYA) ---
+        let patchUrl = `${supabaseConfig.url}/rest/v1/backup_lms?id=eq.1`;
+        if (cloudUpdatedAt) patchUrl += `&updated_at=eq.${encodeURIComponent(cloudUpdatedAt)}`;
 
-                xhr.onload = () => {
-                    if (xhr.status >= 200 && xhr.status < 300) {
-                        let patchResult = JSON.parse(xhr.responseText || "[]");
-                        resolve({ ok: true, status: xhr.status, patchResult: patchResult });
-                    } else {
-                        resolve({ ok: false, status: xhr.status, patchResult: [] });
-                    }
-                };
-                
-                xhr.onerror = () => reject("Koneksi terputus");
-                xhr.send(JSON.stringify({ data_json: payloadMerged, updated_at: waktuKirim }));
-            });
+        xhr.open('PATCH', patchUrl, true);
+        xhr.setRequestHeader('Content-Type', 'application/json');
+        xhr.setRequestHeader('apikey', supabaseConfig.key);
+        xhr.setRequestHeader('Authorization', `Bearer ${supabaseConfig.key}`);
+        xhr.setRequestHeader('Prefer', 'return=representation');
+
+        xhr.upload.onprogress = (event) => {
+            if (event.lengthComputable) {
+                let persen = Math.round((event.loaded / event.total) * 100);
+                if (btn) btn.innerHTML = `<i class="fa-solid fa-cloud-arrow-up"></i> MENGUNGGAH (${persen}%)`;
+            }
+        };
+
+        xhr.onload = () => {
+            if (xhr.status >= 200 && xhr.status < 300) {
+                let patchResult = JSON.parse(xhr.responseText || "[]");
+                resolve({ ok: true, status: xhr.status, patchResult: patchResult });
+            } else { resolve({ ok: false, status: xhr.status, patchResult: [] }); }
+        };
+        
+        xhr.onerror = () => reject("Koneksi terputus");
+        xhr.send(JSON.stringify({ data_json: payloadMerged, updated_at: waktuKirim }));
+    }
+});
 
             // LANGKAH D: Validasi Status Pengiriman
             if (response.ok && response.patchResult.length > 0) {
@@ -5627,27 +5716,30 @@ async function tarikDataDariSupabase() {
     try {
         // Eksekusi XMLHttpRequest untuk melacak progress % Download
         const rows = await new Promise((resolve, reject) => {
-            const xhr = new XMLHttpRequest();
-            xhr.open('GET', `${supabaseConfig.url}/rest/v1/backup_lms?id=eq.1&select=data_json`, true);
-            xhr.setRequestHeader('apikey', supabaseConfig.key);
-            xhr.setRequestHeader('Authorization', `Bearer ${supabaseConfig.key}`);
+           const xhr = new XMLHttpRequest();
 
-            xhr.onprogress = (event) => {
-                if (event.lengthComputable) {
-                    let persen = Math.round((event.loaded / event.total) * 100);
-                    if (btn) btn.innerHTML = `<i class="fa-solid fa-cloud-arrow-down"></i> MENGUNDUH (${persen}%)`;
-                } else {
-                    if (btn) btn.innerHTML = `<i class="fa-solid fa-cloud-arrow-down"></i> MENGUNDUH... (Sedang Berjalan)`;
-                }
+if (activeCloudProvider === 'firebase') {
+    xhr.open('GET', `${firebaseConfig.url}/backup_lms.json?auth=${firebaseConfig.key}`, true);
+} else {
+    xhr.open('GET', `${supabaseConfig.url}/rest/v1/backup_lms?id=eq.1&select=data_json`, true);
+    xhr.setRequestHeader('apikey', supabaseConfig.key);
+    xhr.setRequestHeader('Authorization', `Bearer ${supabaseConfig.key}`);
+}
             };
 
-            xhr.onload = () => {
-                if (xhr.status >= 200 && xhr.status < 300) {
-                    resolve(JSON.parse(xhr.responseText || "[]"));
-                } else {
-                    reject("Error " + xhr.status);
-                }
-            };
+           xhr.onload = () => {
+    if (xhr.status >= 200 && xhr.status < 300) {
+        let result = JSON.parse(xhr.responseText || "{}");
+        // Normalisasi format balikan Firebase agar mirip array Supabase
+        if (activeCloudProvider === 'firebase' && result.data_json) {
+            resolve([result]);
+        } else {
+            resolve(result); // Supabase sudah berbentuk Array
+        }
+    } else {
+        reject("Error " + xhr.status);
+    }
+};
             
             xhr.onerror = () => reject("Koneksi terputus");
             xhr.send();
