@@ -5581,38 +5581,52 @@ function gabungDataArray(arrayLokal, arrayCloud, primaryKey) {
 // 1. FUNGSI SINKRONISASI KE CLOUD (DENGAN PERSENTASE UPLOAD)
 // =========================================================================
 async function sinkronisasiKeCloud() {
-    if (!supabaseConfig.url || !supabaseConfig.key) {
-        tambahNotifInternal('err_sync_config', 'Gagal Sinkronisasi', 'Konfigurasi URL & Key Supabase belum diisi di menu Database.', 'fa-triangle-exclamation', 'danger', '');
-        return;
+    // 1. Cek Ketersediaan Konfigurasi
+    if (activeCloudProvider === 'firebase') {
+        if (!firebaseConfig.url) return tambahNotifInternal('err_sync_config', 'Gagal', 'URL Firebase belum diisi.', 'fa-triangle-exclamation', 'danger', '');
+    } else {
+        if (!supabaseConfig.url || !supabaseConfig.key) return tambahNotifInternal('err_sync_config', 'Gagal', 'URL & Key Supabase belum diisi.', 'fa-triangle-exclamation', 'danger', '');
     }
+
     const btn = document.getElementById('btn-sync-cloud');
     if (btn) btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> MENYIAPKAN DATA...';
 
-    let maxRetries = 3; 
+    let maxRetries = 2; 
     let attempt = 0;
     let syncSuccess = false;
+
+    // Pembersihan URL (Menghapus garis miring ganda di akhir)
+    let fbUrl = (firebaseConfig.url || "").trim().replace(/\/+$/, '');
+    if (fbUrl && !fbUrl.startsWith('http')) fbUrl = 'https://' + fbUrl;
+    let fbKey = (firebaseConfig.key || "").trim();
+    let fbAuthParam = fbKey ? `?auth=${fbKey}` : "";
 
     while (attempt < maxRetries && !syncSuccess) {
         attempt++;
         try {
-            // LANGKAH A: Tarik data terbaru beserta penanda waktu (updated_at) dari Cloud
             let dataCloud = {};
             let cloudUpdatedAt = null; 
-            
-            const resCloud = await fetch(`${supabaseConfig.url}/rest/v1/backup_lms?id=eq.1&select=data_json,updated_at`, {
-                headers: {
-                    'apikey': supabaseConfig.key,
-                    'Authorization': `Bearer ${supabaseConfig.key}`
+
+            // A. PULL SEBELUM PUSH (Mengambil data Cloud terlebih dahulu)
+            if (activeCloudProvider === 'firebase') {
+                const resPull = await fetch(`${fbUrl}/backup_lms.json${fbAuthParam}`);
+                if (!resPull.ok) throw new Error(`HTTP ${resPull.status}: Cek URL atau Rules Firebase`);
+                let result = await resPull.json() || {};
+                dataCloud = result.data_json || {};
+                cloudUpdatedAt = result.updated_at || null;
+            } else {
+                const resCloud = await fetch(`${supabaseConfig.url}/rest/v1/backup_lms?id=eq.1&select=data_json,updated_at`, {
+                    headers: { 'apikey': supabaseConfig.key, 'Authorization': `Bearer ${supabaseConfig.key}` }
+                });
+                if (!resCloud.ok) throw new Error(`HTTP ${resCloud.status}: Cek URL Supabase`);
+                const rows = await resCloud.json();
+                if (rows.length > 0) {
+                    dataCloud = rows[0].data_json || {};
+                    cloudUpdatedAt = rows[0].updated_at;
                 }
-            });
-            const rows = await resCloud.json();
-            
-            if (resCloud.ok && rows.length > 0) {
-                dataCloud = rows[0].data_json || {};
-                cloudUpdatedAt = rows[0].updated_at;
             }
 
-            // LANGKAH B: Gabungkan data Lokal dengan data Cloud
+            // B. GABUNGKAN DATA (Merge Lokal & Cloud)
             const t_santri = [...new Set([...getDB('pondok_tombstone_santri', []), ...(dataCloud.tombstone_santri || [])])];
             const t_mapel = [...new Set([...getDB('pondok_tombstone_mapel', []), ...(dataCloud.tombstone_mapel || [])])];
             const t_kelas = [...new Set([...getDB('pondok_tombstone_kelas', []), ...(dataCloud.tombstone_kelas || [])])];
@@ -5622,183 +5636,110 @@ async function sinkronisasiKeCloud() {
             const t_bank = [...new Set([...getDB('pondok_tombstone_bank_mapel', []), ...(dataCloud.tombstone_bank_mapel || [])])];
             const t_jam = [...new Set([...getDB('pondok_tombstone_jam_kustom', []), ...(dataCloud.tombstone_jam_kustom || [])])];
 
-                    // Ekstrak santri, lalu HAPUS foto dari payload agar JSON tidak membengkak
-                // 1. Bersihkan Foto dari Data Santri
-                // 1. Ambil Data Gabungan (Utuh beserta foto)
-        let santriGabungan = gabungDataArray(getDB('pondok_santri', []), dataCloud.santri, 'id').filter(x => !t_santri.includes(x.id));
-        let usersLokalAsli = getDB('pondok_users', []).filter(u => u.role !== 'superadmin');
-        let usersGabungan = gabungDataArray(usersLokalAsli, dataCloud.users, 'username').filter(x => !t_users.includes(x.username));
+            let santriGabungan = gabungDataArray(getDB('pondok_santri', []), dataCloud.santri, 'id').filter(x => !t_santri.includes(x.id));
+            let usersLokalAsli = getDB('pondok_users', []).filter(u => u.role !== 'superadmin');
+            let usersGabungan = gabungDataArray(usersLokalAsli, dataCloud.users, 'username').filter(x => !t_users.includes(x.username));
 
-        let santriPayload = santriGabungan;
-        let usersPayload = usersGabungan;
+            let santriPayload = santriGabungan;
+            let usersPayload = usersGabungan;
 
-        // 2. JIKA FIREBASE: Hapus foto HANYA dari payload agar upload teks tidak berat
-        if (activeCloudProvider === 'firebase') {
-            santriPayload = santriGabungan.map(s => { let temp = { ...s }; delete temp.foto; return temp; });
-            usersPayload = usersGabungan.map(u => { let temp = { ...u }; delete temp.foto; return temp; });
-        }
+            // Jika Firebase, hapus foto HANYA dari payload agar teks ringan
+            if (activeCloudProvider === 'firebase') {
+                santriPayload = santriGabungan.map(s => { let temp = { ...s }; delete temp.foto; return temp; });
+                usersPayload = usersGabungan.map(u => { let temp = { ...u }; delete temp.foto; return temp; });
+            }
 
-        // 3. Bersihkan Wallpaper & Gambar Besar dari Data Yayasan
-        let yayasanBersih = getDB('pondok_yayasan', {});
-        delete yayasanBersih.bg_login;
-        delete yayasanBersih.bg_idcard;
-        delete yayasanBersih.wallpaper_slides; 
+            let yayasanBersih = getDB('pondok_yayasan', {});
+            delete yayasanBersih.bg_login; delete yayasanBersih.bg_idcard; delete yayasanBersih.wallpaper_slides; 
 
-        const payloadMerged = {
-            santri: santriPayload,
-            users: usersPayload,
-            yayasan: yayasanBersih,
-            // (Lanjutkan dengan baris mapel, kelas, dll seperti di kode asli Anda)
-
-            mapel: gabungDataArray(getDB('pondok_master_mapel', []), dataCloud.mapel, 'id').filter(x => !t_mapel.includes(x.id)),
-            kelas: gabungDataArray(getDB('pondok_kelas', []), dataCloud.kelas, 'id').filter(x => !t_kelas.includes(x.id)),
-            tagihan: gabungDataArray(getDB('pondok_tagihan_denda', []), dataCloud.tagihan, 'id_tagihan').filter(x => !t_tagihan.includes(x.id_tagihan)),
-            izin_aktif: gabungDataArray(getDB('pondok_izin_aktif', []), dataCloud.izin_aktif, 'id').filter(x => !t_izin.includes(x.id)),
-            jam_kustom: gabungDataArray(getDB('pondok_jam_kustom', []), dataCloud.jam_kustom, 'kode').filter(x => !t_jam.includes(x.kode)),
-            bank_mapel: [...new Set([...getDB('pondok_bank_mapel', []), ...(dataCloud.bank_mapel || [])])].filter(x => !t_bank.includes(x)),
-            absensi: gabungDataArray(getDB('pondok_absensi', []), dataCloud.absensi, 'id_sesi'),
-            evaluasi: gabungDataArray(getDB('pondok_evaluasi', []), dataCloud.evaluasi, 'nis'),
-            tabungan: gabungDataArray(getDB('pondok_tabungan', []), dataCloud.tabungan, 'id'),
-            history_izin: gabungDataArray(getDB('pondok_history_izin', []), dataCloud.history_izin, 'id'),
-            akses: getDB('pondok_akses', {}),
-            gps: getDB('pondok_gps', {}),
-            setting_keuangan: getDB('pondok_setting_keuangan', {}),
-
-            tombstone_santri: t_santri,
-            tombstone_mapel: t_mapel,
-            tombstone_kelas: t_kelas,
-            tombstone_users: t_users,
-            tombstone_tagihan: t_tagihan,
-            tombstone_izin_aktif: t_izin,
-            tombstone_bank_mapel: t_bank,
-            tombstone_jam_kustom: t_jam
-        };
-
+            const payloadMerged = {
+                santri: santriPayload, users: usersPayload, yayasan: yayasanBersih,
+                mapel: gabungDataArray(getDB('pondok_master_mapel', []), dataCloud.mapel, 'id').filter(x => !t_mapel.includes(x.id)),
+                kelas: gabungDataArray(getDB('pondok_kelas', []), dataCloud.kelas, 'id').filter(x => !t_kelas.includes(x.id)),
+                tagihan: gabungDataArray(getDB('pondok_tagihan_denda', []), dataCloud.tagihan, 'id_tagihan').filter(x => !t_tagihan.includes(x.id_tagihan)),
+                izin_aktif: gabungDataArray(getDB('pondok_izin_aktif', []), dataCloud.izin_aktif, 'id').filter(x => !t_izin.includes(x.id)),
+                jam_kustom: gabungDataArray(getDB('pondok_jam_kustom', []), dataCloud.jam_kustom, 'kode').filter(x => !t_jam.includes(x.kode)),
+                bank_mapel: [...new Set([...getDB('pondok_bank_mapel', []), ...(dataCloud.bank_mapel || [])])].filter(x => !t_bank.includes(x)),
+                absensi: gabungDataArray(getDB('pondok_absensi', []), dataCloud.absensi, 'id_sesi'),
+                evaluasi: gabungDataArray(getDB('pondok_evaluasi', []), dataCloud.evaluasi, 'nis'),
+                tabungan: gabungDataArray(getDB('pondok_tabungan', []), dataCloud.tabungan, 'id'),
+                history_izin: gabungDataArray(getDB('pondok_history_izin', []), dataCloud.history_izin, 'id'),
+                akses: getDB('pondok_akses', {}), gps: getDB('pondok_gps', {}), setting_keuangan: getDB('pondok_setting_keuangan', {}),
+                tombstone_santri: t_santri, tombstone_mapel: t_mapel, tombstone_kelas: t_kelas, tombstone_users: t_users,
+                tombstone_tagihan: t_tagihan, tombstone_izin_aktif: t_izin, tombstone_bank_mapel: t_bank, tombstone_jam_kustom: t_jam
+            };
 
             const waktuKirim = new Date().toISOString();
 
-          // LANGKAH C: Eksekusi HTTP Request berdasarkan Provider Aktif
-const response = await new Promise((resolve, reject) => {
-    const xhr = new XMLHttpRequest();
-    
-        if (activeCloudProvider === 'firebase') {
-        // --- PERBAIKAN LOGIKA FIREBASE (TEKNIK CHUNKING & PATCH) ---
-        const firebaseUrl = `${firebaseConfig.url}/backup_lms/data_json.json?auth=${firebaseConfig.key}`;
+            // C. EKSEKUSI PUSH / KUMPULAN PATCH
+            if (activeCloudProvider === 'firebase') {
+                const firebaseUrl = `${fbUrl}/backup_lms/data_json.json${fbAuthParam}`;
 
-        // Menggunakan async IIFE agar bisa meniru metode Fetch API seperti pada Foto
-        (async () => {
-            try {
-                // 1. Pecah payload raksasa menjadi 4 bagian agar koneksi tidak terputus (Timeout)
                 if (btn) btn.innerHTML = `<i class="fa-solid fa-cloud-arrow-up"></i> MENGUNGGAH MASTER...`;
-                await fetch(firebaseUrl, { 
-                    method: 'PATCH', headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ yayasan: payloadMerged.yayasan, kelas: payloadMerged.kelas, mapel: payloadMerged.mapel, users: payloadMerged.users })
-                });
+                let r1 = await fetch(firebaseUrl, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ yayasan: payloadMerged.yayasan, kelas: payloadMerged.kelas, mapel: payloadMerged.mapel, users: payloadMerged.users }) });
+                if (!r1.ok) throw new Error(`Gagal (Master): HTTP ${r1.status}`);
 
                 if (btn) btn.innerHTML = `<i class="fa-solid fa-cloud-arrow-up"></i> MENGUNGGAH DATA SANTRI...`;
-                await fetch(firebaseUrl, { 
-                    method: 'PATCH', headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ santri: payloadMerged.santri })
-                });
+                let r2 = await fetch(firebaseUrl, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ santri: payloadMerged.santri }) });
+                if (!r2.ok) throw new Error(`Gagal (Santri): HTTP ${r2.status}`);
 
                 if (btn) btn.innerHTML = `<i class="fa-solid fa-cloud-arrow-up"></i> MENGUNGGAH ABSENSI...`;
-                await fetch(firebaseUrl, { 
-                    method: 'PATCH', headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ absensi: payloadMerged.absensi, evaluasi: payloadMerged.evaluasi })
-                });
+                let r3 = await fetch(firebaseUrl, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ absensi: payloadMerged.absensi, evaluasi: payloadMerged.evaluasi }) });
+                if (!r3.ok) throw new Error(`Gagal (Absensi): HTTP ${r3.status}`);
 
                 if (btn) btn.innerHTML = `<i class="fa-solid fa-cloud-arrow-up"></i> MENGUNGGAH LAINNYA...`;
-                await fetch(firebaseUrl, { 
-                    method: 'PATCH', headers: { 'Content-Type': 'application/json' },
+                let r4 = await fetch(firebaseUrl, { method: 'PATCH', headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ 
-                        tagihan: payloadMerged.tagihan, 
-                        tabungan: payloadMerged.tabungan, 
-                        history_izin: payloadMerged.history_izin, 
-                        izin_aktif: payloadMerged.izin_aktif,
-                        // Tombstones disertakan di tahap akhir
-                        tombstone_santri: payloadMerged.tombstone_santri,
-                        tombstone_kelas: payloadMerged.tombstone_kelas
+                        tagihan: payloadMerged.tagihan, tabungan: payloadMerged.tabungan, history_izin: payloadMerged.history_izin, izin_aktif: payloadMerged.izin_aktif,
+                        tombstone_santri: payloadMerged.tombstone_santri, tombstone_kelas: payloadMerged.tombstone_kelas, tombstone_mapel: payloadMerged.tombstone_mapel,
+                        tombstone_users: payloadMerged.tombstone_users, tombstone_tagihan: payloadMerged.tombstone_tagihan, tombstone_izin_aktif: payloadMerged.tombstone_izin_aktif,
+                        tombstone_bank_mapel: payloadMerged.tombstone_bank_mapel, tombstone_jam_kustom: payloadMerged.tombstone_jam_kustom,
+                        jam_kustom: payloadMerged.jam_kustom, bank_mapel: payloadMerged.bank_mapel
                     })
                 });
+                if (!r4.ok) throw new Error(`Gagal (Lainnya): HTTP ${r4.status}`);
 
-                // Update Waktu Terakhir Sinkronisasi di Root Node
-                await fetch(`${firebaseConfig.url}/backup_lms.json?auth=${firebaseConfig.key}`, {
-                    method: 'PATCH', headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ updated_at: waktuKirim })
-                });
-
-                resolve({ ok: true, status: 200, patchResult: [{ success: true }] });
-            } catch (err) {
-                // Menangkap error jika internet benar-benar putus
-                reject("Koneksi terputus: " + err.message);
-            }
-        })();
-    } else {
-
-        // --- LOGIKA API SUPABASE (TETAP SAMA SEPERTI ASLINYA) ---
-        let patchUrl = `${supabaseConfig.url}/rest/v1/backup_lms?id=eq.1`;
-        if (cloudUpdatedAt) patchUrl += `&updated_at=eq.${encodeURIComponent(cloudUpdatedAt)}`;
-
-        xhr.open('PATCH', patchUrl, true);
-        xhr.setRequestHeader('Content-Type', 'application/json');
-        xhr.setRequestHeader('apikey', supabaseConfig.key);
-        xhr.setRequestHeader('Authorization', `Bearer ${supabaseConfig.key}`);
-        xhr.setRequestHeader('Prefer', 'return=representation');
-
-        xhr.upload.onprogress = (event) => {
-            if (event.lengthComputable) {
-                let persen = Math.round((event.loaded / event.total) * 100);
-                if (btn) btn.innerHTML = `<i class="fa-solid fa-cloud-arrow-up"></i> MENGUNGGAH (${persen}%)`;
-            }
-        };
-
-        xhr.onload = () => {
-            if (xhr.status >= 200 && xhr.status < 300) {
-                let patchResult = JSON.parse(xhr.responseText || "[]");
-                resolve({ ok: true, status: xhr.status, patchResult: patchResult });
-            } else { resolve({ ok: false, status: xhr.status, patchResult: [] }); }
-        };
-        
-        xhr.onerror = () => reject("Koneksi terputus");
-        xhr.send(JSON.stringify({ data_json: payloadMerged, updated_at: waktuKirim }));
-    }
-});
-
-                        // LANGKAH D: Validasi Status Pengiriman
-            if (response.ok && response.patchResult.length > 0) {
+                await fetch(`${fbUrl}/backup_lms.json${fbAuthParam}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ updated_at: waktuKirim }) });
                 syncSuccess = true;
+            } else {
+                let patchUrl = `${supabaseConfig.url}/rest/v1/backup_lms?id=eq.1`;
+                if (cloudUpdatedAt) patchUrl += `&updated_at=eq.${encodeURIComponent(cloudUpdatedAt)}`;
                 
-                // PERBAIKAN FATAL: Simpan versi GABUNGAN (yang fotonya utuh) ke database lokal HP!
+                let rSupa = await fetch(patchUrl, {
+                    method: 'PATCH',
+                    headers: { 'Content-Type': 'application/json', 'apikey': supabaseConfig.key, 'Authorization': `Bearer ${supabaseConfig.key}`, 'Prefer': 'return=representation' },
+                    body: JSON.stringify({ data_json: payloadMerged, updated_at: waktuKirim })
+                });
+                
+                if (rSupa.ok) {
+                    let patchResult = await rSupa.json();
+                    if (patchResult.length > 0) { syncSuccess = true; } 
+                    else {
+                        let rPost = await fetch(`${supabaseConfig.url}/rest/v1/backup_lms`, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json', 'apikey': supabaseConfig.key, 'Authorization': `Bearer ${supabaseConfig.key}` },
+                            body: JSON.stringify({ id: 1, data_json: payloadMerged, updated_at: waktuKirim })
+                        });
+                        if (rPost.ok) syncSuccess = true; else throw new Error("Gagal POST ke Supabase");
+                    }
+                } else { throw new Error(`Supabase Error HTTP ${rSupa.status}`); }
+            }
+
+            // D. JIKA SUKSES, SIMPAN BALIK KE LOKAL (Agar foto utuh tetap bertahan)
+            if (syncSuccess) {
                 setDB('pondok_santri', santriGabungan);
-                setDB('pondok_users', [...usersGabungan, ...lokalSuperAdmin]);
+                setDB('pondok_users', [...usersGabungan, ...getDB('pondok_users', []).filter(u=>u.role==='superadmin')]);
                 
-                // Sisanya tetap menggunakan payloadMerged
-                setDB('pondok_tombstone_santri', payloadMerged.tombstone_santri);
-                setDB('pondok_absensi', payloadMerged.absensi);
-                // ... (sisanya tetap sama)
+                setDB('pondok_tombstone_santri', payloadMerged.tombstone_santri); setDB('pondok_absensi', payloadMerged.absensi);
+                setDB('pondok_kelas', payloadMerged.kelas); setDB('pondok_master_mapel', payloadMerged.mapel);
+                setDB('pondok_tombstone_mapel', payloadMerged.tombstone_mapel); setDB('pondok_evaluasi', payloadMerged.evaluasi);
+                setDB('pondok_tagihan_denda', payloadMerged.tagihan); setDB('pondok_tabungan', payloadMerged.tabungan);
+                setDB('pondok_izin_aktif', payloadMerged.izin_aktif); setDB('pondok_history_izin', payloadMerged.history_izin);
+                setDB('pondok_jam_kustom', payloadMerged.jam_kustom); setDB('pondok_bank_mapel', payloadMerged.bank_mapel);
+                setDB('pondok_tombstone_kelas', payloadMerged.tombstone_kelas); setDB('pondok_tombstone_users', payloadMerged.tombstone_users);
+                setDB('pondok_tombstone_tagihan', payloadMerged.tombstone_tagihan); setDB('pondok_tombstone_izin_aktif', payloadMerged.tombstone_izin_aktif);
+                setDB('pondok_tombstone_bank_mapel', payloadMerged.tombstone_bank_mapel); setDB('pondok_tombstone_jam_kustom', payloadMerged.tombstone_jam_kustom);
 
-           
-                setDB('pondok_kelas', payloadMerged.kelas);
-                setDB('pondok_master_mapel', payloadMerged.mapel);
-                setDB('pondok_tombstone_mapel', payloadMerged.tombstone_mapel);
-                setDB('pondok_evaluasi', payloadMerged.evaluasi);
-                setDB('pondok_tagihan_denda', payloadMerged.tagihan);
-                setDB('pondok_tabungan', payloadMerged.tabungan);
-                setDB('pondok_izin_aktif', payloadMerged.izin_aktif);
-                setDB('pondok_history_izin', payloadMerged.history_izin);
-                setDB('pondok_jam_kustom', payloadMerged.jam_kustom);
-                setDB('pondok_bank_mapel', payloadMerged.bank_mapel);
-                setDB('pondok_tombstone_kelas', payloadMerged.tombstone_kelas);
-                setDB('pondok_tombstone_users', payloadMerged.tombstone_users);
-                setDB('pondok_tombstone_tagihan', payloadMerged.tombstone_tagihan);
-                setDB('pondok_tombstone_izin_aktif', payloadMerged.tombstone_izin_aktif);
-                setDB('pondok_tombstone_bank_mapel', payloadMerged.tombstone_bank_mapel);
-                setDB('pondok_tombstone_jam_kustom', payloadMerged.tombstone_jam_kustom);
-
-                let lokalSuperAdmin = getDB('pondok_users', []).filter(u => u.role === 'superadmin');
-                let finalUsers = [...payloadMerged.users, ...lokalSuperAdmin];
-                setDB('pondok_users', finalUsers);
-                
                 hapusNotifInternal('absen_unsynced'); 
                 tambahNotifInternal('sync_sukses', 'Sinkronisasi Sukses', 'Semua data berhasil terkirim dan sinkron ke Cloud.', 'fa-check-double', 'success', '');
                 
@@ -5806,110 +5747,76 @@ const response = await new Promise((resolve, reject) => {
                 if (typeof renderTabelDaftarKelas === 'function') renderTabelDaftarKelas();
                 if (typeof renderMasterMapel === 'function') renderMasterMapel();
                 if (typeof renderJamKustom === 'function') renderJamKustom();
-                
-            } else if (response.status === 404 || response.patchResult.length === 0) {
-                if (!cloudUpdatedAt) {
-                    await fetch(`${supabaseConfig.url}/rest/v1/backup_lms`, {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'apikey': supabaseConfig.key,
-                            'Authorization': `Bearer ${supabaseConfig.key}`
-                        },
-                        body: JSON.stringify({ id: 1, data_json: payloadMerged, updated_at: waktuKirim })
-                    });
-                    syncSuccess = true;
-                    tambahNotifInternal('sync_new_sukses', 'Database Baru Dibuat', 'Berhasil membuat wadah sinkronisasi baru di server Cloud.', 'fa-database', 'success', '');
-                } else {
-                    console.warn(`Bentrok pengiriman! Mengulang... (Percobaan ${attempt}/${maxRetries})`);
-                    if (attempt === maxRetries) {
-                        tambahNotifInternal('err_sync_sibuk', 'Sinkronisasi Tertunda', 'Server sedang sibuk memproses perangkat lain, harap coba lagi nanti.', 'fa-clock', 'warning', '');
-                    }
-                }
             }
+
         } catch (err) {
-            console.error(err);
-            tambahNotifInternal('err_sync_net', 'Koneksi Terputus', 'Gagal mengirim data ke server. Silakan periksa koneksi internet.', 'fa-wifi', 'danger', '');
-            break; 
+            console.error("Sync Error:", err);
+            if (attempt >= maxRetries) {
+                tambahNotifInternal('err_sync_net', 'Koneksi Ditolak/Terputus', err.message || 'Gagal mengirim data. Periksa Rules Firebase atau URL.', 'fa-wifi', 'danger', '');
+            }
         }
     }
     
     if (btn) btn.innerHTML = '<i class="fa-solid fa-cloud-arrow-up"></i> KIRIM KE CLOUD';
 }
 
+
 // =========================================================================
 // 2. FUNGSI TARIK DATA DARI CLOUD (DENGAN PERSENTASE DOWNLOAD)
 // =========================================================================
 async function tarikDataDariSupabase() {
-    if (!supabaseConfig.url || !supabaseConfig.key) {
-        tambahNotifInternal('err_pull_config', 'Gagal Tarik Data', 'URL & Key Supabase belum tersedia di menu Database.', 'fa-triangle-exclamation', 'danger', '');
-        return;
+    if (activeCloudProvider === 'firebase') {
+        if (!firebaseConfig.url) return tambahNotifInternal('err_pull_config', 'Gagal', 'URL Firebase belum diisi.', 'fa-triangle-exclamation', 'danger', '');
+    } else {
+        if (!supabaseConfig.url || !supabaseConfig.key) return tambahNotifInternal('err_pull_config', 'Gagal', 'URL & Key Supabase belum diisi.', 'fa-triangle-exclamation', 'danger', '');
     }
     
     const btn = document.getElementById('btn-pull-cloud');
     if (btn) btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> MEMULAI UNDUHAN...';
 
     try {
-        // Eksekusi XMLHttpRequest untuk melacak progress % Download
-        const rows = await new Promise((resolve, reject) => {
-           const xhr = new XMLHttpRequest();
+        let data = null;
+        
+        if (activeCloudProvider === 'firebase') {
+            let fbUrl = (firebaseConfig.url || "").trim().replace(/\/+$/, '');
+            if (fbUrl && !fbUrl.startsWith('http')) fbUrl = 'https://' + fbUrl;
+            let fbKey = (firebaseConfig.key || "").trim();
+            let fbAuthParam = fbKey ? `?auth=${fbKey}` : "";
 
-if (activeCloudProvider === 'firebase') {
-    xhr.open('GET', `${firebaseConfig.url}/backup_lms.json?auth=${firebaseConfig.key}`, true);
-} else {
-    xhr.open('GET', `${supabaseConfig.url}/rest/v1/backup_lms?id=eq.1&select=data_json`, true);
-    xhr.setRequestHeader('apikey', supabaseConfig.key);
-    xhr.setRequestHeader('Authorization', `Bearer ${supabaseConfig.key}`);
-}
+            const response = await fetch(`${fbUrl}/backup_lms.json${fbAuthParam}`);
+            if (!response.ok) throw new Error(`HTTP Error: ${response.status}`);
             
-
-           xhr.onload = () => {
-    if (xhr.status >= 200 && xhr.status < 300) {
-        let result = JSON.parse(xhr.responseText || "{}");
-        // Normalisasi format balikan Firebase agar mirip array Supabase
-        if (activeCloudProvider === 'firebase' && result.data_json) {
-            resolve([result]);
+            let result = await response.json() || {};
+            data = result.data_json || null;
         } else {
-            resolve(result); // Supabase sudah berbentuk Array
-        }
-    } else {
-        reject("Error " + xhr.status);
-    }
-};
-            
-            xhr.onerror = () => reject("Koneksi terputus");
-            xhr.send();
-        });
-        
-        if (rows && rows.length > 0 && rows[0].data_json) {
-            const data = rows[0].data_json;
-            
-            if (btn) btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> MEMPROSES INSTALASI LOKAL...`;
-            
-                    let daftarTugas = [];
-        
-        if (data.santri) {
-                        // PENYELAMAT FOTO: Gabungkan kembali foto lokal ke data yang baru ditarik dari Cloud
-            let santriLokal = getDB('pondok_santri', []);
-            let santriUtuh = data.santri.map(sCloud => {
-                let sLokal = santriLokal.find(x => x.id === sCloud.id);
-                let fotoCloudAda = (sCloud.foto && sCloud.foto.length > 100 && sCloud.foto !== 'https://cdn-icons-png.flaticon.com/512/847/847969.png');
-                
-                // Jika data dari Cloud TIDAK bawa foto (misal ditarik dari Firebase), maka selamatkan foto lokal
-                if (!fotoCloudAda) {
-                    if (sLokal && sLokal.foto && sLokal.foto.length > 100) {
-                        sCloud.foto = sLokal.foto; // Kembalikan foto dari cache lokal HP
-                    } else {
-                        sCloud.foto = 'https://cdn-icons-png.flaticon.com/512/847/847969.png';
-                    }
-                }
-                return sCloud;
+            const response = await fetch(`${supabaseConfig.url}/rest/v1/backup_lms?id=eq.1&select=data_json`, {
+                headers: { 'apikey': supabaseConfig.key, 'Authorization': `Bearer ${supabaseConfig.key}` }
             });
-            daftarTugas.push({ key: 'pondok_santri', val: santriUtuh });
-
+            if (!response.ok) throw new Error(`HTTP Error: ${response.status}`);
+            let rows = await response.json() || [];
+            if (rows.length > 0) data = rows[0].data_json;
         }
-        if (data.tombstone_santri) daftarTugas.push({ key: 'pondok_tombstone_santri', val: data.tombstone_santri });
+        
+        if (data) {
+            if (btn) btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> MEMPROSES INSTALASI LOKAL...`;
+            let daftarTugas = [];
+        
+            if (data.santri) {
+                let santriLokal = getDB('pondok_santri', []);
+                let santriUtuh = data.santri.map(sCloud => {
+                    let sLokal = santriLokal.find(x => x.id === sCloud.id);
+                    let fotoCloudAda = (sCloud.foto && sCloud.foto.length > 100 && sCloud.foto !== 'https://cdn-icons-png.flaticon.com/512/847/847969.png');
+                    
+                    if (!fotoCloudAda) {
+                        if (sLokal && sLokal.foto && sLokal.foto.length > 100) sCloud.foto = sLokal.foto; 
+                        else sCloud.foto = 'https://cdn-icons-png.flaticon.com/512/847/847969.png';
+                    }
+                    return sCloud;
+                });
+                daftarTugas.push({ key: 'pondok_santri', val: santriUtuh });
+            }
 
+            if (data.tombstone_santri) daftarTugas.push({ key: 'pondok_tombstone_santri', val: data.tombstone_santri });
             if (data.absensi) daftarTugas.push({ key: 'pondok_absensi', val: data.absensi });
             if (data.kelas) daftarTugas.push({ key: 'pondok_kelas', val: data.kelas });
             if (data.mapel) daftarTugas.push({ key: 'pondok_master_mapel', val: data.mapel });
@@ -5920,15 +5827,16 @@ if (activeCloudProvider === 'firebase') {
             if (data.history_izin) daftarTugas.push({ key: 'pondok_history_izin', val: data.history_izin });
             if (data.jam_kustom) daftarTugas.push({ key: 'pondok_jam_kustom', val: data.jam_kustom });
             if (data.bank_mapel) daftarTugas.push({ key: 'pondok_bank_mapel', val: data.bank_mapel });
+            
             if (data.yayasan) {
                 let lokalYayasan = getDB('pondok_yayasan', {});
-                // Gabungkan, tapi pertahankan aset berat lokal jika di Cloud kosong akibat dipangkas
                 let mergedYayasan = { ...lokalYayasan, ...data.yayasan };
                 if (lokalYayasan.bg_login && !data.yayasan.bg_login) mergedYayasan.bg_login = lokalYayasan.bg_login;
                 if (lokalYayasan.bg_idcard && !data.yayasan.bg_idcard) mergedYayasan.bg_idcard = lokalYayasan.bg_idcard;
                 if (lokalYayasan.wallpaper_slides && !data.yayasan.wallpaper_slides) mergedYayasan.wallpaper_slides = lokalYayasan.wallpaper_slides;
                 daftarTugas.push({ key: 'pondok_yayasan', val: mergedYayasan });
             }
+            
             if (data.akses) daftarTugas.push({ key: 'pondok_akses', val: data.akses });
             if (data.gps) daftarTugas.push({ key: 'pondok_gps', val: data.gps });
             if (data.setting_keuangan) daftarTugas.push({ key: 'pondok_setting_keuangan', val: data.setting_keuangan });
@@ -5943,50 +5851,32 @@ if (activeCloudProvider === 'firebase') {
                 let lokalUsers = getDB('pondok_users', []);
                 let cloudUsersBersih = data.users.filter(u => u.role !== 'superadmin').map(uCloud => {
                     let uLokal = lokalUsers.find(x => x.username === uCloud.username);
-                    // Selamatkan foto pegawai lokal
-                    if (uLokal && uLokal.foto && uLokal.foto.length > 100) {
-                        uCloud.foto = uLokal.foto; 
-                    } else if (!uCloud.foto) {
-                        uCloud.foto = 'https://cdn-icons-png.flaticon.com/512/149/149071.png';
-                    }
+                    if (uLokal && uLokal.foto && uLokal.foto.length > 100) uCloud.foto = uLokal.foto; 
+                    else if (!uCloud.foto) uCloud.foto = 'https://cdn-icons-png.flaticon.com/512/149/149071.png';
                     return uCloud;
                 });
-                let lokalSuperAdmin = lokalUsers.filter(u => u.role === 'superadmin');
-                let finalPulledUsers = [...cloudUsersBersih, ...lokalSuperAdmin];
+                let finalPulledUsers = [...cloudUsersBersih, ...lokalUsers.filter(u => u.role === 'superadmin')];
                 daftarTugas.push({ key: 'pondok_users', val: finalPulledUsers });
             }
                 
-
-            let operasiSimpan = daftarTugas.map(tugas => {
-                return setDB(tugas.key, tugas.val);
-            });
-
+            let operasiSimpan = daftarTugas.map(tugas => setDB(tugas.key, tugas.val));
             await Promise.all(operasiSimpan);
 
             if (btn) btn.innerHTML = `<i class="fa-solid fa-check"></i> TARIK DATA SELESAI`;
-
-            tambahNotifInternal(
-                'pull_sukses_' + Date.now(), 
-                'Berhasil Menarik Data', 
-                'Sistem akan memuat ulang sebentar lagi.', 
-                'fa-cloud-arrow-down', 
-                'primary', 
-                ''
-            );
+            tambahNotifInternal('pull_sukses_' + Date.now(), 'Berhasil Menarik Data', 'Sistem akan memuat ulang sebentar lagi.', 'fa-cloud-arrow-down', 'primary', '');
             renderNotifInternal();
             
-            setTimeout(() => {
-                location.reload();
-            }, 1000);
+            setTimeout(() => location.reload(), 1000);
         } else {
-            tambahNotifInternal('err_pull_kosong', 'Database Kosong', 'Belum ada data cadangan tersimpan di server Supabase.', 'fa-folder-open', 'warning', '');
+            tambahNotifInternal('err_pull_kosong', 'Database Kosong', 'Belum ada data cadangan tersimpan di server Cloud.', 'fa-folder-open', 'warning', '');
             if (btn) btn.innerHTML = '<i class="fa-solid fa-triangle-exclamation"></i> TARIK DARI CLOUD';
         }
     } catch (err) {
-        tambahNotifInternal('err_pull_net', 'Koneksi Terputus', 'Gagal menarik data dari server. Periksa jaringan internet.', 'fa-wifi', 'danger', '');
+        tambahNotifInternal('err_pull_net', 'Koneksi Ditolak', err.message || 'Gagal menarik data. Periksa Rules Firebase/URL.', 'fa-wifi', 'danger', '');
         if (btn) btn.innerHTML = '<i class="fa-solid fa-triangle-exclamation"></i> TARIK DARI CLOUD';
     }
 }
+
 // =========================================================================
 // 3. FUNGSI SINKRONISASI KHUSUS FOTO (FIREBASE)
 // =========================================================================
