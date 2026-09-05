@@ -1861,8 +1861,8 @@ let activeCloudProvider = getDB('pondok_active_cloud_provider', 'supabase'); // 
         if (typeof QRCode === 'undefined') { const qs = document.createElement('script'); qs.src = "https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"; document.body.appendChild(qs); }
         if (typeof Html5Qrcode === 'undefined') { const hs = document.createElement('script'); hs.src = "https://unpkg.com/html5-qrcode"; document.body.appendChild(hs); }
         if (typeof JsBarcode === 'undefined') { const jsb = document.createElement('script'); jsb.src = "https://cdn.jsdelivr.net/npm/jsbarcode@3.11.5/dist/JsBarcode.all.min.js"; document.body.appendChild(jsb); }
-
-    }
+if (typeof jsQR === 'undefined') { const jsq = document.createElement('script'); jsq.src = "https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js"; document.body.appendChild(jsq); }
+}
 
     let currentUser = null, html5QrcodeScanner = null, scannerLoginData = null, scannerIzin = null;
     let modeScannerIzinAktif = 'keluar';
