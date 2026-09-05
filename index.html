@@ -5679,32 +5679,60 @@ async function sinkronisasiKeCloud() {
 const response = await new Promise((resolve, reject) => {
     const xhr = new XMLHttpRequest();
     
-    if (activeCloudProvider === 'firebase') {
-        // --- LOGIKA API FIREBASE ---
-        // Firebase menyimpan di endpoint /backup_lms.json
-        const firebaseUrl = `${firebaseConfig.url}/backup_lms.json?auth=${firebaseConfig.key}`;
-        xhr.open('PUT', firebaseUrl, true); // Menggunakan PUT untuk overwrite seluruh object JSON
-        xhr.setRequestHeader('Content-Type', 'application/json');
-        
-        xhr.upload.onprogress = (event) => {
-            if (event.lengthComputable) {
-                let persen = Math.round((event.loaded / event.total) * 100);
-                if (btn) btn.innerHTML = `<i class="fa-solid fa-cloud-arrow-up"></i> MENGUNGGAH (${persen}%)`;
+        if (activeCloudProvider === 'firebase') {
+        // --- PERBAIKAN LOGIKA FIREBASE (TEKNIK CHUNKING & PATCH) ---
+        const firebaseUrl = `${firebaseConfig.url}/backup_lms/data_json.json?auth=${firebaseConfig.key}`;
+
+        // Menggunakan async IIFE agar bisa meniru metode Fetch API seperti pada Foto
+        (async () => {
+            try {
+                // 1. Pecah payload raksasa menjadi 4 bagian agar koneksi tidak terputus (Timeout)
+                if (btn) btn.innerHTML = `<i class="fa-solid fa-cloud-arrow-up"></i> MENGUNGGAH MASTER...`;
+                await fetch(firebaseUrl, { 
+                    method: 'PATCH', headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ yayasan: payloadMerged.yayasan, kelas: payloadMerged.kelas, mapel: payloadMerged.mapel, users: payloadMerged.users })
+                });
+
+                if (btn) btn.innerHTML = `<i class="fa-solid fa-cloud-arrow-up"></i> MENGUNGGAH DATA SANTRI...`;
+                await fetch(firebaseUrl, { 
+                    method: 'PATCH', headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ santri: payloadMerged.santri })
+                });
+
+                if (btn) btn.innerHTML = `<i class="fa-solid fa-cloud-arrow-up"></i> MENGUNGGAH ABSENSI...`;
+                await fetch(firebaseUrl, { 
+                    method: 'PATCH', headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ absensi: payloadMerged.absensi, evaluasi: payloadMerged.evaluasi })
+                });
+
+                if (btn) btn.innerHTML = `<i class="fa-solid fa-cloud-arrow-up"></i> MENGUNGGAH LAINNYA...`;
+                await fetch(firebaseUrl, { 
+                    method: 'PATCH', headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ 
+                        tagihan: payloadMerged.tagihan, 
+                        tabungan: payloadMerged.tabungan, 
+                        history_izin: payloadMerged.history_izin, 
+                        izin_aktif: payloadMerged.izin_aktif,
+                        // Tombstones disertakan di tahap akhir
+                        tombstone_santri: payloadMerged.tombstone_santri,
+                        tombstone_kelas: payloadMerged.tombstone_kelas
+                    })
+                });
+
+                // Update Waktu Terakhir Sinkronisasi di Root Node
+                await fetch(`${firebaseConfig.url}/backup_lms.json?auth=${firebaseConfig.key}`, {
+                    method: 'PATCH', headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ updated_at: waktuKirim })
+                });
+
+                resolve({ ok: true, status: 200, patchResult: [{ success: true }] });
+            } catch (err) {
+                // Menangkap error jika internet benar-benar putus
+                reject("Koneksi terputus: " + err.message);
             }
-        };
-
-        xhr.onload = () => {
-            if (xhr.status >= 200 && xhr.status < 300) {
-                // Firebase mereturn objek yang sama saat sukses PUT
-                resolve({ ok: true, status: xhr.status, patchResult: [JSON.parse(xhr.responseText || "{}")] });
-            } else { resolve({ ok: false, status: xhr.status, patchResult: [] }); }
-        };
-        
-        xhr.onerror = () => reject("Koneksi terputus");
-        // Firebase tidak memerlukan format 'id', cukup lempar payload-nya
-        xhr.send(JSON.stringify({ data_json: payloadMerged, updated_at: waktuKirim }));
-
+        })();
     } else {
+
         // --- LOGIKA API SUPABASE (TETAP SAMA SEPERTI ASLINYA) ---
         let patchUrl = `${supabaseConfig.url}/rest/v1/backup_lms?id=eq.1`;
         if (cloudUpdatedAt) patchUrl += `&updated_at=eq.${encodeURIComponent(cloudUpdatedAt)}`;
