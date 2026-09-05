@@ -1368,17 +1368,30 @@
         </div>
     </div>
 
-    <!-- Form Tambah/Edit Santri Khusus Wali -->
+            <!-- Form Tambah/Edit Santri Khusus Wali -->
     <div class="card hidden" id="form-santri-wali-card" style="border:2px dashed var(--success);">
-        <h3 id="form-santri-wali-title" style="margin-bottom: 14px; color: var(--primary);">Formulir Data Santri Kelas</h3>
+        <h3 id="form-santri-wali-title" style="margin-bottom: 14px; color: var(--primary);">Tarik Santri ke Kelas</h3>
         <input type="hidden" id="wali-edit-id-santri">
-        <label>Nama Lengkap</label><input type="text" id="wali-input-nama" placeholder="Ketik nama santri...">
-        <label>Kamar / Asrama</label><input type="text" id="wali-input-kamar" placeholder="Cth: Blok A-01">
+        
+        <!-- Kolom Pencarian Santri Baru -->
+        <label>Cari Nama / NIS Santri</label>
+        <div style="position: relative; margin-bottom: 8px;">
+            <i class="fa-solid fa-magnifying-glass" style="position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: #888;"></i>
+            <input type="text" id="search-santri-wali" onkeyup="filterDropdownSantriWali()" placeholder="Ketik nama atau NIS santri..." style="margin:0; padding: 10px 15px 10px 38px; border-radius: 12px; border: 1px solid #ccc; font-size: 0.85rem; width: 100%;">
+        </div>
+
+        <label>Pilih dari Hasil Pencarian</label>
+        <select id="wali-pilih-santri-exist" style="margin-bottom: 14px;">
+            <option value="">-- Pilih Santri --</option>
+        </select>
+        
         <div style="display:flex; gap:10px; margin-top:10px;">
              <button class="btn-outline" style="flex:1; justify-content:center; margin:0; border-color:var(--danger); color:var(--danger);" onclick="document.getElementById('form-santri-wali-card').classList.add('hidden')">Batal</button>
-             <button class="btn-primary" style="flex:1; margin:0; background:var(--success);" onclick="simpanSantriWali()"><i class="fa-solid fa-save"></i> Simpan Data</button>
+             <button class="btn-primary" style="flex:1; margin:0; background:var(--success);" onclick="simpanSantriWaliKeKelas()"><i class="fa-solid fa-save"></i> Tambahkan</button>
         </div>
     </div>
+
+
 </div>
 
         </div> 
@@ -7537,6 +7550,171 @@ function cariDataSantri() {
             baris.style.display = "none";
         }
     });
+}
+// ==========================================
+// FUNGSI PERBAIKAN: DROPDOWN KELAS DI PENDAFTARAN SANTRI
+// ==========================================
+function renderDropdownKelasSantri() {
+    const dropdown = document.getElementById('input-kelas-santri');
+    if (!dropdown) return;
+    
+    dropdown.innerHTML = '<option value="">-- Tanpa Kelas / Pilih Nanti --</option>';
+    const listKelas = getDB('pondok_kelas', []);
+    
+    listKelas.forEach(k => {
+        dropdown.innerHTML += `<option value="${k.id}">${k.nama}</option>`;
+    });
+}
+
+// ==========================================
+// FUNGSI PERBAIKAN: LOGIKA WALI KELAS (TARIK SANTRI)
+// ==========================================
+function initWaliKelasView() {
+    const dropdownKelas = document.getElementById('walikelas-pilih-kelas');
+    if(!dropdownKelas) return;
+    
+    dropdownKelas.innerHTML = '';
+    const dbKelas = getDB('pondok_kelas', []);
+    
+    // Filter kelas berdasarkan wali (Superadmin/Admin bisa lihat semua)
+    let kelasSaya = dbKelas.filter(k => k.wali_kelas === currentUser.nama);
+    if (currentUser && (currentUser.role === 'superadmin' || currentUser.role === 'admin')) {
+        kelasSaya = dbKelas; 
+    }
+
+    if (kelasSaya.length === 0) {
+        dropdownKelas.innerHTML = '<option value="">-- Anda tidak memiliki kelas binaan --</option>';
+    } else {
+        kelasSaya.forEach(k => {
+            dropdownKelas.innerHTML += `<option value="${k.id}">${k.nama}</option>`;
+        });
+    }
+    renderTabelSantriWali();
+}
+
+function renderTabelSantriWali() {
+    const idKelas = document.getElementById('walikelas-pilih-kelas').value;
+    const tbody = document.getElementById('tabel-santri-wali-body');
+    if (!tbody) return;
+    tbody.innerHTML = '';
+    
+    if (!idKelas) {
+        tbody.innerHTML = '<tr><td colspan="3" align="center">Silakan pilih kelas terlebih dahulu.</td></tr>';
+        return;
+    }
+
+    const dbKelas = getDB('pondok_kelas', []);
+    const klsObj = dbKelas.find(k => k.id == idKelas);
+    const dbSantri = getDB('pondok_santri', []).filter(s => !s.is_alumni);
+    
+    if (!klsObj || !klsObj.santri_ids || klsObj.santri_ids.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="3" align="center">Belum ada santri di kelas ini.</td></tr>';
+        return;
+    }
+
+    const santriDiKelas = dbSantri.filter(s => klsObj.santri_ids.includes(s.id));
+    
+    santriDiKelas.forEach(s => {
+        tbody.innerHTML += `<tr>
+            <td><strong>${s.nis}</strong><br><span style="font-size:0.65rem; color:var(--text-muted);">${s.kamar || '-'}</span></td>
+            <td>${s.nama}</td>
+            <td>
+                <button class="btn-danger" style="margin:0; padding:6px 10px; font-size:0.7rem;" onclick="keluarkanSantriDariKelasWali(${klsObj.id}, ${s.id}, '${s.nama}')"><i class="fa-solid fa-user-minus"></i> Keluarkan</button>
+            </td>
+        </tr>`;
+    });
+}
+
+function bukaFormTambahSantriWali() {
+    const idKelas = document.getElementById('walikelas-pilih-kelas').value;
+    if (!idKelas) return alert("Pilih kelas terlebih dahulu di bagian atas!");
+    
+    // Reset kolom pencarian setiap kali form dibuka
+    const inputCari = document.getElementById('search-santri-wali');
+    if (inputCari) inputCari.value = '';
+
+    // Muat data santri awal
+    muatOpsiDropdownSantriWali("");
+    document.getElementById('form-santri-wali-card').classList.remove('hidden');
+}
+
+function muatOpsiDropdownSantriWali(keyword = "") {
+    const idKelas = document.getElementById('walikelas-pilih-kelas').value;
+    const dbKelas = getDB('pondok_kelas', []);
+    const klsObj = dbKelas.find(k => k.id == idKelas);
+    const santriSudahDiKelas = klsObj ? (klsObj.santri_ids || []) : [];
+
+    const dropdownSantri = document.getElementById('wali-pilih-santri-exist');
+    dropdownSantri.innerHTML = '<option value="">-- Pilih Santri --</option>';
+    
+    const dbSantri = getDB('pondok_santri', []).filter(s => !s.is_alumni);
+    const keywordLower = keyword.toLowerCase();
+    
+    let counterTampil = 0;
+    
+    dbSantri.forEach(s => {
+        // Hanya tampilkan jika belum di kelas ini dan cocok dengan pencarian (Nama atau NIS)
+        if (!santriSudahDiKelas.includes(s.id)) {
+            const cocok = s.nama.toLowerCase().includes(keywordLower) || s.nis.toLowerCase().includes(keywordLower) || (s.kamar && s.kamar.toLowerCase().includes(keywordLower));
+            
+            // Batasi tampil maksimal 50 data sekaligus agar browser tidak lag/berat jika ribuan santri
+            if (cocok && counterTampil < 50) {
+                dropdownSantri.innerHTML += `<option value="${s.id}">[${s.nis}] ${s.nama} (${s.kamar || 'Tanpa Kamar'})</option>`;
+                counterTampil++;
+            }
+        }
+    });
+
+    if (counterTampil === 0) {
+        dropdownSantri.innerHTML = '<option value="">-- Santri tidak ditemukan --</option>';
+    }
+}
+
+function filterDropdownSantriWali() {
+    const keyword = document.getElementById('search-santri-wali').value;
+    muatOpsiDropdownSantriWali(keyword);
+}
+
+
+function simpanSantriWaliKeKelas() {
+    const idKelas = document.getElementById('walikelas-pilih-kelas').value;
+    const idSantri = parseInt(document.getElementById('wali-pilih-santri-exist').value);
+    
+    if (!idKelas) return alert("Kelas belum dipilih!");
+    if (!idSantri) return alert("Pilih santri terlebih dahulu dari dropdown!");
+
+    let dbKelas = getDB('pondok_kelas', []);
+    let klsIdx = dbKelas.findIndex(k => k.id == idKelas);
+    
+    if (klsIdx > -1) {
+        if (!dbKelas[klsIdx].santri_ids) dbKelas[klsIdx].santri_ids = [];
+        
+        if (!dbKelas[klsIdx].santri_ids.includes(idSantri)) {
+            dbKelas[klsIdx].santri_ids.push(idSantri);
+            setDB('pondok_kelas', dbKelas);
+            
+            alert("Santri berhasil ditarik masuk ke dalam kelas Anda!");
+            document.getElementById('form-santri-wali-card').classList.add('hidden');
+            renderTabelSantriWali();
+            renderTabelDaftarKelas(); 
+        } else {
+            alert("Santri tersebut sudah ada di kelas ini!");
+        }
+    }
+}
+
+function keluarkanSantriDariKelasWali(idKelas, idSantri, namaSantri) {
+    if (!confirm(`Keluarkan "${namaSantri}" dari kelas ini? (Data aslinya tetap aman di database)`)) return;
+    
+    let dbKelas = getDB('pondok_kelas', []);
+    let klsIdx = dbKelas.findIndex(k => k.id == idKelas);
+    
+    if (klsIdx > -1) {
+        dbKelas[klsIdx].santri_ids = dbKelas[klsIdx].santri_ids.filter(id => id !== idSantri);
+        setDB('pondok_kelas', dbKelas);
+        renderTabelSantriWali();
+        renderTabelDaftarKelas();
+    }
 }
 
 function hapusSantriWali(idSantri) {
