@@ -3209,7 +3209,7 @@ function registerServiceWorker() {
         cardSupabase.style.display = 'none'; 
     }
 }
-
+aturTampilanTombolSync(); // <-- Panggil di sini saat menu database baru dibuka
     }
 
     function loadIdentitasApp() {
@@ -5388,8 +5388,11 @@ function batalEditPengguna() {
             url: document.getElementById('setting-firebase-url').value.trim(), 
             key: document.getElementById('setting-firebase-key').value.trim() 
         };
+        // ... (isi kode sebelumnya)
         setDB('pondok_firebase_config', firebaseConfig);
     }
+    
+    aturTampilanTombolSync(); // <-- Panggil di sini agar UI berubah instan
     alert(`Konfigurasi server ${activeCloudProvider.toUpperCase()} berhasil disimpan!`);
 }
 
@@ -5621,33 +5624,32 @@ async function sinkronisasiKeCloud() {
 
                     // Ekstrak santri, lalu HAPUS foto dari payload agar JSON tidak membengkak
                 // 1. Bersihkan Foto dari Data Santri
+                // 1. Ambil Data Gabungan (Utuh beserta foto)
         let santriGabungan = gabungDataArray(getDB('pondok_santri', []), dataCloud.santri, 'id').filter(x => !t_santri.includes(x.id));
-        let santriTanpaFoto = santriGabungan.map(s => {
-            let temp = { ...s };
-            delete temp.foto; // Cegah masuk ke payload
-            return temp;
-        });
-
-        // 2. Bersihkan Foto dari Data Pegawai/Users
         let usersLokalAsli = getDB('pondok_users', []).filter(u => u.role !== 'superadmin');
         let usersGabungan = gabungDataArray(usersLokalAsli, dataCloud.users, 'username').filter(x => !t_users.includes(x.username));
-        let usersTanpaFoto = usersGabungan.map(u => {
-            let temp = { ...u };
-            delete temp.foto; // Cegah masuk ke payload
-            return temp;
-        });
+
+        let santriPayload = santriGabungan;
+        let usersPayload = usersGabungan;
+
+        // 2. JIKA FIREBASE: Hapus foto HANYA dari payload agar upload teks tidak berat
+        if (activeCloudProvider === 'firebase') {
+            santriPayload = santriGabungan.map(s => { let temp = { ...s }; delete temp.foto; return temp; });
+            usersPayload = usersGabungan.map(u => { let temp = { ...u }; delete temp.foto; return temp; });
+        }
 
         // 3. Bersihkan Wallpaper & Gambar Besar dari Data Yayasan
         let yayasanBersih = getDB('pondok_yayasan', {});
         delete yayasanBersih.bg_login;
         delete yayasanBersih.bg_idcard;
         delete yayasanBersih.wallpaper_slides; 
-        // Catatan: Logo & Ttd dibiarkan karena ukurannya kecil (KB), tapi wallpaper (MB) dimatikan.
 
         const payloadMerged = {
-            santri: santriTanpaFoto,
-            users: usersTanpaFoto,
+            santri: santriPayload,
+            users: usersPayload,
             yayasan: yayasanBersih,
+            // (Lanjutkan dengan baris mapel, kelas, dll seperti di kode asli Anda)
+
             mapel: gabungDataArray(getDB('pondok_master_mapel', []), dataCloud.mapel, 'id').filter(x => !t_mapel.includes(x.id)),
             kelas: gabungDataArray(getDB('pondok_kelas', []), dataCloud.kelas, 'id').filter(x => !t_kelas.includes(x.id)),
             tagihan: gabungDataArray(getDB('pondok_tagihan_denda', []), dataCloud.tagihan, 'id_tagihan').filter(x => !t_tagihan.includes(x.id_tagihan)),
@@ -5762,13 +5764,20 @@ const response = await new Promise((resolve, reject) => {
     }
 });
 
-            // LANGKAH D: Validasi Status Pengiriman
+                        // LANGKAH D: Validasi Status Pengiriman
             if (response.ok && response.patchResult.length > 0) {
                 syncSuccess = true;
                 
-                setDB('pondok_santri', payloadMerged.santri);
+                // PERBAIKAN FATAL: Simpan versi GABUNGAN (yang fotonya utuh) ke database lokal HP!
+                setDB('pondok_santri', santriGabungan);
+                setDB('pondok_users', [...usersGabungan, ...lokalSuperAdmin]);
+                
+                // Sisanya tetap menggunakan payloadMerged
                 setDB('pondok_tombstone_santri', payloadMerged.tombstone_santri);
                 setDB('pondok_absensi', payloadMerged.absensi);
+                // ... (sisanya tetap sama)
+
+           
                 setDB('pondok_kelas', payloadMerged.kelas);
                 setDB('pondok_master_mapel', payloadMerged.mapel);
                 setDB('pondok_tombstone_mapel', payloadMerged.tombstone_mapel);
@@ -5880,18 +5889,24 @@ if (activeCloudProvider === 'firebase') {
                     let daftarTugas = [];
         
         if (data.santri) {
-            // PENYELAMAT FOTO: Gabungkan kembali foto lokal ke data teks yang baru ditarik dari Cloud
+                        // PENYELAMAT FOTO: Gabungkan kembali foto lokal ke data yang baru ditarik dari Cloud
             let santriLokal = getDB('pondok_santri', []);
             let santriUtuh = data.santri.map(sCloud => {
                 let sLokal = santriLokal.find(x => x.id === sCloud.id);
-                if (sLokal && sLokal.foto && sLokal.foto.length > 100) {
-                    sCloud.foto = sLokal.foto; // Kembalikan foto dari cache lokal HP
-                } else if (!sCloud.foto) {
-                    sCloud.foto = 'https://cdn-icons-png.flaticon.com/512/847/847969.png';
+                let fotoCloudAda = (sCloud.foto && sCloud.foto.length > 100 && sCloud.foto !== 'https://cdn-icons-png.flaticon.com/512/847/847969.png');
+                
+                // Jika data dari Cloud TIDAK bawa foto (misal ditarik dari Firebase), maka selamatkan foto lokal
+                if (!fotoCloudAda) {
+                    if (sLokal && sLokal.foto && sLokal.foto.length > 100) {
+                        sCloud.foto = sLokal.foto; // Kembalikan foto dari cache lokal HP
+                    } else {
+                        sCloud.foto = 'https://cdn-icons-png.flaticon.com/512/847/847969.png';
+                    }
                 }
                 return sCloud;
             });
             daftarTugas.push({ key: 'pondok_santri', val: santriUtuh });
+
         }
         if (data.tombstone_santri) daftarTugas.push({ key: 'pondok_tombstone_santri', val: data.tombstone_santri });
 
@@ -7548,6 +7563,29 @@ function hapusNotifInternal(id) {
     listNotif = listNotif.filter(n => n.id !== id);
     setDB('pondok_notifikasi', listNotif);
     renderNotifInternal();
+}
+function aturTampilanTombolSync() {
+    const provider = getDB('pondok_active_cloud_provider', 'supabase');
+    const btnSyncFoto = document.getElementById('btn-sync-foto');
+    
+    // Mencari tag <p> yang merupakan label teks "Sinkronisasi Berat"
+    const pElements = document.querySelectorAll('#view-database p');
+    let labelFoto = null;
+    pElements.forEach(p => { if(p.innerText.includes('Sinkronisasi Berat')) labelFoto = p; });
+
+    if (provider === 'supabase') {
+        // Tampilan 1 Tombol untuk Supabase
+        document.getElementById('btn-sync-cloud').innerHTML = '<i class="fa-solid fa-cloud-arrow-up"></i> SINKRON CLOUD (FULL)';
+        document.getElementById('btn-pull-cloud').innerHTML = '<i class="fa-solid fa-cloud-arrow-down"></i> TARIK CLOUD (FULL)';
+        if(btnSyncFoto) btnSyncFoto.style.display = 'none';
+        if(labelFoto) labelFoto.style.display = 'none';
+    } else {
+        // Tampilan 2 Tombol untuk Firebase
+        document.getElementById('btn-sync-cloud').innerHTML = '<i class="fa-solid fa-cloud-arrow-up"></i> KIRIM TEKS';
+        document.getElementById('btn-pull-cloud').innerHTML = '<i class="fa-solid fa-cloud-arrow-down"></i> TARIK TEKS';
+        if(btnSyncFoto) btnSyncFoto.style.display = 'block';
+        if(labelFoto) labelFoto.style.display = 'block';
+    }
 }
 
 function bersihkanNotifInternal() {
